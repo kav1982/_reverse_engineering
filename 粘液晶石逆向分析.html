@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粘液晶石（Spell3004 / MucusCrystal）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 420px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 200px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  .slots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: .3em 0 .8em; font-size: .92rem; }
+  .chip {
+    padding: 2px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: Consolas, "Sarasa Mono SC", monospace;
+    font-size: .85rem;
+  }
+  .chip.en { border-color: #6b3fa0; color: #6b3fa0; background: #f7f2fc; }
+  .chip.sp { border-color: #3d6b8b; color: #2a5470; background: #eef5f8; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>粘液晶石（Spell3004 / MucusCrystal）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「粘液晶石」（<code>abilityType = 3004</code>，配置 ID <code>30041–30043</code>）。重点是<strong>法术侧怎么合成一包粘液数据</strong>，以及<strong>命中后 <code>SetMucus</code> 怎么覆盖</strong>。</p>
+    <p>不展开敌人史莱姆弹、药水免疫、地上粘液怪。共享「元素附着」管线写在第 5 节，不逐条展开冰冻 / 毒 / 燃烧。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 基本一致，时长取法不同，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》，子弹整包继承元素见《分裂逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">谁吃得到这张卡</a></li>
+    <li><a href="#s4">主路径与边界</a></li>
+    <li><a href="#s5">共享元素附着管线</a></li>
+    <li><a href="#s6">算例</a></li>
+    <li><a href="#s7">Mono 残留轨对照</a></li>
+    <li><a href="#s8">证据索引</a></li>
+    <li><a href="#s9">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>粘液晶石</td></tr>
+  <tr><td>英文名</td><td>Slime Crystal</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3004</code> / <code>SpellAbilityType.MucusCrystal</code></td></tr>
+  <tr><td>配置 ID</td><td><code>30041</code>（Lv1）/ <code>30042</code>（Lv2）/ <code>30043</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>6 / 18 / 54</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤<strong>左侧</strong>的元素附着符文。发射时把时长和两个速度系数烘焙进 <code>SpellElementEffectComponentData</code>；命中且伤害 &gt; 0 时调用 <code>SetMucus</code>：减速 + 让目标自己射出的法术变慢。没有独立 <code>Spell3004*System</code>。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">时长取 Max · 两系数连乘</div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 Element.Mucus*</div>
+    <div class="arrow">↓</div>
+    <div class="dia">命中且 damage&gt;0？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">整包元素都不挂</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="dia">免疫 / 无敌？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="arrow">↓</div>
+            <div class="box end">不挂</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="arrow">↓</div>
+            <div class="box ok">SetMucus</div>
+            <div class="arrow">↓</div>
+            <div class="box">时长：新&gt;剩余才刷新</div>
+            <div class="arrow">↓</div>
+            <div class="box">两系数：覆盖并钳到 0~1</div>
+            <div class="arrow">↓</div>
+            <div class="box">染色 · 脚底特效 · 倒计时</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7130041–7130043</code>）：</p>
+<div class="quote">法术命中单位后使其在 <strong>float1</strong> 秒内移动速度×<strong>float2</strong>% 且施放的法术飞行速度×<strong>float3</strong>%</div>
+<p>名称（<code>7030041–7030043</code>）：粘液晶石 / Slime Crystal。三级名称相同，只有三个 <code>float</code> 不同。底部补充（<code>7230041</code>）见第 5 节。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1 持续秒</th><th>float2 移速×%</th><th>float3 飞行速度×%</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>30041</td><td>1</td><td><strong>3</strong></td><td><strong>60</strong></td><td><strong>70</strong></td><td>6</td><td>true</td></tr>
+  <tr><td>30042</td><td>2</td><td><strong>4</strong></td><td><strong>45</strong></td><td><strong>50</strong></td><td>18</td><td>true</td></tr>
+  <tr><td>30043</td><td>3</td><td><strong>5</strong></td><td><strong>30</strong></td><td><strong>30</strong></td><td>54</td><td>false</td></tr>
+</table>
+<p>售价每级 ×3。等级<strong>不是</strong>「每级 ×2」：时长微增，两个减速系数各自变狠。比伤害强化（9/27/81）便宜一档。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>float1</strong></td><td>附着时长（秒）；多张取 <strong>Max</strong></td><td>是</td><td>高</td></tr>
+  <tr><td><strong>float2</strong></td><td>目标移速系数（「×float2%」）；多张 <strong>连乘</strong> <code>float2/100</code></td><td>是</td><td>高</td></tr>
+  <tr><td><strong>float3</strong></td><td>目标<strong>自己施放</strong>的法术飞行速度系数；多张连乘</td><td>是</td><td>高</td></tr>
+  <tr><td>int1 / int2 / int3</td><td>配置为 0</td><td>ECS <strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>对弹幕与召唤都标为生效</td><td><code>GetMucusElementData</code> <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p><code>float2=60</code> 就是 <code>×0.6</code>（慢 40%），不是再乘一次 60%。</p>
+
+<h3>2.3 法术侧：组卡时合成一包（Max + 连乘）</h3>
+<pre class="code">GetMucusElementData():
+  duration = Max(各张 float1)          // 初值 0
+  moveSpeedRatio *= float2 / 100      // 初值 1
+  spellSpeedRatio *= float3 / 100     // 初值 1</pre>
+<p>同类型出现几次乘几次。无上限、不「只取最高级」。初始必须是 <code>(1, 1, 0)</code>，从 0 连乘会锁死。</p>
+<p>等级<strong>不能</strong>按「2×Lv1 = 1×Lv2」换算：</p>
+<pre class="code">2×Lv1：时长 3，移速 ×0.36，飞行 ×0.49   （更慢，更短）
+1×Lv2：时长 4，移速 ×0.45，飞行 ×0.50
+1×Lv3：时长 5，移速 ×0.30，飞行 ×0.30</pre>
+<p>合成省槽，也换「更长、单卡更狠」；多张低级在减速上往往更狠。</p>
+
+<h3>2.4 目标侧：命中时覆盖，不是再乘</h3>
+<table>
+  <tr><th></th><th>法术侧（组卡）</th><th>目标侧（命中）</th></tr>
+  <tr><td>时长</td><td>多张取 Max</td><td>新时长 &gt; 剩余才刷新，短的砍不短</td></tr>
+  <tr><td>移速 / 飞行系数</td><td>多张连乘</td><td><strong>直接覆盖</strong>，再钳到 <code>[0, 1]</code></td></tr>
+</table>
+<div class="note">后一发<strong>较弱</strong>的粘液会把已经更慢的系数盖回去。精英 / Boss 时长再乘 <code>frozenTimeRatio</code>（常见 Boss 0.1，玩家 0.5，小怪 1），和冰冻共用这个字段。系数不乘。免疫或无敌直接 return。</div>
+
+<h2 id="s3">3. 谁吃得到这张卡</h2>
+<h3>3.1 只强化自己右边、同一段</h3>
+<div class="slots"><span class="chip en">粘</span><span class="chip sp">弹</span><span>→ 弹带粘液</span></div>
+<div class="slots"><span class="chip sp">弹</span><span class="chip en">粘</span><span>→ 弹带不到</span></div>
+<div class="slots"><span class="chip en">粘</span><span class="chip sp">弹</span><span class="chip sp">弹</span><span>→ 两发都带</span></div>
+<div class="slots"><span class="chip en">粘A</span><span class="chip sp">弹</span><span class="chip en">粘B</span><span class="chip sp">滚球</span><span>→ 弹吃 A；滚球吃 A+B</span></div>
+<p>主槽加不到后槽。自动填槽 <code>SelfRepelSpells</code> 含粘液晶石，同一根杖不会自动再塞第二张；手摆可以叠。</p>
+
+<h3>3.2 命中还有一道门</h3>
+<p><code>immuneDamage</code> 或 <strong><code>damage &lt;= 0</code></strong>：只结算击退，<strong>整包元素都不挂</strong>。条件是 <code>MucusDuration &gt; 0</code>，不是看外观颜色。</p>
+
+<h3>3.3 玩家也能被挂</h3>
+<p>玩家 <code>800001</code>：<code>immuneMucus=false</code>，<code>frozenTimeRatio=0.5</code>。「飞行速度×70%」减的是<strong>被命中单位往外射的法术</strong>，不是你这发弹自己的速度。</p>
+
+<h2 id="s4">4. 主路径与边界</h2>
+<h3>4.1 命中后</h3>
+<p><code>affect_IsMucusHit = true</code>，身体染 <code>color_BodyMucus</code>（黄 1,1,0），脚底特效 <code>3004_Decelerate</code>。倒计时到点 <code>ClearMucusState</code>。<code>affect_IsMucusDecelerate</code> 只驱动特效，不是第二套数值。</p>
+
+<h3>4.2 分裂</h3>
+<p><code>ToSplit</code> 整包复制 <code>ElementComponentData</code>。子弹拿到发射时的满额时长和连乘系数，命中仍走 <code>SetMucus</code>。</p>
+
+<h3>4.3 悬停 / 坠落 / 爆炸圈</h3>
+<p>只要打出 <code>damage &gt; 0</code> 的伤害信息，就走同一条元素门。圈的大小是范围增强的事；粘液只问这发实体上的 <code>MucusDuration</code> 是否 &gt; 0。</p>
+
+<h3>4.4 闪电链 / 生命线 / 召唤</h3>
+<table>
+  <tr><th>对象</th><th>怎么带粘液</th></tr>
+  <tr><td>闪电链 ECS</td><td>从宿主抄整份 <code>SpellElementEffectComponentData</code></td></tr>
+  <tr><td>闪电链 / 鱼叉链 / 生命线 Mono</td><td>抄 <code>spellMucusTime</code> 和两个 ratio</td></tr>
+  <tr><td>召唤物攻击 / 撞击</td><td>生成时带上召唤法术的 Element，或从召唤者再 <code>SetMucus</code></td></tr>
+  <tr><td>只拷 <code>ColorType</code></td><td><strong>会丢减速</strong></td></tr>
+</table>
+
+<h3>4.5 彩虹丝带 / 随机色杖</h3>
+<p>先定 <code>ColorType</code>，再 <code>ApplyElementSpell(ToSpellId)</code>。抽到粘液时再灌一张对应等级晶石：时长取 Max，两系数再乘一次。已经插了粘液晶石、彩虹又抽到黄色：系数会再乘一张 Lv1。</p>
+
+<h3>4.6 公转 / 寻踪 / 反弹 / 穿透</h3>
+<p>不改粘液数据包。穿透耗尽会在单位身上销毁，但已经打出的那下若 <code>damage &gt; 0</code> 仍会挂粘液。</p>
+
+<h2 id="s5">5. 共享元素附着管线</h2>
+<div class="quote">当存在多种元素附着强化时，外观上会随机选择一种颜色，但命中目标时仍然产生所有元素附着强化的效果。</div>
+
+<h3>5.1 颜色只决定外观（和地面痕迹）</h3>
+<table>
+  <tr><th>abilityType</th><th>颜色</th></tr>
+  <tr><td>粘液 3004</td><td><code>Mucus</code></td></tr>
+  <tr><td>毒液 3005</td><td><code>Venom</code></td></tr>
+  <tr><td>寒霜 3014</td><td><code>Frozen</code></td></tr>
+  <tr><td>炽焰 3111</td><td><code>Fire</code></td></tr>
+  <tr><td>坍缩 3129</td><td><code>Void</code></td></tr>
+</table>
+<p>雷晶石不在这张映射里；它用 <code>float3</code> 概率先改成 <code>Thunder</code>。没有元素色时回落到 <code>Player</code>。</p>
+
+<h3>5.2 效果按数据全上</h3>
+<p><code>UnitPropertyJob</code> 对毒 / 冰 / 粘 / 烧 / 虚空是并列 if。弹是火颜色，只要 <code>MucusDuration &gt; 0</code> 仍会减速。</p>
+
+<h3>5.3 地面痕迹跟颜色，不跟效果包</h3>
+<p><code>ColorType == Mucus</code> 才会 <code>CreateMucusRequest</code>。带了晶石但随机成毒色：命中仍减速，<strong>不铺地</strong>。</p>
+<table>
+  <tr><th></th><th>晶石命中</th><th>踩到地上粘液</th></tr>
+  <tr><td>条件</td><td><code>MucusDuration &gt; 0</code> 且伤害 &gt; 0</td><td>颜色是黄留下的 <code>MucusTag</code>；非飞行、非免疫地面</td></tr>
+  <tr><td>移速</td><td>法术包里的连乘系数</td><td>固定 <code>Min(0.6, 当前系数)</code></td></tr>
+  <tr><td>飞行速度</td><td>有</td><td><strong>无</strong></td></tr>
+  <tr><td>时长</td><td>float1（精英/Boss 再乘 <code>frozenTimeRatio</code>）</td><td>站上去才有，离开即无</td></tr>
+  <tr><td>与晶石共存</td><td>—</td><td>已有 <code>affect_IsMucusHit</code> 时<strong>不再</strong>吃地面层</td></tr>
+</table>
+
+<h2 id="s6">6. 算例</h2>
+<p>普通小怪（<code>frozenTimeRatio=1</code>），先不算彩虹丝带。</p>
+<table>
+  <tr><th>槽位</th><th>命中后（移速 ×，飞行 ×，秒）</th></tr>
+  <tr><td><code>[弹]</code></td><td>无</td></tr>
+  <tr><td><code>[粘Lv1] [弹]</code></td><td>×0.60 / ×0.70 / 3</td></tr>
+  <tr><td><code>[粘Lv2] [弹]</code></td><td>×0.45 / ×0.50 / 4</td></tr>
+  <tr><td><code>[粘Lv3] [弹]</code></td><td>×0.30 / ×0.30 / 5</td></tr>
+  <tr><td><code>[粘Lv1]×2 [弹]</code></td><td>×0.36 / ×0.49 / 3</td></tr>
+  <tr><td><code>[粘Lv1][粘Lv2] [弹]</code></td><td>×0.27 / ×0.35 / 4</td></tr>
+  <tr><td>先 Lv3 再被 Lv1 打中</td><td>系数变成 ×0.60 / ×0.70，剩余时长仍按较长的那头</td></tr>
+  <tr><td>打在 <code>frozenTimeRatio=0.1</code> 的 Boss 上</td><td>时长 0.5 秒，系数仍是法术包里的值</td></tr>
+  <tr><td><code>[粘Lv1] [弹]</code> + 彩虹抽到黄</td><td>×0.36 / ×0.49 / 3（再乘一张 Lv1）</td></tr>
+</table>
+<p><code>[粘][毒][弹]</code>：外观黄或绿各 50%；命中同时上粘液和毒。</p>
+
+<h2 id="s7">7. Mono 残留轨对照</h2>
+<p>两系数连乘与 ECS 一致。时长写成 <code>Mathf.Max(spellConfig.float1)</code>（单参数，等于<strong>覆盖成最后一张</strong>）。ECS 是对已有值取 <code>math.max</code>。玩家主路径以 <code>GetMucusElementData</code> 为准。</p>
+
+<h2 id="s8">8. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellShootData.GetMucusElementData</code></td><td>时长 Max、两系数连乘</td></tr>
+  <tr><td><code>SpellInitialParameter.Builder</code></td><td>写入 <code>SIP.MucusElementData</code></td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td>快照 <code>ElementComponentData.Mucus*</code></td></tr>
+  <tr><td><code>ShootSpellUtils.ApplyElementSpell</code></td><td>彩虹 / 随机色再灌一张晶石</td></tr>
+  <tr><td><code>UnitPropertyJob</code></td><td><code>damage&lt;=0</code> 整包跳过；并列挂元素</td></tr>
+  <tr><td><code>UnitProperty_Dots.SetMucus</code></td><td>免疫/无敌、Boss 时长、覆盖系数</td></tr>
+  <tr><td><code>UnitBase.ShootSpell</code></td><td>目标外射法术乘射速系数</td></tr>
+  <tr><td><code>UnitEnvironmentSystem</code></td><td>倒计时、地面层 0.6</td></tr>
+  <tr><td><code>SpellTools.GetSpellColor</code></td><td>颜色随机；雷晶石先判定</td></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code></td><td>元素整包复制</td></tr>
+  <tr><td><code>Spell3007Job</code></td><td>闪电链抄宿主 Element</td></tr>
+  <tr><td><code>SpellAutoFullTool.SelfRepelSpells</code></td><td>自动填槽自排斥</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>30041–30043</code></td><td>配置原始值</td></tr>
+</table>
+
+<h2 id="s9">9. 待决 / 局限</h2>
+<ol>
+  <li>各怪物射击 Job 未逐只穷尽；已核对 <code>UnitBase.ShootSpell</code> 和若干 <code>Monster3xxSystem</code>。</li>
+  <li>彩虹 / 随机色确认会再灌对应等级晶石；遗物逐条不展开。</li>
+  <li>粘液免疫来源只确认入口（配置位、药水、计数器）。</li>
+  <li>各法术铺地半径公式不同，不在此穷尽。</li>
+</ol>
+
+<footer>与 <code>粘液晶石逆向分析.md</code> 同步。离线可开，流程图不依赖外网。</footer>
+</div>
+</body>
+</html>
