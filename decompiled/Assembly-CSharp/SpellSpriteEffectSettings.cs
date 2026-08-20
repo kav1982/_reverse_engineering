@@ -1,0 +1,68 @@
+using System;
+using UnityEngine;
+
+[Serializable]
+public class SpellSpriteEffectSettings
+{
+	public enum RotationType
+	{
+		Identity,
+		Random,
+		LookDirection,
+		TargetRotation
+	}
+
+	public enum ScaleType
+	{
+		TargetLossyScale,
+		TargetLocalScale,
+		Manual,
+		EffectRadius
+	}
+
+	public enum CreateTimingType
+	{
+		Manual,
+		OnFirstFrame,
+		OnEnable,
+		OnFlyFinish,
+		OnRecycle
+	}
+
+	[Tooltip("\ufffd\ufffdЧ\ufffd\ufffd\ufffdƣ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\u0368\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdЧ\ufffd\ufffd")]
+	public string Name;
+
+	[Tooltip("\ufffd\ufffd\ufffd\ufffdĿ\ufffd\ua8ec\ufffd\ufffdЧ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdã\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdת\ufffd\ufffd\ufffd\ufffd\ufffdŵȵ\ufffd")]
+	public Transform AttachTarget;
+
+	[Tooltip("\ufffd㼶\ufffd\ufffd\ufffd\ufffd")]
+	public SpellSpriteEffectLayerSettings LayerSettings;
+
+	[Tooltip("\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdƫ\ufffd\ufffd")]
+	public float RandomOffset;
+
+	[Tooltip("\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdЧʱ\ufffdĽǶ\ufffd\ufffd趨")]
+	public RotationType RotationMode;
+
+	[Tooltip("\ufffd\ufffdЧ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdģʽ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdΪ\ufffd\ufffd\ufffd淨\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdš\ufffd\ufffd\ufffd\ufffd\ufffd AttachTarget \ufffd\u05b2\ufffd\ufffd\ufffd\ufffdš\ufffd\ufffd\ufffd\ufffdߺ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd")]
+	public ScaleType ScaleMode;
+
+	[Tooltip("\ufffdߴ\ufffd\ufffd趨\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdһ\ufffd\ufffd\ufffd\ufffdΧ\ufffd\ufffd\ufffd\ufffd\ufffd")]
+	public VariableFloat Scale = new VariableFloat(VariableType.Fixed, 1f, 1f);
+
+	[Tooltip("\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdʱ\ufffd\ufffd")]
+	public CreateTimingType CreateTiming;
+
+	[Tooltip("\ufffd\ufffd\ufffdǲ\ufffd\ufffd\ufffd\ufffd\uda4e\udf3f\ufffd\ufffdԲ\ufffd\ufffd\ufffdʹ\ufffd\ufffdĬ\ufffdϲ\ufffd\ufffd\ufffd")]
+	public Material OverrideMaterial;
+
+	public bool RandomFilpX;
+
+	public bool RandomFilpY = true;
+
+	[Tooltip("\u05a1\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdö\ufffd\ufffd\ufffd\ufffd\u036c\ufffdĶ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdѡȡ\ufffd\ufffd\ufffd\ufffdĳ\ufffd\ufffd\ufffd\ufffd\ufffdв\ufffd\ufffdţ\ufffd\ufffd\ufffd\ufffdӶ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd")]
+	public SpriteEffectAnimaByColorType Animations;
+
+	[Tooltip("\ufffd\ufffdг\ufffd\ufffd\u05a1\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdã\ufffd\ufffd\ufffd\ufffdں\ufffdгģʽ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdʹ\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffdĶ\ufffd\ufffd\ufffd")]
+	public SpriteEffectAnimaByColorType HarmonizedAnimations;
+}

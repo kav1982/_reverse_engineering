@@ -1,0 +1,171 @@
+[
+  {
+    "id": 1,
+    "abilityType": 1,
+    "items": [
+      7,
+      8,
+      16,
+      36
+    ],
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 2,
+    "abilityType": 2,
+    "items": [
+      3,
+      17,
+      19,
+      30
+    ],
+    "int1": {
+      "value": 100,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 3,
+    "abilityType": 3,
+    "items": [
+      22,
+      23,
+      25,
+      29
+    ],
+    "int1": {
+      "value": 300,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 4,
+    "abilityType": 4,
+    "items": [
+      11,
+      34,
+      54
+    ],
+    "int1": {
+      "value": 8,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 5,
+    "abilityType": 5,
+    "items": [
+      14,
+      15,
+      18,
+      43
+    ],
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  }
+]

@@ -1,0 +1,21 @@
+public enum Boss52SkillType
+{
+	None,
+	RingVAndSunH,
+	MatrixV,
+	CrossVAndSectorH,
+	RingRotateV,
+	ThreeCrossBarScanV,
+	SpeedLerpV,
+	RotateChaseV,
+	RotateCrossRingsV,
+	RotateRingsVAndLockH,
+	DashWideH,
+	DashKeepCastV,
+	DashSunH,
+	DashBurstV,
+	CornerDashSectorV,
+	CornerDashWallHLerpV,
+	RingStarVAndWebH,
+	InnerRingV
+}

@@ -1,0 +1,342 @@
+[
+  {
+    "id": 1,
+    "priceCoin": 5,
+    "abilityType": 1,
+    "int1": 1,
+    "int2": 40,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 2,
+    "priceCoin": 6,
+    "abilityType": 2,
+    "int1": 60,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 3,
+    "priceCoin": 7,
+    "abilityType": 3,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 4,
+    "priceCoin": 9,
+    "abilityType": 4,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 6,
+    "priceCoin": 6,
+    "abilityType": 6,
+    "int1": 200,
+    "int2": 0,
+    "float1": 10,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 7,
+    "priceCoin": 6,
+    "abilityType": 7,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 8,
+    "priceCoin": 4,
+    "abilityType": 8,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 9,
+    "priceCoin": 6,
+    "abilityType": 9,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 10,
+    "priceCoin": 5,
+    "abilityType": 10,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 11,
+    "priceCoin": 3,
+    "abilityType": 11,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 12,
+    "priceCoin": 2,
+    "abilityType": 12,
+    "int1": 0,
+    "int2": 0,
+    "float1": 12,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 13,
+    "priceCoin": 6,
+    "abilityType": 13,
+    "int1": 0,
+    "int2": 0,
+    "float1": 8,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 14,
+    "priceCoin": 2,
+    "abilityType": 14,
+    "int1": 0,
+    "int2": 0,
+    "float1": 30,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 15,
+    "priceCoin": 5,
+    "abilityType": 15,
+    "int1": 10,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 16,
+    "priceCoin": 3,
+    "abilityType": 16,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0.83,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 17,
+    "priceCoin": 7,
+    "abilityType": 17,
+    "int1": 1,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 18,
+    "priceCoin": 3,
+    "abilityType": 18,
+    "int1": -5,
+    "int2": 15,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 19,
+    "priceCoin": 4,
+    "abilityType": 19,
+    "int1": -5,
+    "int2": 15,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 20,
+    "priceCoin": 6,
+    "abilityType": 20,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 21,
+    "priceCoin": 8,
+    "abilityType": 21,
+    "int1": 0,
+    "int2": 0,
+    "float1": 25,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 22,
+    "priceCoin": 11,
+    "abilityType": 22,
+    "int1": 5,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 23,
+    "priceCoin": 8,
+    "abilityType": 23,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 24,
+    "priceCoin": 5,
+    "abilityType": 24,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 25,
+    "priceCoin": 2,
+    "abilityType": 25,
+    "int1": 30,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 26,
+    "priceCoin": 6,
+    "abilityType": 26,
+    "int1": 1,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 28,
+    "priceCoin": 6,
+    "abilityType": 28,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 29,
+    "priceCoin": 8,
+    "abilityType": 29,
+    "int1": 10,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 30,
+    "priceCoin": 7,
+    "abilityType": 30,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 34,
+    "priceCoin": 6,
+    "abilityType": 34,
+    "int1": 0,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 35,
+    "priceCoin": 5,
+    "abilityType": 35,
+    "int1": 30,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 36,
+    "priceCoin": 10,
+    "abilityType": 36,
+    "int1": 5,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 37,
+    "priceCoin": 12,
+    "abilityType": 37,
+    "int1": 4,
+    "int2": 2,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": false
+  },
+  {
+    "id": 38,
+    "priceCoin": 4,
+    "abilityType": 38,
+    "int1": 30,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  },
+  {
+    "id": 39,
+    "priceCoin": 13,
+    "abilityType": 39,
+    "int1": 2,
+    "int2": 0,
+    "float1": 0,
+    "float2": 0,
+    "InEndlessMode": true
+  }
+]

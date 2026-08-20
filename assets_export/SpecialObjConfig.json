@@ -1,0 +1,1214 @@
+[
+  {
+    "id": 11,
+    "name": "通道上",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 12,
+    "name": "通道右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 13,
+    "name": "通道下",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 14,
+    "name": "通道左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21,
+    "name": "关卡随机物",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 31,
+    "name": "额外门",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 100,
+    "name": "T0障碍-铁块",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 103,
+    "name": "T3障碍-石头",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 106,
+    "name": "T6障碍-石柱",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 108,
+    "name": "T8障碍-岩石",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 109,
+    "name": "T9障碍-岩石",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 111,
+    "name": "T11障碍-石",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 118,
+    "name": "T18障碍-圆墩",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 122,
+    "name": "T22障碍-绿石柱",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 127,
+    "name": "T27障碍-铁毡",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 201,
+    "name": "蜘蛛网",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 301,
+    "name": "地刺",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 302,
+    "name": "伸缩地刺",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 303,
+    "name": "踩上地刺",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 304,
+    "name": "戴夫鱿鱼荆棘",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 401,
+    "name": "上锁箱",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 402,
+    "name": "尖刺箱",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 403,
+    "name": "诅咒箱",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 404,
+    "name": "无锁宝箱",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 411,
+    "name": "教学关宝箱",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 501,
+    "name": "T0灯_地牢1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 502,
+    "name": "T0灯_地牢2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 503,
+    "name": "T0灯_地牢3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 504,
+    "name": "T0灯_地牢4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 505,
+    "name": "T0灯_地牢5",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 506,
+    "name": "T0灯_地牢6",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 531,
+    "name": "T3灯_森林1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 532,
+    "name": "T3灯_森林2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 533,
+    "name": "T3灯_森林3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 534,
+    "name": "T3灯_森林4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 535,
+    "name": "T3灯_森林5",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 561,
+    "name": "T6灯_虚空1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 562,
+    "name": "T6灯_虚空2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 563,
+    "name": "T6灯_虚空3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 564,
+    "name": "T6灯_虚空4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 565,
+    "name": "T6灯_虚空5",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 566,
+    "name": "T6灯_虚空6",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 567,
+    "name": "T6灯_虚空7",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 581,
+    "name": "T8灯1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 582,
+    "name": "T8灯2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 583,
+    "name": "T8灯3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 584,
+    "name": "T8灯4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 585,
+    "name": "T9灯1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 586,
+    "name": "T9灯2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 587,
+    "name": "T9灯3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 588,
+    "name": "T9灯4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 601,
+    "name": "喷火4方向",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 602,
+    "name": "喷火上",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 603,
+    "name": "喷火右",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 604,
+    "name": "喷火下",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 605,
+    "name": "喷火左",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 606,
+    "name": "喷火旋转",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 607,
+    "name": "喷火左右",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 608,
+    "name": "喷火上下",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 701,
+    "name": "尖刺轨道",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 801,
+    "name": "深渊",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 861,
+    "name": "深渊T6大",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 862,
+    "name": "深渊T6小",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 863,
+    "name": "深渊T22大",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 864,
+    "name": "深渊T22小",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 901,
+    "name": "伸缩柱",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1001,
+    "name": "祭坛",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1101,
+    "name": "T2柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1201,
+    "name": "商店地毯",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1202,
+    "name": "血祭地毯",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1301,
+    "name": "传送带-上",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1302,
+    "name": "传送带-左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1303,
+    "name": "传送带-下",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1304,
+    "name": "传送带-右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1401,
+    "name": "森林石灯",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1501,
+    "name": "反向池",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 1601,
+    "name": "绿洞",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1602,
+    "name": "T22绿洞",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1701,
+    "name": "泉水房-泉水",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1711,
+    "name": "泉水房-雕像向右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1712,
+    "name": "泉水房-雕像向左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1801,
+    "name": "商店-刷新器",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1901,
+    "name": "T1悬崖外柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1902,
+    "name": "T1悬崖外小装饰",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 1903,
+    "name": "T1悬崖外火炬柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2001,
+    "name": "T19悬崖外柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2002,
+    "name": "T19悬崖外小装饰",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2003,
+    "name": "T19悬崖外火炬柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2101,
+    "name": "卖法术装置",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2201,
+    "name": "商店地面（第三章用）",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2211,
+    "name": "商店损坏地面tile2_1",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2212,
+    "name": "商店损坏地面tile2_2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2213,
+    "name": "商店损坏地面tile2_3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2221,
+    "name": "商店纸张tile3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2301,
+    "name": "落叶",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2302,
+    "name": "落叶（多）",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2303,
+    "name": "T16枯叶",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2304,
+    "name": "T16枯叶（多）",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2311,
+    "name": "森林蘑菇",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2312,
+    "name": "土地石块",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2401,
+    "name": "T5水外面的装饰物",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2501,
+    "name": "T5水外面的碰撞物",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2601,
+    "name": "T8_Tile1地面装饰物 小",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2602,
+    "name": "T8_Tile1地面装饰物 中",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2603,
+    "name": "T8_Tile1地面装饰物 大",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2701,
+    "name": "T9_Tile1地面装饰物",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 2901,
+    "name": "尖刺时钟",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3001,
+    "name": "森林墙上树叶朝上",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3002,
+    "name": "森林墙上树叶朝右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3003,
+    "name": "森林墙上树叶朝下",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3004,
+    "name": "森林墙上树叶朝左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3011,
+    "name": "森林墙上树叶朝上右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3012,
+    "name": "森林墙上树叶朝右下",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3013,
+    "name": "森林墙上树叶朝下左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3014,
+    "name": "森林墙上树叶朝左上",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3021,
+    "name": "森林墙上树叶朝上右_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3022,
+    "name": "森林墙上树叶朝右下_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3023,
+    "name": "森林墙上树叶朝下左_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3024,
+    "name": "森林墙上树叶朝左上_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3201,
+    "name": "备用特殊物2",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3301,
+    "name": "备用特殊物3",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3401,
+    "name": "备用特殊物4",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3501,
+    "name": "备用特殊物5",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3601,
+    "name": "稻草人开关",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3602,
+    "name": "无尽模式稻草人开关",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3701,
+    "name": "第四章立体轮盘1个",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3702,
+    "name": "第四章立体轮盘2个",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3703,
+    "name": "第四章立体轮盘3个",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3704,
+    "name": "第四章立体轮盘4个",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3705,
+    "name": "第四章立体轮盘5个",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3801,
+    "name": "转盘",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 3901,
+    "name": "T11墙外装饰物朝上",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3902,
+    "name": "T11墙外装饰物朝右",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3903,
+    "name": "T11墙外装饰物朝下",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3904,
+    "name": "T11墙外装饰物朝左",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3911,
+    "name": "T11墙外装饰物朝上右_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3912,
+    "name": "T11墙外装饰物朝右下_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3913,
+    "name": "T11墙外装饰物朝下左_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 3914,
+    "name": "T11墙外装饰物左上_斜",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4101,
+    "name": "T15悬崖外卵",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4102,
+    "name": "T15悬崖外卵小",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4103,
+    "name": "T29悬崖外柱子",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4104,
+    "name": "T29悬崖外石塔",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4201,
+    "name": "戴夫第1章Boss场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4202,
+    "name": "戴夫第1章Boss走廊",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4203,
+    "name": "戴夫第1章血祭房场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4301,
+    "name": "戴夫加工房场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4401,
+    "name": "戴夫第4章boss场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4402,
+    "name": "戴夫第4章Boss走廊",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4403,
+    "name": "戴夫第4章血祭房场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4501,
+    "name": "戴夫第5章boss场景",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4502,
+    "name": "戴夫第5章boss走廊",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4503,
+    "name": "戴夫第5章狗头人房间",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4601,
+    "name": "戴夫泉水房-泉水",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 4701,
+    "name": "教程隐形墙",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 4702,
+    "name": "教程隐形墙",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 4801,
+    "name": "夏日DLC通用商店",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10101,
+    "name": "法术重铸机",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10102,
+    "name": "法术合成机",
+    "loadArchiveCreate": true,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10103,
+    "name": "法术多合一",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10201,
+    "name": "诅咒祝福",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 10202,
+    "name": "血量祝福",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 10301,
+    "name": "商店",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10302,
+    "name": "商店药水",
+    "loadArchiveCreate": false,
+    "isHybirdSO": false
+  },
+  {
+    "id": 10401,
+    "name": "NPC4囚禁",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 10402,
+    "name": "NPC5囚禁",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20101,
+    "name": "益智房-4按钮顺序点亮",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20201,
+    "name": "益智房-9按钮同时亮",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20301,
+    "name": "益智房-记忆弹回",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20401,
+    "name": "益智房-连连看",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20501,
+    "name": "益智房通用-踩上即奖励",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20601,
+    "name": "益智房-传送阵",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20701,
+    "name": "益智房-一笔画",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20801,
+    "name": "益智房-探路",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 20901,
+    "name": "益智房-红蓝房间",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21001,
+    "name": "益智房-记忆力",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21101,
+    "name": "益智房-传送带房间",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21201,
+    "name": "益智房-猜箱子",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21301,
+    "name": "益智房-推箱子",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21401,
+    "name": "益智房-点灯-主按钮",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21402,
+    "name": "益智房-点灯-灯按钮",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21501,
+    "name": "益智房-躲避子弹",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21701,
+    "name": "益智-俄罗斯轮盘",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21801,
+    "name": "益智-一笔画",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 21901,
+    "name": "益智-线路链接",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 22001,
+    "name": "益智-六格拼图",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 22101,
+    "name": "益智-音乐关卡",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 22201,
+    "name": "益智房-反应操作类",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 22301,
+    "name": "益智房-停车",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30101,
+    "name": "无尽模式刷怪器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30201,
+    "name": "无尽模式商店槽位",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30301,
+    "name": "无尽模式刷新器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30401,
+    "name": "无尽模式回收器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30501,
+    "name": "无尽模式合成器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30601,
+    "name": "无尽模式重铸器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30701,
+    "name": "无尽模式补给箱",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30801,
+    "name": "无尽模式奖励购买",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 30901,
+    "name": "无尽模式侧房传送",
+    "loadArchiveCreate": false,
+    "isHybirdSO": true
+  },
+  {
+    "id": 31001,
+    "name": "无尽模式入口",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 31101,
+    "name": "无尽模式ban法术npc",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 31201,
+    "name": "无尽模式回城通道",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  },
+  {
+    "id": 31301,
+    "name": "无尽模式商店锁定器",
+    "loadArchiveCreate": true,
+    "isHybirdSO": true
+  }
+]

@@ -1,0 +1,21 @@
+public enum SettingSlotType
+{
+	DamageFloat,
+	SpellTrans,
+	SummonTrans,
+	ScreenShake,
+	AISummon,
+	MutantNeck,
+	SafeMode,
+	HardwareCursor,
+	CursorSize,
+	TourMode,
+	VirtualStickType,
+	VirtualStickRecover,
+	VirtualStickScale,
+	MobileUIOffset,
+	MobileAimType,
+	HalfAutoAimRange,
+	IndieInteractButton,
+	MoveLerp
+}

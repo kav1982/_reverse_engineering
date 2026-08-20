@@ -1,0 +1,4418 @@
+[
+  {
+    "id": 1,
+    "iconH": "",
+    "abilityType": 1,
+    "dropType": 1,
+    "priceCoin": 13,
+    "priceHP": 0,
+    "skinName": "jianjia/jianjia2",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "jianjia/jianjia2_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 115,
+      "valueUpgrade": 10
+    },
+    "int3": {
+      "value": -40,
+      "valueUpgrade": -40
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 2,
+    "iconH": "",
+    "abilityType": 2,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "xie/xie2",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 15,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 3,
+    "iconH": "",
+    "abilityType": 3,
+    "dropType": 1,
+    "priceCoin": 18,
+    "priceHP": 0,
+    "skinName": "shipin/xianglian",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "shipin/xianglian_lfq",
+    "skinNameFrog": "shipin/xianglian_qw",
+    "skinNameDave": "shipin/xianglian_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0.5,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 4,
+    "iconH": "",
+    "abilityType": 4,
+    "dropType": 2,
+    "priceCoin": 16,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 60,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 5,
+    "iconH": "",
+    "abilityType": 5,
+    "dropType": 3,
+    "priceCoin": 30,
+    "priceHP": 28,
+    "skinName": "shou/shou2",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 25,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 6,
+    "iconH": "6H",
+    "abilityType": 6,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "yanjing/yanjing2",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "yanjing/yanjing2_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "yanjing/yanjing2_qw",
+    "skinNameDave": "yanjing/yanjing2_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yanjing/yanjing2_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 7,
+    "iconH": "7H",
+    "abilityType": 7,
+    "dropType": 1,
+    "priceCoin": 11,
+    "priceHP": 0,
+    "skinName": "beishi/beishi2",
+    "maxCount": 10,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 100,
+      "valueUpgrade": 2
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 8,
+    "iconH": "8H",
+    "abilityType": 8,
+    "dropType": 1,
+    "priceCoin": 13,
+    "priceHP": 0,
+    "skinName": "yifu/yifu4",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "yifu/yifu4_qw",
+    "skinNameDave": "yifu/yifu4_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yifu/yifu4_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 9,
+    "iconH": "",
+    "abilityType": 9,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "maozi/maozi4",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi4_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "maozi/maozi4_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 30
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 10,
+      "valueUpgrade": 5
+    },
+    "float2": {
+      "value": 0.2,
+      "valueUpgrade": 0.1
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 10,
+    "iconH": "10H",
+    "abilityType": 10,
+    "dropType": 2,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "weiba/weiba_moguwei",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 11,
+    "iconH": "",
+    "abilityType": 11,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "xie/xie5",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 12,
+    "iconH": "",
+    "abilityType": 12,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 3,
+      "valueUpgrade": 3
+    },
+    "int2": {
+      "value": 30,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 13,
+    "iconH": "",
+    "abilityType": 13,
+    "dropType": 3,
+    "priceCoin": 27,
+    "priceHP": 42,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 14,
+    "iconH": "",
+    "abilityType": 14,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "shou/shou1",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 8,
+      "valueUpgrade": 8
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 15,
+    "iconH": "",
+    "abilityType": 15,
+    "dropType": 3,
+    "priceCoin": 39,
+    "priceHP": 32,
+    "skinName": "yifu/yifu2",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "yifu/yifu2_qw",
+    "skinNameDave": "yifu/yifu2_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yifu/yifu2_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 3,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 16,
+    "iconH": "16H",
+    "abilityType": 16,
+    "dropType": 3,
+    "priceCoin": 31,
+    "priceHP": 99,
+    "skinName": "jianjia/jianjia1",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "jianjia/jianjia1_dave",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 3,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 17,
+    "iconH": "",
+    "abilityType": 17,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "jianjia/jianjia3",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "jianjia/jianjia3_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 3,
+      "valueUpgrade": 3
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 18,
+    "iconH": "",
+    "abilityType": 18,
+    "dropType": 2,
+    "priceCoin": 22,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 5,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 10,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 19,
+    "iconH": "",
+    "abilityType": 19,
+    "dropType": 1,
+    "priceCoin": 13,
+    "priceHP": 0,
+    "skinName": "pifeng/pifeng5",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "pifeng/pifeng5_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "pifeng/pifeng5_dave",
+    "skinNameSpring": "pifeng/pifeng5_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 5,
+      "valueUpgrade": 4
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 20,
+    "iconH": "",
+    "abilityType": 20,
+    "dropType": 2,
+    "priceCoin": 18,
+    "priceHP": 0,
+    "skinName": "mianju/mianju1",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "mianju/mianju1_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "mianju/mianju1_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "mianju/mianju1_ma",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 21,
+    "iconH": "",
+    "abilityType": 21,
+    "dropType": 2,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "xie/xie3",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 70,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 140,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 8,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 22,
+    "iconH": "",
+    "abilityType": 22,
+    "dropType": 1,
+    "priceCoin": 11,
+    "priceHP": 0,
+    "skinName": "maozi/maozi2",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi2_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "maozi/maozi2_qw",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 23,
+    "iconH": "",
+    "abilityType": 23,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "pifeng/pifeng3",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "pifeng/pifeng3_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "pifeng/pifeng3_dave",
+    "skinNameSpring": "pifeng/pifeng3_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 24,
+    "iconH": "",
+    "abilityType": 24,
+    "dropType": 1,
+    "priceCoin": 16,
+    "priceHP": 0,
+    "skinName": "shipin/ershi",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/ershi_tv",
+    "skinNameTomato": "shipin/ershi_lfq",
+    "skinNameFrog": "shipin/ershi_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "shipin/ershi_Nangua",
+    "skinNameChristmas": "shipin/ershi_Nangua",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 25,
+    "iconH": "",
+    "abilityType": 25,
+    "dropType": 3,
+    "priceCoin": 37,
+    "priceHP": 80,
+    "skinName": "shipin/huzi",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/huzi_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "shipin/huzi_qw",
+    "skinNameDave": "shipin/huzi_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "shipin/huzi_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 26,
+    "iconH": "",
+    "abilityType": 26,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "shipin/yaodai",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "shipin/yaodai_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "shipin/yaodai_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 3,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 1
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 27,
+    "iconH": "",
+    "abilityType": 27,
+    "dropType": 2,
+    "priceCoin": 22,
+    "priceHP": 0,
+    "skinName": "shipin/yaoping",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 28,
+    "iconH": "",
+    "abilityType": 28,
+    "dropType": 3,
+    "priceCoin": 29,
+    "priceHP": 77,
+    "skinName": "yanjing/yanjing1",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "yanjing/yanjing1_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "yanjing/yanjing1_qw",
+    "skinNameDave": "yanjing/yanjing1_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yanjing/yanjing1_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 29,
+    "iconH": "",
+    "abilityType": 29,
+    "dropType": 1,
+    "priceCoin": 10,
+    "priceHP": 0,
+    "skinName": "xie/xie4",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 4,
+      "valueUpgrade": 4
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 30,
+    "iconH": "",
+    "abilityType": 30,
+    "dropType": 2,
+    "priceCoin": 18,
+    "priceHP": 0,
+    "skinName": "maozi/maozi1",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi1_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "maozi/maozi1_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 15,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 34,
+    "iconH": "",
+    "abilityType": 34,
+    "dropType": 2,
+    "priceCoin": 23,
+    "priceHP": 0,
+    "skinName": "yifu/yifu3",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "yifu/yifu3_qw",
+    "skinNameDave": "yifu/yifu3_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yifu/yifu3_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 25,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 35,
+    "iconH": "",
+    "abilityType": 35,
+    "dropType": 2,
+    "priceCoin": 21,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 3,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 36,
+    "iconH": "",
+    "abilityType": 36,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "maozi/maozi3",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi3_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "maozi/maozi3_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 3,
+      "valueUpgrade": -1
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 37,
+    "iconH": "37H",
+    "abilityType": 37,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "mianju/mianju2",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "mianju/mianju2_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "mianju/mianju2_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "mianju/mianju2_ma",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 5
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 38,
+    "iconH": "",
+    "abilityType": 38,
+    "dropType": 1,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "erduo2/erduo2_shaizi",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "erduo2/erduo2_shaizi_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "erduo2/erduo2_shaizi_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 39,
+    "iconH": "",
+    "abilityType": 39,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "erduo/erduo1",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "erduo/erduo1_tv",
+    "skinNameTomato": "erduo/erduo1_lfq",
+    "skinNameFrog": "erduo/erduo1_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "erduo/erduo1_Nangua",
+    "skinNameChristmas": "erduo/erduo1_Nangua",
+    "skinNameSpring": "erduo/erduo1_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 40,
+    "iconH": "",
+    "abilityType": 40,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 10,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 41,
+    "iconH": "",
+    "abilityType": 41,
+    "dropType": 2,
+    "priceCoin": 23,
+    "priceHP": 0,
+    "skinName": "pifeng/pifeng1",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "pifeng/pifeng1_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "pifeng/pifeng1_dave",
+    "skinNameSpring": "pifeng/pifeng1_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": -30,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 5,
+      "valueUpgrade": 4
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 42,
+    "iconH": "",
+    "abilityType": 42,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "shipin/siyecao",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/siyecao_tv",
+    "skinNameTomato": "shipin/siyecao_lfq",
+    "skinNameFrog": "shipin/siyecao_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "shipin/siyecao_Nangua",
+    "skinNameChristmas": "shipin/siyecao_Nangua",
+    "skinNameSpring": "shipin/siyecao_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 11,
+      "valueUpgrade": 11
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 43,
+    "iconH": "",
+    "abilityType": 43,
+    "dropType": 1,
+    "priceCoin": 16,
+    "priceHP": 0,
+    "skinName": "shouchi/shouchi1",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 3,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 44,
+    "iconH": "",
+    "abilityType": 44,
+    "dropType": 3,
+    "priceCoin": 30,
+    "priceHP": 50,
+    "skinName": "shipin/bizi",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/bizi_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "shipin/bizi_qw",
+    "skinNameDave": "shipin/bizi_dave",
+    "skinNameHalloween": "shipin/bizi_Nangua",
+    "skinNameChristmas": "shipin/bizi_Nangua",
+    "skinNameSpring": "shipin/bizi_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 45,
+    "iconH": "",
+    "abilityType": 45,
+    "dropType": 2,
+    "priceCoin": 22,
+    "priceHP": 0,
+    "skinName": "pifeng/pifeng4",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "pifeng/pifeng4_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "pifeng/pifeng4_dave",
+    "skinNameSpring": "pifeng/pifeng4_dave",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 5,
+      "valueUpgrade": -2
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 46,
+    "iconH": "",
+    "abilityType": 46,
+    "dropType": 3,
+    "priceCoin": 32,
+    "priceHP": 35,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 3,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 50,
+      "valueUpgrade": 30
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 47,
+    "iconH": "",
+    "abilityType": 47,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 10,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 3,
+      "valueUpgrade": 0.5
+    },
+    "float2": {
+      "value": 16,
+      "valueUpgrade": 2
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 48,
+    "iconH": "48H",
+    "abilityType": 48,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "mianju/mianju3",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "mianju/mianju3_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "mianju/mianju3_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "mianju/mianju3_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 8
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 49,
+    "iconH": "",
+    "abilityType": 49,
+    "dropType": 1,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 70,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 50,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 50,
+    "iconH": "",
+    "abilityType": 50,
+    "dropType": 1,
+    "priceCoin": 11,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "float2": {
+      "value": 1.5,
+      "valueUpgrade": 1.1
+    },
+    "float3": {
+      "value": 1.5,
+      "valueUpgrade": 1
+    }
+  },
+  {
+    "id": 51,
+    "iconH": "",
+    "abilityType": 51,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "shipin/yeshouliaoya",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/yeshouliaoya_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "shipin/yeshouliaoya_qw",
+    "skinNameDave": "shipin/yeshouliaoya_dave",
+    "skinNameHalloween": "shipin/yeshouliaoya_Nangua",
+    "skinNameChristmas": "shipin/yeshouliaoya_Nangua",
+    "skinNameSpring": "shipin/yeshouliaoya_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 52,
+    "iconH": "",
+    "abilityType": 52,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "shipin/chuanyunjian",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/chuanyunjian_tv",
+    "skinNameTomato": "shipin/chuanyunjian_lfq",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "shipin/chuanyunjian_Nangua",
+    "skinNameChristmas": "shipin/chuanyunjian_Nangua",
+    "skinNameSpring": "shipin/chuanyunjian_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 53,
+    "iconH": "",
+    "abilityType": 53,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 50,
+      "valueUpgrade": 50
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 54,
+    "iconH": "",
+    "abilityType": 54,
+    "dropType": 2,
+    "priceCoin": 21,
+    "priceHP": 0,
+    "skinName": "toufa/toufa2",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "toufa/toufa2_tv",
+    "skinNameTomato": "toufa/toufa2_lfq",
+    "skinNameFrog": "toufa/toufa2_qw",
+    "skinNameDave": "toufa/toufa2_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "toufa/toufa2_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 10,
+      "valueUpgrade": -9
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 55,
+    "iconH": "",
+    "abilityType": 55,
+    "dropType": 1,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "beishi/beishi1",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 250,
+      "valueUpgrade": 50
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 56,
+    "iconH": "",
+    "abilityType": 56,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "shouchi/shouchi2",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 57,
+    "iconH": "",
+    "abilityType": 57,
+    "dropType": 1,
+    "priceCoin": 13,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 25,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 58,
+    "iconH": "",
+    "abilityType": 58,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 100,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 70,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 59,
+    "iconH": "",
+    "abilityType": 59,
+    "dropType": 3,
+    "priceCoin": 28,
+    "priceHP": 58,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 60,
+    "iconH": "60H",
+    "abilityType": 60,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "yanjing/yanjing3",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "yanjing/yanjing3_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "yanjing/yanjing3_qw",
+    "skinNameDave": "yanjing/yanjing3_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "yanjing/yanjing3_ma",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 1,
+      "valueUpgrade": 0.5
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 61,
+    "iconH": "",
+    "abilityType": 61,
+    "dropType": 1,
+    "priceCoin": 12,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": -3,
+      "valueUpgrade": -3
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 62,
+    "iconH": "62H",
+    "abilityType": 62,
+    "dropType": 2,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 3,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 63,
+    "iconH": "",
+    "abilityType": 63,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 64,
+    "iconH": "",
+    "abilityType": 64,
+    "dropType": 3,
+    "priceCoin": 40,
+    "priceHP": 75,
+    "skinName": "maozi/maozi5",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi5_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "maozi/maozi5_qw",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 65,
+    "iconH": "",
+    "abilityType": 65,
+    "dropType": 1,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 5,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 66,
+    "iconH": "",
+    "abilityType": 66,
+    "dropType": 2,
+    "priceCoin": 21,
+    "priceHP": 0,
+    "skinName": "shipin/heiseyinji",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "shipin/heiseyinji_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "shipin/heiseyinji_qw",
+    "skinNameDave": "shipin/heiseyinji_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "shipin/heiseyinji_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 67,
+    "iconH": "",
+    "abilityType": 67,
+    "dropType": 3,
+    "priceCoin": 31,
+    "priceHP": 68,
+    "skinName": "shou/shou3",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 68,
+    "iconH": "",
+    "abilityType": 68,
+    "dropType": 2,
+    "priceCoin": 22,
+    "priceHP": 0,
+    "skinName": "beishi/beishi4",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 69,
+    "iconH": "",
+    "abilityType": 69,
+    "dropType": 3,
+    "priceCoin": 29,
+    "priceHP": 45,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 70,
+    "iconH": "",
+    "abilityType": 70,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "beishi/beishi3",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 71,
+    "iconH": "",
+    "abilityType": 71,
+    "dropType": 1,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "erduo/erduo2",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "erduo/erduo2_tv",
+    "skinNameTomato": "erduo/erduo2_lfq",
+    "skinNameFrog": "erduo/erduo2_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "erduo/erduo2_Nangua",
+    "skinNameChristmas": "erduo/erduo2_Nangua",
+    "skinNameSpring": "erduo/erduo2_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 160,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0.8,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 72,
+    "iconH": "",
+    "abilityType": 72,
+    "dropType": 2,
+    "priceCoin": 50,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 2,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 150,
+      "valueUpgrade": 50
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 73,
+    "iconH": "",
+    "abilityType": 73,
+    "dropType": 3,
+    "priceCoin": 29,
+    "priceHP": 48,
+    "skinName": "shipin/bixiefu",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 33,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 74,
+    "iconH": "",
+    "abilityType": 74,
+    "dropType": 2,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 2,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 75,
+    "iconH": "",
+    "abilityType": 75,
+    "dropType": 2,
+    "priceCoin": 20,
+    "priceHP": 0,
+    "skinName": "toufa/toufa8",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "toufa/toufa8_tv",
+    "skinNameTomato": "toufa/toufa8_lfq",
+    "skinNameFrog": "toufa/toufa8_qw",
+    "skinNameDave": "toufa/toufa8_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "toufa/toufa8_dave",
+    "skinNameSpring": "toufa/toufa8_ma",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 50,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 50,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 76,
+    "iconH": "",
+    "abilityType": 76,
+    "dropType": 1,
+    "priceCoin": 16,
+    "priceHP": 0,
+    "skinName": "maozi/maozi7",
+    "maxCount": 5,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "maozi/maozi7_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "maozi/maozi7_Nangua",
+    "skinNameChristmas": "maozi/maozi7_Nangua",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 25,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 80,
+    "iconH": "80H",
+    "abilityType": 80,
+    "dropType": 3,
+    "priceCoin": 40,
+    "priceHP": 218,
+    "skinName": "",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 81,
+    "iconH": "",
+    "abilityType": 81,
+    "dropType": 2,
+    "priceCoin": 21,
+    "priceHP": 0,
+    "skinName": "beishi/beishi5",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 82,
+    "iconH": "",
+    "abilityType": 82,
+    "dropType": 2,
+    "priceCoin": 23,
+    "priceHP": 0,
+    "skinName": "shipin/zhaocailingdang",
+    "maxCount": 3,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 1,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 30,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 83,
+    "iconH": "",
+    "abilityType": 83,
+    "dropType": 2,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "erduo2/erduo2_yaoshi",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "erduo2/erduo2_yaoshi_ma",
+    "RedRunePoint": 2,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 5,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 84,
+    "iconH": "",
+    "abilityType": 84,
+    "dropType": 1,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "shipin/yaodai2",
+    "maxCount": 1,
+    "needActivate": false,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "shipin/yaodai2_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "shipin/yaodai2_dave",
+    "skinNameSpring": "shipin/yaodai2_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 1,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 901,
+    "iconH": "",
+    "abilityType": 901,
+    "dropType": 1,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "erduo2/erduo2_xingyuntuer",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "erduo2/erduo2_xingyuntuer_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "erduo2/erduo2_xingyuntuer_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 1,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 902,
+    "iconH": "",
+    "abilityType": 902,
+    "dropType": 3,
+    "priceCoin": 33,
+    "priceHP": 66,
+    "skinName": "erduo2/erduo2_bamianshaizi",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "erduo2/erduo2_bamianshaizi_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "erduo2/erduo2_bamianshaizi_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 3,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 903,
+    "iconH": "",
+    "abilityType": 903,
+    "dropType": 3,
+    "priceCoin": 36,
+    "priceHP": 138,
+    "skinName": "shipin/shudaiyanjing",
+    "maxCount": 1,
+    "needActivate": true,
+    "skinNameTvMan": "shipin/shudaiyanjing_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "shipin/shudaiyanjing_qw",
+    "skinNameDave": "shipin/shudaiyanjing_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "shipin/shudaiyanjing_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 3,
+    "InEndlessMode": false,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 931,
+    "iconH": "931H",
+    "abilityType": 931,
+    "dropType": 4,
+    "priceCoin": 21,
+    "priceHP": 0,
+    "skinName": "shipin/lingzhijing",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 932,
+    "iconH": "",
+    "abilityType": 932,
+    "dropType": 4,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "pifeng/pifeng2",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "pifeng/pifeng2_dave",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "pifeng/pifeng2_dave",
+    "skinNameSpring": "pifeng/pifeng2_dave",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 90,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 933,
+    "iconH": "",
+    "abilityType": 933,
+    "dropType": 4,
+    "priceCoin": 24,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 5,
+      "valueUpgrade": -1
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 934,
+    "iconH": "",
+    "abilityType": 934,
+    "dropType": 4,
+    "priceCoin": 28,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 1
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 935,
+    "iconH": "",
+    "abilityType": 935,
+    "dropType": 4,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 50,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 10,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2.5,
+      "valueUpgrade": 0.5
+    },
+    "float2": {
+      "value": 10,
+      "valueUpgrade": -1
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 936,
+    "iconH": "",
+    "abilityType": 936,
+    "dropType": 4,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "shipin/deluyizhijiao_hx",
+    "maxCount": 3,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "shipin/deluyizhijiao_ma",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 75,
+      "valueUpgrade": -15
+    },
+    "int2": {
+      "value": 10,
+      "valueUpgrade": 5
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 4,
+      "valueUpgrade": 0.5
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 937,
+    "iconH": "937H",
+    "abilityType": 937,
+    "dropType": 4,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "mianju/mianju4",
+    "maxCount": 2,
+    "needActivate": true,
+    "skinNameTvMan": "mianju/mianju4_tv",
+    "skinNameTomato": "",
+    "skinNameFrog": "mianju/mianju4_qw",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "mianju/mianju4_tv",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 938,
+    "iconH": "",
+    "abilityType": 938,
+    "dropType": 4,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 2,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 961,
+    "iconH": "",
+    "abilityType": 961,
+    "dropType": 1,
+    "priceCoin": 13,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 15,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 962,
+    "iconH": "",
+    "abilityType": 962,
+    "dropType": 2,
+    "priceCoin": 14,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 963,
+    "iconH": "",
+    "abilityType": 963,
+    "dropType": 2,
+    "priceCoin": 15,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 40,
+      "valueUpgrade": 10
+    },
+    "float2": {
+      "value": 5,
+      "valueUpgrade": 0.2
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 964,
+    "iconH": "",
+    "abilityType": 964,
+    "dropType": 2,
+    "priceCoin": 16,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 965,
+    "iconH": "",
+    "abilityType": 965,
+    "dropType": 3,
+    "priceCoin": 17,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 40,
+      "valueUpgrade": 40
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 5,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 4,
+      "valueUpgrade": 4
+    },
+    "float2": {
+      "value": 0.4,
+      "valueUpgrade": 0.4
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 966,
+    "iconH": "",
+    "abilityType": 966,
+    "dropType": 2,
+    "priceCoin": 18,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 99,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 999,
+    "iconH": "",
+    "abilityType": 999,
+    "dropType": 0,
+    "priceCoin": 25,
+    "priceHP": 0,
+    "skinName": "",
+    "maxCount": 9999,
+    "needActivate": true,
+    "skinNameTvMan": "",
+    "skinNameTomato": "",
+    "skinNameFrog": "",
+    "skinNameDave": "",
+    "skinNameHalloween": "",
+    "skinNameChristmas": "",
+    "skinNameSpring": "",
+    "RedRunePoint": 0,
+    "GreenRunePoint": 0,
+    "BlueRunePoint": 0,
+    "InEndlessMode": true,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int3": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float3": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  }
+]

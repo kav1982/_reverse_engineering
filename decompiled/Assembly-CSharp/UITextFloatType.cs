@@ -1,0 +1,25 @@
+public enum UITextFloatType
+{
+	Damage,
+	Critical,
+	Poison,
+	Burn,
+	Normal,
+	GetKey,
+	GetCoin,
+	GetCrystal,
+	GetAnchientBlood,
+	GetChaosCore,
+	GetGear,
+	GetShield,
+	GetTempShield,
+	Recover,
+	RecoverMP,
+	PlayerTakeDamage,
+	PlayerLostShield,
+	PlayerLostTempShield,
+	PlayerLostUmbrella,
+	DropMP,
+	DropCoin,
+	DropKey
+}

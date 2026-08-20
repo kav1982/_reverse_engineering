@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>闪耀星矢 Spell1026 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#c084fc; --accent2:#7ee0c0; --warn:#e0b05a;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.ecs h3{color:var(--accent)}
+  .card.mono h3{color:var(--warn)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>闪耀星矢 · Spell1026</h1>
+  <p>主动蓄力飞弹 · ID 10261–10263 · 蓄力加暴击，达阈值最终伤害乘算 · ECS 主轨 / Mono 旧轨</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>按住蓄力的法术飞弹。蓄力期间暴击率随时间上涨；松手时若暴击率 ≥ <code>float3%</code>，最终伤害 × <code>float2%</code>。视觉按暴击率分 4 档，紫光为满档。</p>
+<p>文案：蓄力施法，每秒暴击 +<code>float1</code>%；暴击超过 <code>float3</code>% 时最终伤害 ×<code>float2</code>%。</p>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">伤害</th><th class="num">蓝</th><th class="num">float1</th><th class="num">float2</th><th class="num">float3</th><th class="num">int1</th></tr>
+  <tr><td>10261</td><td class="num">1</td><td class="num"><b>78</b></td><td class="num">27</td><td class="num">25</td><td class="num"><b>150</b></td><td class="num"><b>33</b></td><td class="num">10</td></tr>
+  <tr><td>10262</td><td class="num">2</td><td class="num"><b>148</b></td><td class="num">35</td><td class="num">25</td><td class="num"><b>170</b></td><td class="num"><b>66</b></td><td class="num">10</td></tr>
+  <tr><td>10263</td><td class="num">3</td><td class="num"><b>281</b></td><td class="num">46</td><td class="num">25</td><td class="num"><b>200</b></td><td class="num"><b>100</b></td><td class="num">10</td></tr>
+</table>
+<ul>
+  <li><code>float1</code>：每秒暴击百分点（Mono/文案/AI 读配置）</li>
+  <li><code>float2</code>：达阈值后伤害乘算百分点</li>
+  <li><code>float3</code>：触发乘算所需暴击百分点</li>
+  <li><code>int1=10</code>：<strong>闪耀星矢代码未读</strong>，疑似残留</li>
+  <li><code>duration=2</code>：松手后存活时长，非最大蓄力时间</li>
+</ul>
+
+<div class="note">⚠ ECS 主轨暴击增速写死 <code>0.25/s</code>，不读 <code>Float1</code>（当前配置恰好 = 25/100）。改表时双轨会分叉。</div>
+
+<table>
+  <tr><th>运行时常量</th><th>值</th></tr>
+  <tr><td>ECS 暴击增速</td><td><code>+0.25/s</code>（硬编码）</td></tr>
+  <tr><td>视觉阶段分界</td><td><code>0.33 / 0.66 / 1.0</code>（硬编码，不读 float3）</td></tr>
+  <tr><td>体型缩放</td><td><code>×1.1^stage</code></td></tr>
+  <tr><td>ECS 后坐力</td><td><code>2 × stage × 法杖倍率</code></td></tr>
+  <tr><td>满倍率蓄力（无基础暴击）</td><td>Lv1 <code>1.32s</code> / Lv2 <code>2.64s</code> / Lv3 <code>4s</code></td></tr>
+</table>
+
+<div class="box">crit = baseCritical + ChargeTimer × 0.25   // ECS
+若 crit ≥ Float3/100：
+  Damage.MulRatio *= Float2/100
+若溢出暴击转伤且 crit≥1：
+  MulRatio *= crit（或 crit/baseCritical）</div>
+
+<div class="code">
+  <div class="bar"><b>Spell1026ShiningStarEndChargingSystem.cs</b><span>松手结算</span></div>
+<pre>CriticalChance = baseCritical + ChargeTimer * 0.25f;
+if (CriticalChance >= Float3 / 100f)
+    Damage.MulRatio *= Float2 / 100f;
+if (EnableConvertOverFlowCCToDamage && CriticalChance >= 1f)
+    Damage.MulRatio *= (baseCritical >= 1f)
+        ? CriticalChance / baseCritical
+        : CriticalChance;</pre>
+</div>
+
+<div class="code">
+  <div class="bar"><b>Spell1026TestHoldingSpell.cs</b><span>Mono 松手</span></div>
+<pre>overalCriticalChance += float1/100f * HoldingTime;
+if (overalCriticalChance >= float3/100f && IsSameCamp(Player))
+    damage = Ceil(damage * float2 / 100f);  // 仅玩家阵营</pre>
+</div>
+
+<h2>3. 主流程（ECS）</h2>
+<div class="box">生成 Entity（ChargeData + ChargingTag）
+→ DisableCollider：记 baseCritical、关碰撞、估初档
+→ ChargeSystem：ChargeTimer+=dt；松手关 ChargingTag
+→ ChargingSystem：crit 上涨、升档 Shine/Flash、体积
+→ 松手：Trail/Shoot/后坐力 → EndCharging 恢复碰撞 + 倍率
+→ 命中 Hit_1..n；坠落 Fall 粒子</div>
+
+<ul>
+  <li>蓄力期碰撞 <code>None</code>，避免贴身误伤</li>
+  <li>Stage 4 关 <code>Charge_Charge</code> 环 → 对应「紫光满蓄」</li>
+  <li><code>ReadyToShoot</code> 只写不读，疑似死字段</li>
+</ul>
+
+<div class="code">
+  <div class="bar"><b>Spell1026ShiningStarChargingSystem.cs</b><span>蓄力刷新</span></div>
+<pre>CriticalChance = baseCritical + chargeTimer * 0.25f;
+CurStage = clamp(Ceil(CriticalChance / 0.33f), 1, 4);
+// 升档：Charge_Shine_{stage} + Flash_{stage}
+// Scale = Pow(1.1f, CurStage)
+if (CurStage == 4) ChargePrefab.SetActive(false);</pre>
+</div>
+
+<h2>4. 双轨对比</h2>
+<div class="grid">
+  <div class="card ecs">
+    <h3>ECS 主轨（复刻以此为准）</h3>
+    <ul>
+      <li>暴击增速硬编码 0.25/s</li>
+      <li><code>Damage.MulRatio *= Float2/100</code></li>
+      <li>无阵营限制</li>
+      <li>可叠加溢出暴击转伤</li>
+    </ul>
+  </div>
+  <div class="card mono">
+    <h3>Mono 旧轨</h3>
+    <ul>
+      <li>读配置 <code>float1</code></li>
+      <li>直接改 <code>spellCfg.damage</code></li>
+      <li><strong>仅玩家</strong>吃 float2</li>
+      <li><code>SpellChargeStageCalculator</code> 定档</li>
+    </ul>
+  </div>
+</div>
+
+<h2>5. 视觉档位</h2>
+<table>
+  <tr><th>Stage</th><th>暴击区间</th><th>表现</th></tr>
+  <tr><td>1</td><td>≤33%</td><td>基础蓄力环</td></tr>
+  <tr><td>2</td><td>(33%, 66%]</td><td>Shine×2</td></tr>
+  <tr><td>3</td><td>(66%, 100%)</td><td>Shine×3</td></tr>
+  <tr><td>4</td><td>≥100%</td><td>Shine×4 + FinalFlash（紫光）</td></tr>
+</table>
+<p class="note">伤害阈值读 <code>float3</code>；视觉档阈值写死 0.33/0.66/1。Lv3 的 float3=100 才与紫光对齐。</p>
+
+<div class="code">
+  <div class="bar"><b>SpellChargeStageCalculator.Spell1026</b><span>Mono 定档</span></div>
+<pre>crit = baseCrit + Time * float1/100f;
+if (crit > 0.33f) {
+  if (crit >= 1f) return 4;
+  if (crit > 0.66f) return 3;
+  return 2;
+}
+return 1;</pre>
+</div>
+
+<h2>6. 构筑要点</h2>
+<table>
+  <tr><th>做法</th><th>效果</th></tr>
+  <tr><td>蓄更久</td><td>暴击涨 → 易触发倍率 / 更高档</td></tr>
+  <tr><td>堆基础暴击</td><td>缩短达 float3 时间</td></tr>
+  <tr><td>Lv1 约 1.32s</td><td>即可 ×150%</td></tr>
+  <tr><td>Lv3 吃满</td><td>约 4s 到 100% 暴击 + 紫光</td></tr>
+  <tr><td>改配置 float1</td><td>ECS 不跟；Mono/文案会变</td></tr>
+  <tr><td>改 int1</td><td>当前无效果</td></tr>
+</table>
+
+<h2>7. 关键文件</h2>
+<table>
+  <tr><td>蓄力视觉/松手</td><td><code>Spell1026ShiningStarChargingSystem</code></td></tr>
+  <tr><td>倍率结算</td><td><code>Spell1026ShiningStarEndChargingSystem</code></td></tr>
+  <tr><td>禁碰撞初档</td><td><code>Spell1026ShiningStarDisableColliderSystem</code></td></tr>
+  <tr><td>通用计时</td><td><code>SpellChargeSystem</code> / <code>SpellChargeData</code></td></tr>
+  <tr><td>Mono</td><td><code>Spell1026TestHoldingSpell</code> / <code>Spell1026Effect</code></td></tr>
+  <tr><td>阶段/时长</td><td><code>SpellChargeStageCalculator</code> / <code>SpellGroupShootDurationCalculator</code></td></tr>
+</table>
+
+</main>
+<footer>精简版 + 关键代码 · 详见 闪耀星矢逆向分析.md</footer>
+</body>
+</html>

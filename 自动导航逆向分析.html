@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自动导航 Spell3011 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>自动导航 · Spell3011</h1>
+  <p>Enhance 符文 · ID 30111–30113 · 以 float1°/米跟踪目标 · 轨道类右优先，卡面「随机」与代码不符</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>插在主动 / 召唤<strong>左侧</strong>的轨道符文。运动类型改成 <code>ChaseEnemy</code>，按 <code>float1</code> °/米转朝向。不改伤害、半径、速度、蓝耗、飞行寿命。</p>
+<p>文案：法术以 <code>float1</code>° 每米的角速度跟踪目标。底部写「不同轨道类强化同时存在时会随机选取」——<strong>代码不是随机</strong>。</p>
+<ul>
+  <li>没有 <code>Spell3011*System</code> / Authoring</li>
+  <li>配置标了 <code>haveEffecforSummonSpell=false</code>，运行时<strong>不读</strong></li>
+  <li>每飞 1 米最多转 <code>float1</code> 度；和速度解耦，跟路程走</li>
+</ul>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">float1 °/米</th><th class="num">售价</th><th>可合成</th></tr>
+  <tr><td>30111</td><td class="num">1</td><td class="num"><b>12</b></td><td class="num">20</td><td>true</td></tr>
+  <tr><td>30112</td><td class="num">2</td><td class="num"><b>22</b></td><td class="num">60</td><td>true</td></tr>
+  <tr><td>30113</td><td class="num">3</td><td class="num"><b>38</b></td><td class="num">180</td><td>false</td></tr>
+</table>
+<ul>
+  <li>等级不是每级 ×2：12 → 22 → 38</li>
+  <li>售价每级 ×3（20 / 60 / 180），比伤害强化贵</li>
+  <li><code>float2/3</code>、<code>int1/2/3</code> 全 0，未使用</li>
+</ul>
+
+<div class="box">1×Lv2 = 22°/m，2×Lv1 = 24°/m   （等级不能互替）
+1×Lv3 = 38°/m，Lv1+Lv2 = 34°/m
+· 合成只省槽</div>
+
+<h2>3. 叠加</h2>
+<h3>同卡：加算 °/米</h3>
+<div class="grid">
+  <div class="card right">
+    <h3>实际 · Σfloat1</h3>
+    <ul>
+      <li>2×Lv1 → <b>24°/m</b></li>
+      <li>底数从 0 加</li>
+      <li>手摆可叠；自动填槽组互斥</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>误解</h3>
+    <ul>
+      <li>不是 max(12, 12) = 12</li>
+      <li>不是 °/秒</li>
+      <li>不是一张高级 = 两张低级</li>
+    </ul>
+  </div>
+</div>
+
+<div class="code">
+  <div class="bar"><b>SpellShootData.GetChaseEnemyRotateSpeed</b><span>同卡相加</span></div>
+<pre>return EnhanceList
+    .Select(e =&gt; e.GetFinalConfig())
+    .Where(e =&gt; e.abilityType == FollowTarget)
+    .Sum(e =&gt; e.float1);</pre>
+</div>
+<p>Mono 同样是 <code>spellFollowTargetRotateSpeed += float1</code>。魔能升阶走 <code>GetFinalConfig()</code>。</p>
+
+<h3>不同轨道：右优先，不是随机</h3>
+<table>
+  <tr><th>abilityType</th><th>卡</th><th>运动类型</th></tr>
+  <tr><td><code>3009</code> AroundOwner</td><td>公转</td><td><code>Rotation</code></td></tr>
+  <tr><td><code>3010</code> AroundMouse</td><td>寻踪</td><td><code>ChaseMouse</code></td></tr>
+  <tr><td><code>3011</code> FollowTarget</td><td>自动导航</td><td><code>ChaseEnemy</code></td></tr>
+  <tr><td><code>3114</code> FollowOwner</td><td>自我追踪</td><td><code>ChaseOwner</code></td></tr>
+  <tr><td><code>3117</code> RandomRotationRadiu</td><td>自由公转</td><td><code>Rotation</code></td></tr>
+</table>
+
+<div class="code">
+  <div class="bar"><b>SpellShootDataExtend.GetSpellMovementType</b><span>从右往左取第一种</span></div>
+<pre>for (int i = EnhanceList.Length - 1; i &gt;= 0; i--)
+{
+    switch (EnhanceList[i].GetFinalConfig().abilityType)
+    {
+        case AroundOwner:
+        case RandomRotationRadiu: return Rotation;
+        case AroundMouse:         return ChaseMouse;
+        case FollowTarget:        return ChaseEnemy;
+        case FollowOwner:         return ChaseOwner;
+    }
+}
+return Normal;</pre>
+</div>
+
+<div class="card" style="margin-bottom:10px">
+  <div class="slots">
+    <span class="chip orb">公转</span><span class="chip en">导</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>ChaseEnemy，角速度用导航</span>
+  </div>
+  <div class="slots">
+    <span class="chip en">导</span><span class="chip orb">公转</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>Rotation，导航 °/米作废</span>
+  </div>
+  <div class="slots">
+    <span class="chip en">导Lv1</span><span class="chip en">导Lv2</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>仍是 ChaseEnemy，12+22=34</span>
+  </div>
+</div>
+<p class="note"><code>ListShuffle</code> 的 list 从未 Add，是死代码。繁中「覆蓋之前的彈道」才对。ECS 只加赢了的那种角速度。</p>
+<p>自动填槽 <code>RepelSpellGroup</code>：公转 / 寻踪 / 导航 / 自我追踪四张一组，同一段最多一张。自由公转不在这组。手摆不受限。</p>
+
+<h2>4. 转向：°/米，不是 °/秒</h2>
+<div class="box">maxDelta = Speed × float1 × dt
+Direction = DirMoveTowards(当前朝向, 指向目标, maxDelta)
+
+R ≈ 180 / (π × float1) 米
+Lv1 ≈ 4.77 m，Lv2 ≈ 2.60 m，Lv3 ≈ 1.51 m
+
+总转角 ≈ float1 × 速度 × Duration</div>
+
+<div class="code">
+  <div class="bar"><b>SpellBase.SpellFollowTarget</b><span>Mono · 有目标才转</span></div>
+<pre>if (SpellFollowHaveTarget)
+{
+    Direction = DirMoveTowards(Direction, ToPointDir(target),
+        CurrentSpeed * rotateSpeed * dt);
+    velocity = Direction * CurrentSpeed;
+}
+else
+    target = GetMiniMalAngleTargetablePpt();</pre>
+</div>
+<p>ECS <code>SpellMoveJob.Normal_ChaseTarget</code> 同一套。两边都把 <code>float1</code> 当<strong>度</strong>（<code>MoveTowardsAngle</code> / <code>math.radians</code>）。</p>
+<p class="note">自动导航<strong>不加</strong> Duration。短寿命弹要转够，得叠角速度、加时长或加速度把路程拉长。悬停后速度为 0，不再转。</p>
+
+<h3>锁敌：最小夹角，粘住</h3>
+<ul>
+  <li>不是最近距离。取与<strong>当前朝向</strong>夹角最小的可锁定单位</li>
+  <li>目标还活着且 <code>CanBeTarget</code>：粘住，不因旁边夹角更小而换</li>
+  <li>目标没了：当帧直线飞，再重新取最小夹角；没有目标就直线</li>
+  <li>默认不穿墙检测。墙后的怪也能锁</li>
+  <li>玩家弹锁敌对；ECS 额外排除 <code>NotAttack</code>、<code>Brittleness</code></li>
+</ul>
+
+<h2>5. 摆放：左侧累积</h2>
+<p>只强化<strong>自己右边、同一段</strong>里的主动 / 召唤。主槽加不到后槽。</p>
+
+<div class="card" style="margin-bottom:10px">
+  <div class="slots">
+    <span class="chip en">导</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>弹跟踪</span>
+  </div>
+  <div class="slots">
+    <span class="chip sp">弹</span><span class="chip en">导</span>
+    <span class="arrow">→</span>
+    <span>吃不到</span>
+  </div>
+  <div class="slots">
+    <span class="chip en">导</span><span class="chip sp">奥爆</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>两张都吃（奥爆常关掉通用跟踪）</span>
+  </div>
+  <div class="slots">
+    <span class="chip en">导</span><span class="chip sp">召唤</span>
+    <span class="arrow">→</span>
+    <span>运行时仍写入（表标无效，但不读）</span>
+  </div>
+</div>
+
+<p>自动填槽不在 <code>IgnoreSpells</code>。流星 / 火球 / 死亡蝰蛇只避开自我追踪和范围增强，<strong>不避开</strong>自动导航。</p>
+
+<h2>6. 谁跳过通用路径</h2>
+<p>点名，不拆 Job。不要假设所有法术都走第 4 节。</p>
+<table>
+  <tr><th>关掉 <code>enableFollowTarget</code></th><th>说明</th></tr>
+  <tr><td>激光 / 分解射线 / 高压水枪</td><td>自己画线 / 喷流</td></tr>
+  <tr><td>奥爆</td><td>非坠落关掉；坠落才开</td></tr>
+  <tr><td>滚球 / 诡雷 / 巨型泡泡</td><td>关掉</td></tr>
+  <tr><td>死亡蝰蛇 / 雷光环</td><td>关掉</td></tr>
+  <tr><td>龙息 / 超新星 / 宾箭</td><td>阶段开关</td></tr>
+  <tr><td>审判之刃 / 符文锤 / 激光晶石</td><td>自管朝向</td></tr>
+  <tr><td>融合召唤 / 召唤1</td><td>关掉</td></tr>
+</table>
+<table>
+  <tr><th>ECS 另有分支</th><th>和通用的差别</th></tr>
+  <tr><td>流星</td><td><code>max(速度, 50) × 角速度 × dt × 5</code></td></tr>
+  <tr><td>回旋镖</td><td>寿命前 33% 才追敌，之后回施法者</td></tr>
+  <tr><td>审判之刃 / 彼岸刃 / 鬼火 / 召唤4</td><td>自管何时调用追敌</td></tr>
+  <tr><td>维度旅者</td><td>生成时 <code>ChaseRotateSpeed × 0.3</code></td></tr>
+  <tr><td>诡雷</td><td>生成后 <code>ChaseRotateSpeed × 0.5</code></td></tr>
+</table>
+<p class="note">持续施法距离：自动导航不加额外秒数；只有公转会折进部分持续法术。</p>
+
+<h2>7. 开发注意事项</h2>
+<div class="grid3">
+  <div class="card add">
+    <h3>运动</h3>
+    <ul>
+      <li>按路程转，不要做成 °/秒</li>
+      <li>速度为 0 就不再转</li>
+      <li>锁最小夹角，粘住</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>叠加</h3>
+    <ul>
+      <li>同卡加算，跨轨道右优先</li>
+      <li>卡面「随机」不要做成洗牌</li>
+      <li>ECS 只加赢了的那种角速度</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>例外</h3>
+    <ul>
+      <li>激光族 / 喷流不走通用路径</li>
+      <li>流星会把角速度放大</li>
+      <li>「对召唤无效」运行时不读</li>
+    </ul>
+  </div>
+</div>
+
+<h2>8. 算例（魔法弹 speed=16，duration=0.5，打空 8 m）</h2>
+<table>
+  <tr><th>组合</th><th>运动</th><th class="num">°/米</th><th class="num">最多转</th></tr>
+  <tr><td>无</td><td>Normal</td><td class="num">0</td><td class="num">0</td></tr>
+  <tr><td>1×Lv1</td><td>ChaseEnemy</td><td class="num"><b>12</b></td><td class="num"><b>96°</b></td></tr>
+  <tr><td>1×Lv2</td><td>ChaseEnemy</td><td class="num"><b>22</b></td><td class="num"><b>176°</b></td></tr>
+  <tr><td>1×Lv3</td><td>ChaseEnemy</td><td class="num"><b>38</b></td><td class="num"><b>304°</b></td></tr>
+  <tr><td>2×Lv1</td><td>ChaseEnemy</td><td class="num"><b>24</b></td><td class="num"><b>192°</b></td></tr>
+  <tr><td>时Lv1 + 导Lv1</td><td>ChaseEnemy</td><td class="num">12</td><td class="num"><b>480°</b></td></tr>
+  <tr><td>公转 + 导Lv1 + 弹</td><td>ChaseEnemy</td><td class="num">12</td><td class="num">96°</td></tr>
+  <tr><td>导Lv1 + 公转 + 弹</td><td>Rotation</td><td class="num">—</td><td class="num">—</td></tr>
+  <tr><td>Lv1 无目标</td><td>ChaseEnemy</td><td class="num">12</td><td class="num">0</td></tr>
+  <tr><td>导Lv1 + 悬Lv1</td><td>ChaseEnemy</td><td class="num">12</td><td class="num">96°</td></tr>
+</table>
+<p class="note">Lv1 转不满 180°。命中且无穿透会销毁，走不到把角度转完。悬停阶段速度 0，不再转。</p>
+
+<h2>9. 关键文件</h2>
+<table>
+  <tr><td>同卡加算</td><td><code>SpellShootData.GetChaseEnemyRotateSpeed</code></td></tr>
+  <tr><td>运动类型右优先</td><td><code>SpellShootDataExtend.GetSpellMovementType</code></td></tr>
+  <tr><td>发射包角速度</td><td><code>ShootSpellUtils</code>（<code>ChaseEnemy</code> 才写）</td></tr>
+  <tr><td>Mono 转向</td><td><code>SpellBase.SpellFollowTarget</code>；<code>Tool2D.DirMoveTowards</code></td></tr>
+  <tr><td>ECS 转向 / 锁敌</td><td><code>SpellMoveJob.Normal_ChaseTarget</code>；<code>DTool.DirMoveTowards</code></td></tr>
+  <tr><td>最小夹角</td><td><code>GetMinimalAngleTargetablePpt</code> / <code>FindMinAngleTarget</code></td></tr>
+  <tr><td>洗牌死代码</td><td><code>SpellBase.ApplyShootGroupV2EnhanceEffect</code></td></tr>
+  <tr><td>自动填槽组互斥</td><td><code>SpellAutoFullTool.RepelSpellGroup</code></td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.FollowTarget = 3011</code></td></tr>
+</table>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 自动导航逆向分析.md · 槽位解析见 伤害强化逆向分析.md</footer>
+</body>
+</html>

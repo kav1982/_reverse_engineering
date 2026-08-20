@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>《魔法工艺》法术管线实现逻辑 · 流程图</title>
+<style>
+  :root{
+    --bg:#0f1218; --bg2:#151a22; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0;
+    --io:#3d6fd8; --stage:#2f6f5f; --ecs:#7a4fb5; --dec:#b8862b;
+    --alt:#2c5f7a; --loop:#8a4a5e; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;font-size:14px;line-height:1.55}
+  header{padding:20px 28px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#161c25,#0f1218)}
+  header h1{margin:0 0 6px;font-size:21px;letter-spacing:.5px}
+  header .sub{color:var(--dim);font-size:12.5px}
+  header .sub code{font-family:var(--mono);color:var(--accent2)}
+  .wrap{display:flex;min-height:calc(100vh - 96px)}
+  .main{flex:1;min-width:0;padding:16px 22px 60px}
+  .side{width:340px;flex:0 0 340px;border-left:1px solid var(--line);background:var(--bg2);
+    padding:16px 18px;position:sticky;top:0;height:calc(100vh - 96px);overflow:auto}
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  nav.tabs button{background:var(--panel);color:var(--dim);border:1px solid var(--line);
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit}
+  nav.tabs button:hover{color:var(--txt);border-color:#3c4a5c}
+  nav.tabs button.on{background:var(--accent);color:#08111c;border-color:var(--accent);font-weight:600}
+  .tab{display:none}
+  .tab.on{display:block}
+  .tabhead{margin:0 0 4px;font-size:16px}
+  .tabdesc{color:var(--dim);font-size:12.5px;margin:0 0 18px;max-width:900px}
+  /* ---- diagram ---- */
+  .diagram{position:relative;display:grid;gap:26px 34px;align-items:start}
+  .diagram svg.conn{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
+  .node{position:relative;z-index:1;background:var(--panel);border:1px solid var(--line);
+    border-left:4px solid var(--stage);border-radius:8px;padding:10px 12px;cursor:pointer;
+    transition:transform .12s,box-shadow .12s,border-color .12s}
+  .node:hover{transform:translateY(-2px);box-shadow:0 6px 18px #0009;border-color:#44536a}
+  .node.sel{outline:2px solid var(--accent);outline-offset:2px}
+  .node .t{font-weight:600;font-size:13.5px;margin-bottom:3px}
+  .node .c{font-family:var(--mono);font-size:11.5px;color:var(--accent2);word-break:break-all}
+  .node .n{font-size:11.5px;color:var(--dim);margin-top:4px}
+  .node.io{border-left-color:var(--io)}
+  .node.stage{border-left-color:var(--stage)}
+  .node.ecs{border-left-color:var(--ecs)}
+  .node.dec{border-left-color:var(--dec)}
+  .node.alt{border-left-color:var(--alt)}
+  .node.loop{border-left-color:var(--loop)}
+  .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;
+    background:#243040;color:var(--dim);margin-left:6px;vertical-align:1px;font-family:var(--mono)}
+  .elabel{font-size:10.5px;fill:var(--dim);font-family:var(--mono)}
+  /* ---- tree (frame order) ---- */
+  .tree{font-family:var(--mono);font-size:12.5px}
+  .tree ul{list-style:none;margin:0;padding-left:20px;border-left:1px dashed #33404f}
+  .tree>ul{padding-left:0;border-left:none}
+  .tree li{margin:3px 0;padding:4px 8px;border-radius:5px}
+  .tree li.grp{background:#1b2430;border:1px solid var(--line);margin:8px 0 6px}
+  .tree li.sys{background:#161d27;border:1px solid #222c38;cursor:pointer}
+  .tree li.sys:hover{border-color:#3c4a5c}
+  .tree .nm{color:var(--accent2)}
+  .tree .at{color:var(--dec);font-size:11px}
+  .tree .cm{color:var(--dim);font-size:11px}
+  /* ---- cards ---- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 14px}
+  .card h4{margin:0 0 3px;font-size:14px}
+  .card .id{font-family:var(--mono);font-size:11px;color:var(--dec)}
+  .card dl{margin:9px 0 0;display:grid;grid-template-columns:76px 1fr;gap:5px 9px;font-size:12.3px}
+  .card dt{color:var(--dim)}
+  .card dd{margin:0}
+  .card code{font-family:var(--mono);font-size:11.3px;color:var(--accent2)}
+  /* ---- formula ---- */
+  .formula{background:#111823;border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12.5px;
+    white-space:pre-wrap;overflow-x:auto;margin:10px 0 18px;color:#d6e4f5}
+  .formula b{color:var(--accent2);font-weight:600}
+  h3.sec{font-size:14.5px;margin:26px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+  /* ---- side panel ---- */
+  .side h3{margin:0 0 10px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+  #dTitle{font-size:15px;font-weight:600;margin-bottom:4px}
+  #dCode{font-family:var(--mono);font-size:11.5px;color:var(--accent2);margin-bottom:12px;word-break:break-all}
+  #dBody{font-size:12.6px}
+  #dBody p{margin:0 0 9px}
+  #dBody ul{margin:0 0 10px;padding-left:18px}
+  #dBody li{margin:3px 0}
+  #dBody .ev{font-family:var(--mono);font-size:11.2px;color:var(--dim)}
+  #dBody .ev b{color:#c9d6e6;font-weight:600}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px;font-size:11.5px;color:var(--dim)}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .hint{color:var(--dim);font-size:11.5px;margin-bottom:14px}
+  footer{padding:14px 28px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>《魔法工艺》法术管线实现逻辑</h1>
+  <div class="sub">
+    逆向来源：<code>Assembly-CSharp.dll</code>（Mono 后端，ilspycmd 反编译）　·　架构：Unity DOTS/ECS 混合模式　·　
+    数据驱动：<code>Resources/Configs/SpellConfig.json</code>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="main">
+  <nav class="tabs">
+    <button class="on" data-tab="t1">① 总览管线</button>
+    <button data-tab="t2">② 槽位解析算法</button>
+    <button data-tab="t3">③ 帧内 System 时序</button>
+    <button data-tab="t4">④ 触发器与派生法术</button>
+    <button data-tab="t5">⑤ 数值计算链</button>
+  </nav>
+
+  <!-- ================= TAB 1 ================= -->
+  <section class="tab on" id="t1">
+    <h2 class="tabhead">总览：从按键到法术消亡的完整管线</h2>
+    <p class="tabdesc">主链（中列）是一次成功发射的必经路径；左列是与主链并行的准备阶段与蓄能槽管线；右列是分支与回环。点击任意节点查看实现细节与证据行号。</p>
+    <div class="legend">
+      <span><i style="background:var(--io)"></i>输入</span>
+      <span><i style="background:var(--stage)"></i>托管层(C# 主线程)</span>
+      <span><i style="background:var(--dec)"></i>判定/门禁</span>
+      <span><i style="background:var(--ecs)"></i>ECS/DOTS 层</span>
+      <span><i style="background:var(--alt)"></i>并行/替代路径</span>
+      <span><i style="background:var(--loop)"></i>回环/派生</span>
+      <span>—— 实线 = 主流程　┈ 虚线 = 条件/数据供给</span>
+    </div>
+    <div class="diagram" id="d1" style="grid-template-columns:repeat(3,minmax(215px,1fr))"></div>
+  </section>
+
+  <!-- ================= TAB 2 ================= -->
+  <section class="tab" id="t2">
+    <h2 class="tabhead">槽位解析：SlotData[] → SpellShootGroup[]</h2>
+    <p class="tabdesc">这是整个系统最核心的算法：法杖格子里的一排符文，如何被"编译"成若干个发射组。<b>只在槽位变更时执行一次</b>（装杖 / 拾取 / 合成 / 重置），不是每帧或每次开火重算。</p>
+    <div class="hint">阶段 A = 扁平化扫描（构造函数）；阶段 B = 分组与子组递归（NextGroup / NextShoot）。</div>
+    <div class="diagram" id="d2" style="grid-template-columns:repeat(3,minmax(215px,1fr))"></div>
+
+    <h3 class="sec">解析产物结构</h3>
+    <div class="formula">shootGroups : List&lt;<b>SpellShootGroup</b>&gt;
+└─ Shoots : List&lt;<b>SpellShootData</b>&gt;          ← 同一组内 = 同时发射（Volley 提升上限）
+   ├─ Spell        : SlotData                 ← 可发射法术（Missile / Summon）
+   ├─ EnhanceList  : SlotData[]               ← 该法术<b>左侧</b>累积的强化符文
+   ├─ Triggers     : SlotData[]               ← 紧跟其后的触发器符文
+   └─ SubGroup     : SpellShootGroup          ← 触发器要发射的内容（递归结构，可嵌套）</div>
+  </section>
+
+  <!-- ================= TAB 3 ================= -->
+  <section class="tab" id="t3">
+    <h2 class="tabhead">帧内 System 执行时序</h2>
+    <p class="tabdesc">还原自各 System 的 <code>[UpdateInGroup]</code> / <code>[UpdateBefore]</code> / <code>[UpdateAfter]</code> / <code>OrderFirst</code> / <code>OrderLast</code> 特性。点击 System 查看职责。</p>
+    <div class="hint">注意：<b>FixedStepSimulationSystemGroup</b> 嵌套在 SimulationSystemGroup 内，每帧可能执行 0～N 次（定步长追帧），因此"移动 + 碰撞"的频率与渲染帧率解耦。</div>
+    <div class="tree" id="d3"></div>
+  </section>
+
+  <!-- ================= TAB 4 ================= -->
+  <section class="tab" id="t4">
+    <h2 class="tabhead">触发器（扳机）与派生法术</h2>
+    <p class="tabdesc">触发器符文本身不产生效果，而是把"它右侧的一段法术"打包成 <code>SubGroup</code>，在满足条件时再走一遍完整发射管线。</p>
+    <h3 class="sec">五种触发器</h3>
+    <div class="cards" id="d4a"></div>
+
+    <h3 class="sec">统一触发发射链路</h3>
+    <div class="formula">触发条件满足
+  → <b>ShootSpellBuffer.ShootByTrigger</b>(shooterEntity, shooterData, subGroup, spatial, builder)
+      → ApplyShooterEntity + ApplyWandEffect          ← 继承施法者/法杖上下文
+      → <b>ShootSpellUtils.ShootSpellGroup</b>(subGroup, ...)   ← 与玩家开火共用同一入口
+          → CreateShootInfoFromShootGroup → SipToSSP → SpellShootSystem.Shoot</div>
+
+    <h3 class="sec">派生法术：分裂 / 反弹 / 折射</h3>
+    <div class="cards" id="d4b"></div>
+  </section>
+
+  <!-- ================= TAB 5 ================= -->
+  <section class="tab" id="t5">
+    <h2 class="tabhead">数值计算链</h2>
+    <p class="tabdesc">法术的所有可叠加数值都走统一容器，区分"加算"与"乘算"两条通道，这是搭配深度的数学基础。</p>
+
+    <h3 class="sec">通用数值容器（托管层 RatioValue / ECS 层 AttributeValue）</h3>
+    <div class="formula">// RatioValue.cs:36 —— 托管层（UI 预览、法杖计算）
+Result = (BaseValue + addBase) × baseAddRatio × <b>addRatio</b> × <b>mulRatio</b> + addExtra
+
+// AttributeValue.Calculate() —— ECS 层（实际战斗结算）
+Result = (Base + AddBase) × (1 + <b>AddRatio</b>) × <b>MulRatio</b> + Extra
+
+// addRatio ← 多来源【相加】    mulRatio ← 多来源【相乘】</div>
+
+    <h3 class="sec">伤害链：强化符文 → 玩家 → 法杖</h3>
+    <div class="diagram" id="d5a" style="grid-template-columns:repeat(3,minmax(215px,1fr))"></div>
+    <div class="formula">最终伤害 = 法术基础 damage
+  × ( 1 + Σ<b>加算</b>[EnhanceAttackRatio.float1 / FireCrystal.float1 / OverDrive.float1] + PlayerMgr.ExtraDamageRatio )
+  × Π<b>乘算</b>[Refraction.float2 / PowerSavingMode.float3]
+  × wand.passiveDamageRatio            ← 遗物/法杖被动
+  × WandCfg.damageCorrection / 100     ← 法杖自身伤害修正
+
+// 关键：只统计【同一段插槽序列中、目标法术之前】的 Enhance
+//      → 这就是"强化符文必须摆在主动法术左侧"的代码依据 (CanShootSpellUtils.GetDamage 的 stopTarget 提前 return)
+// DPS 类法术：info.damage = Damage.Calculate() × DamageInterval</div>
+
+    <h3 class="sec">蓝耗链：组内 → 法杖 → 电池池</h3>
+    <div class="diagram" id="d5b" style="grid-template-columns:repeat(3,minmax(215px,1fr))"></div>
+    <div class="formula">单发 mpCost = SpellConfig.mpCost
+  × OwnerGroup.GetGroupManaCostRatio()
+      ├─ Volley      : pow(float1 / 100, n − 1)        ← 齐射数越多单发越便宜/贵
+      ├─ Multishot   : Π mpCostMulDivCorrection
+      └─ ArcaneNova / PreFirework 父法术比例修正
+  × summonTypeSpellManaCostRatio            ← 召唤类 + LowerSummonManaCost 法杖
+  × 父组 shootCount / SubGroup 触发次数
+  × Enhance 的 mpCostMulDivCorrection       ← Split / PowerSaving / OverDrive
+  × wand.GetWandMpCorrection()
+      ├─ WandCfg.costCorrection
+      ├─ passiveMpCostCorrection            ← ChargeMode 等
+      └─ PlayerMgr.MpCostRatioFromWandAbility()
+
+组 mpCost = Σ 各 SpellShootData（+ SubGroup，若 NeedCostSubGroupMana）
+扣费顺序 : 本杖 CurrentMP → 不足部分从 Battery 法杖池扣 (CostMpFromWandAbility)
+蓄能槽   : PostSlotMaxCharge = Σ 各 post 组 mpCost，充能满即发射，<b>不再扣 MP</b></div>
+  </section>
+</div>
+
+<aside class="side">
+  <h3>节点详情</h3>
+  <div id="dTitle">点击左侧任意节点</div>
+  <div id="dCode"></div>
+  <div id="dBody"><p style="color:var(--dim)">选中一个节点后，这里会显示它的实现职责、输入输出，以及反编译源码中的证据位置（文件:行号）。</p></div>
+</aside>
+</div>
+
+<footer>
+  产物路径：<code>_reverse_engineering/法术管线流程图.html</code>　·　
+  配套文档：<code>魔法工艺法术系统逆向报告.md</code>　·　<code>法术能力类型字段语义表.xlsx</code>　·　<code>魔法工艺完整配置表.xlsx</code><br>
+  行号基于本次反编译产物 <code>_reverse_engineering/decompiled/Assembly-CSharp/</code>；游戏更新后需重新反编译校准。标注"推测"者为间接证据。
+</footer>
+
+<script>
+/* ========== 数据：节点详情 ========== */
+const DETAIL = {
+  /* --- tab1 --- */
+  prep1:{t:"槽位变更事件",c:"触发 Wand.ResetAndRecheck()",b:[
+    "P:装杖、拾取符文、商店购买、合成升级、房间重置等任何改变 normalSlots / postSlots 的操作都会触发重算。",
+    "P:关键设计：解析结果被缓存为 shootGroups，开火时只读不算，避免每帧字符串/LINQ 开销。",
+    "E:PlayerMgr.cs:419,716 (WandReset / RefreshPlayer → wand.ResetAndRecheck())"]},
+  prep2:{t:"槽位预处理",c:"Wand.ResetAndRecheck()",b:[
+    "P:在分组之前，先把会改变「格子内容本身」的机制落地：",
+    "L:Mimic(3109) 模拟：从右向左扫描，给槽位写 mimicSpellID，之后 GetFinalConfig() 返回被模拟法术的配置",
+    "L:SpellLevelEnhance(3126)：给后续槽位 slotSpellExtraLevel++，经 GetFinalLevelId 抬升等级",
+    "L:ManaTendril(4021) 卷须：按 specialInt 占用后续格子（封印槽）",
+    "L:Passive / 法杖核心符文扫描：EchoRune、ChargeMode、EmptyContainer(+MP上限)、ManaEssence(+回蓝) 等写入法杖被动字段",
+    "E:Wand.cs:1432-1469 (ResetAndRecheck)",
+    "E:Wand.cs:2446-2496 (Mimic) · 2498-2543 (LevelEnhance) · 2425-2444 (ManaTendril) · 637-842 (Passive 扫描)",
+    "E:SlotData.cs:144-184 (GetFinalId / GetFinalLevelId)"]},
+  prep3:{t:"分组解析（编译期）",c:"SpellGroupParser.Parse(slots, WandCfg.shootCount)",b:[
+    "P:把一排 SlotData 编译成 List&lt;SpellShootGroup&gt;。详见「② 槽位解析算法」页。",
+    "P:normalSlots 与 postSlots 各自解析一次，算法完全相同。",
+    "O:输出 shootGroups / postSlotShootGroups；并算出 PostSlotMaxCharge（= 所有 post 组蓝耗之和）",
+    "E:Wand.cs:2698-2707 (RecalculateSpellGroups)",
+    "E:SpellGroupParser.cs:27-138"]},
+  pin:{t:"玩家输入",c:"PlayerController.Update() → Shoot()",b:[
+    "P:每帧检查开火意图。前置条件：isHoldMouse0、非 IsKeepCasting（激光等持续施法中会阻塞）、非冻结、未在拖拽 UI。",
+    "P:无蓄力被动 → 直接 SelectedWand.TryShoot()；有 ChargeMode 被动 → 走蓄力流程。",
+    "E:PlayerController.cs:545-568 (Update) · 703-710 (Shoot 前置) · 743 (分流)",
+    "E:PlayerController.cs:194 (IsKeepCasting = UnitKeepCastingSpells buffer 非空)"]},
+  pcharge:{t:"蓄力模式（替代路径）",c:"Wand.StartCharge / TryChargeOnce / ReleaseCharge",b:[
+    "P:装了 ChargeMode(4004) 类被动后，按住键改为「攒星星」：每次 TryChargeOnce 都扣一次当前组 MP 并生成一颗 Spell4004ChargeStars。",
+    "P:蓄力期间只发射 IsChargingSpell()（ShiningStar 1026 / SuperNova 1027）到星星上；松手时每颗星再发射非蓄力法术。",
+    "P:上限 passiveChargeCountLimit，间隔 passiveChargeInterval。",
+    "E:Wand.cs:711-715 (被动读取) · 1852-1871 (Start/Release) · 2594-2616 (TryChargeOnce) · 2181-2211 (ShootPassiveCharge)",
+    "E:SpellTools.cs:2376-2382 (IsChargingSpell)"]},
+  pgate:{t:"开火门禁（判定）",c:"Wand.TryShoot() → CanShootCurrentGroup() → CanShootIgnoreMp()",b:[
+    "P:三道时间门槛必须同时满足：rechecked && ShootIntervalTimer ≤ 0 && CoolingTimer ≤ 0，且当前不在 IsKeepCasting。",
+    "P:MP 三级判定：",
+    "L:任意组都付不起 → 弹 MP 警告，直接拒绝",
+    "L:当前组 MaxMP 不够 → EnterNextGroup(false) 跳过该组（不扣蓝、不进冷却）",
+    "L:当前 MP 不够（但 MaxMP 够）→ 拒绝并原地等回蓝",
+    "E:Wand.cs:2015-2039 (TryShoot) · 1975-1993 (CanShootCurrentGroup) · 1953-1973 (CanShootIgnoreMp)"]},
+  pmp:{t:"扣蓝",c:"Wand.CostMp(groupCost)",b:[
+    "P:先扣本法杖 CurrentMP，不足部分由 PlayerMgr.CostMpFromWandAbility 从 Battery 类法杖的共享池补扣。",
+    "P:Echo 回声触发时，若命中 passiveEchoFreeShootChance 则跳过扣蓝（免费额外一发）。",
+    "P:蓝耗完整计算链见「⑤ 数值计算链」页。",
+    "E:Wand.cs:2030-2033 (调用点) · 2388-2401 (CostMp) · 2671-2696 (GetWandMpCorrection)",
+    "E:PlayerWandAbilityExtend.cs:37-70 (Battery 共享池)"]},
+  psip:{t:"参数构建 SIP",c:"Wand.CreateSIPBuilder() → SpellInitialParameter.Builder.Build()",b:[
+    "P:SIP = 一次发射的全部上下文快照，按四层顺序叠加：",
+    "L:ProcessPlayerEffect —— 玩家额外伤害/暴击/散射/颜色（天赋、遗物）",
+    "L:ProcessWandEffect —— 法杖伤害修正、移动类型、红/绿/蓝符文状态",
+    "L:ProcessShootDataEffect —— 速度、穿透、元素、分裂、折射、半衰期传送、召唤属性",
+    "L:单位 / OwnerSpell / ShootCause / 蓄能槽标记",
+    "P:同时绑定射手 Entity、法杖、WandPostSlotChargeData、fromEcho / fromPostSlots 标记。",
+    "E:Wand.cs:2078-2114 (CreateSIPBuilder)",
+    "E:SpellInitialParameter.cs:120-167 (Build) · 169-200 (Player) · 203-265 (Wand) · 282-374 (ShootData) · 442-640 (字段表)"]},
+  pexpand:{t:"弹数展开",c:"ShootSpellUtils.CreateShootInfoFromShootGroup / FromShootData",b:[
+    "P:把一个 SpellShootData 展开成 N 个实际弹道：SpellConfig.shootCount × Multishot(3002) 的 count，双重循环生成 SpellShootInfo[]。",
+    "P:Volley(3001) 不在这里展开——它在解析期就让同一组内并排了多个 SpellShootData。",
+    "P:散射角在此按等分/随机规则分配（EqualDistributionAngle 4011 会改为严格等分）。",
+    "E:ShootSpellUtils.cs:744-801",
+    "E:SpellShootData.cs:100-115 (GetSpellMultiShootData) · 52-67 (Volley 并发上限)"]},
+  pssp:{t:"SSP 转换（预计算）",c:"ShootSpellUtils.SipToSSP() → SpellSpawnParamsProcessor.Process()",b:[
+    "P:托管层 → ECS 层的翻译，一次性把能算死的都算死，避免运行时重算：",
+    "L:ConfigComponentData（Damage / Duration / Penetrate / Radius 的 AttributeValue）",
+    "L:MovementComponentData（Type / Direction / Speed / Rebound / Fall 参数）",
+    "L:ElementComponentData（毒/粘液/火/雷/虚空/冰冻）、SplitComponentData、TeammateComponentData",
+    "L:四类触发器组件 + SubGroupEntity（托管 SpellShootGroup 挂到独立 Entity）",
+    "P:最后 SpellSpawnParamsProcessor 按 abilityType 做逐法术特化修正（硬编码分支所在处）。",
+    "E:ShootSpellUtils.cs:196-518 (SipToSSP) · 435-441 (SubGroupEntity) · 517-518 (Processor)",
+    "E:SpellSpawnParamsProcessor.cs"]},
+  pqueue:{t:"入队（跨帧边界）",c:"ShootSpellUtils.ShootToDots() → SpellShootSystem.Shoot(SpellSpawnParams)",b:[
+    "P:并不立即创建实体，而是把 SpellSpawnParams 写进 Singleton Buffer，由 SpellShootSystem 在下一次 OnUpdate 统一消费。",
+    "P:好处：所有实体创建集中在 SpellCreateSystemGroup 一处，结构变更可批处理；触发器/分裂产生的新弹也复用同一入口。",
+    "E:ShootSpellUtils.cs:140-189 (ShootSpellGroup) · 191-194 (ShootToDots)",
+    "E:SpellShootSystem.cs:724-745 (Shoot 入队)"]},
+  pspawn:{t:"实体实例化",c:"SpellShootSystem.SpawnSpellEntity()",b:[
+    "P:从 SpellSingleton 取 Prefab（分裂弹用 _Split 后缀变体），Instantiate 并挂全部 ComponentData。",
+    "P:按阵营设置碰撞 Filter 位；建立 LinkedEntityGroup（特效子实体、SubGroup 实体）。",
+    "P:isKeepCasting 法术在此写入施法者的 UnitKeepCastingSpells buffer —— 这就是激光会阻塞法杖循环的来源。",
+    "E:SpellShootSystem.cs:213-614 (SpawnSpellEntity) · 218-226 (Split prefab) · 482-484 (LinkedEntityGroup) · 544-563 (KeepCasting)",
+    "E:SpellSingletonSystem.cs:121-136 (Config 字典构建)"]},
+  psim:{t:"每帧模拟（托管步长）",c:"SpacialSpell → EnhanceSpell → SpellEffect SystemGroup",b:[
+    "P:三段固定顺序（详见「③ 帧内 System 时序」）：",
+    "L:SpacialSpellSystemGroup —— 空间/位置类特化（环绕、悬浮、跟随）",
+    "L:EnhanceSpellSystemGroup —— 强化效果结算（在空间之后，保证位置已定）",
+    "L:SpellEffectSystemGroup —— 视觉特效：从对象池取 GameObject 并每帧同步 ECS Transform",
+    "P:该组末尾 EndSpellSimulationEntityCommandBufferSystem 回放结构变更。",
+    "E:SpacialSpellSystemGroup.cs:4 · EnhanceSpellSystemGroup.cs:4-5 · SpellEffectSystemGroup.cs:4-5",
+    "E:SpellEffectSystem.cs:167-198 (GO 同步)"]},
+  pphys:{t:"物理定步长：命中 + 移动",c:"SpellPhysicsSystemGroup { SpellSystem → … → SpellMoveSystem }",b:[
+    "P:挂在 FixedStepSimulationSystemGroup，且 [UpdateAfter(PhysicsSystemGroup)]，因此读到的是本步物理已产生的 Stateful 事件。",
+    "P:SpellSystem（OrderFirst）：读 StatefulTriggerEvent 命中 → MakeDamageInfo → 写目标的 TakeDamageInfo_Dots buffer 与法术的 SpellHitEntity buffer；同时推进 DurationTimer、判定撞墙销毁。",
+    "P:SpellMoveSystem（OrderLast）：调度 Burst 的 SpellMoveJob 做位移；并读 StatefulCollisionEvent 处理反弹。",
+    "E:SpellPhysicsSystemGroup.cs:5-8",
+    "E:SpellSystem.cs:188-242 (命中/撞墙) · 280-306 (Duration)",
+    "E:SpellMoveJob.cs:19-31 (Burst IJobEntity) · 218-251 (反弹) · 264-505 (移动分派)",
+    "E:SpellTools.cs:2754-2762 (TryAttackEntity)"]},
+  pdmg:{t:"伤害结算",c:"UnitTakeDamageGroup → SpellTakeDamageResultSystem → SpellHitTriggerSystem",b:[
+    "P:UnitTakeDamageGroup 先由 UnitProperty 系列 System 实际扣血/判死。",
+    "P:SpellTakeDamageResultSystem（在判死之后）：命中特效与音效、命中触发器置位、折射 TryRefract、消耗穿透；Penetrate < 0 → 打 SpellDestroyTag。",
+    "P:SpellHitTriggerSystem（紧随其后）：扣 SubGroup 蓝耗并 ShootByTrigger 发射子组。",
+    "E:UnitTakeDamageGroup.cs:4",
+    "E:SpellTakeDamageResultSystem.cs:206-209 (穿透耗尽) · 240-248 (HitTrigger 置位)",
+    "E:SpellHitTriggerSystem.cs:170-199",
+    "E:TakeDamageInfo_Dots.cs:149-173 (伤害/击退公式)"]},
+  pend:{t:"生命周期结束",c:"SpellEndSystemGroup { SpellOverTriggerSystem → SpellDestroySystem → SpellCleanupSystem }",b:[
+    "P:挂在 SimulationSystemGroup 的 OrderLast，即一帧的最末。",
+    "L:SpellOverTriggerSystem —— 对带 SpellDestroyTag 的法术发射 OnOverTrigger / OnOverSplitTrigger 子组（含伤害继承）",
+    "L:SpellDestroySystem（OrderLast）—— 若 SplitComponentData.Count > 0 先 Split() 生成子弹参数，再 DestroyEntity",
+    "L:SpellCleanupSystem —— 移除 SpellSpawnParamsStorage、结束 KeepCasting 注册",
+    "P:销毁条件来源：Duration 到期 / 穿透耗尽 / 撞墙且无反弹无穿墙 / 各特化 System 主动标记。（离屏销毁未发现独立 System —— 推测依赖墙体 Trigger）",
+    "E:SpellEndSystemGroup.cs:4",
+    "E:SpellOverTriggerSystem.cs:573-638 · SpellDestroySystem.cs:476-583 · SpellCleanupSystem.cs:357-370"]},
+  padv:{t:"状态推进（循环核心）",c:"Wand.EnterNextGroup(setCoolDownOrInterval)",b:[
+    "P:index++ 后分两种情况：",
+    "L:未走完所有组 → ShootIntervalTimer = WandShootInterval（组间射击间隔）",
+    "L:已走完最后一组 → CoolingTimer = WandCoolDown（整轮冷却），index 归零",
+    "P:这解释了 shootInterval 与 coolDown 的语义区别：前者是格子之间，后者是「一整排打完」之后。",
+    "P:WandShootInterval / WandCoolDown 本身还会被被动、诅咒、法术的 shootIntervalAddSubRevise / coolDownAddSubRevise / coolDownRatio 修正。",
+    "E:Wand.cs:2355-2373 (EnterNextGroup) · 341-361 (WandShootInterval) · 364-384 (WandCoolDown)",
+    "E:WandConfig.cs:630-688 (GetExtraShootInterval / GetExtraCoolDown / GetCoolDownRatio)"]},
+  pecho:{t:"回声符文 EchoRune(4008)",c:"WandExtend.TryTriggerEchoEffect()",b:[
+    "P:发射后按 passiveEchoShootChance 概率，让【其他法杖】以 fromEcho:true 再发射一次；另有 passiveEchoFreeShootChance 概率免蓝。",
+    "P:因此它是一条从主链回到门禁的旁路回环。",
+    "E:Wand.cs:727-729 (被动读取) · 2143 (发射后调用)",
+    "E:WandExtend.cs:6-14"]},
+  ppost1:{t:"蓄能槽充能事件",c:"WandPostSlotTrigger.*TriggerCheck()",b:[
+    "P:九种充能来源，每把法杖固定其中一种（多种并存时显示为 Mix）：击杀 / 移动距离 / 站立 / 施法 / 法术命中 / 暴击 / 受到伤害 / 造成高额伤害(阈值45) / 时间流逝。",
+    "E:WandPostSlotTrigger.cs:37-199",
+    "E:WandConfig.cs:298-419 (九个 Postslot*ChargeRatio 与 ResetPostSlot)",
+    "E:WandPostSlotTriggerType.cs"]},
+  ppost2:{t:"充能累加与阈值",c:"Wand.ChargePostSlots(amount)",b:[
+    "P:PostSlotCurrentCharge += amount × (充能效率 + ManaToPostChargeRatio 转换量)。",
+    "P:阈值 PostSlotMaxCharge = 所有 post 组的蓝耗总和 —— 即「蓄能等价于预付 MP」。",
+    "P:充能效率受遗物、全杖被动（AllWandPostSlotChargeRatioUp）影响。",
+    "E:Wand.cs:2663-2668 (ChargePostSlots) · 2375-2385 (ManaToPostChargeEffect) · 2703-2706 (MaxCharge 计算)",
+    "E:PlayerMgr.cs:1243-1258 (GetPostSlotChargeEfficiency)"]},
+  ppost3:{t:"蓄能槽发射",c:"Wand.TryShootPostSpells() → ShootPostSlotsSpell()",b:[
+    "P:充满即自动发射全部 post 组，走与主链完全相同的 ShootSpellGroup 流程，但 fromPostSlots:true 且【不调用 CostMp】。",
+    "P:充能溢出时可连续触发多轮（上限约 floor(current / max / 2)）。",
+    "P:推测：不扣蓝是因为阈值本身就按蓝耗定义，充能即预付。",
+    "E:Wand.cs:2246-2309"]},
+  ptrig:{t:"触发器回环",c:"SpellMove / Hit / Over / Twine TriggerSystem",b:[
+    "P:五种触发器在不同帧阶段判定，满足后统一经 ShootSpellBuffer.ShootByTrigger 回到发射入口，形成回环。详见「④ 触发器与派生法术」页。",
+    "E:SpellMoveTriggerSystem.cs:227-247 · SpellHitTriggerSystem.cs:170-199",
+    "E:SpellOverTriggerSystem.cs:573-638 · SpellTwineTriggerSystem.cs:193-241",
+    "E:ShootSpellBuffer.cs:14-33"]},
+  psplit:{t:"派生法术回环",c:"Split / Rebound / Refraction",b:[
+    "P:分裂在销毁帧产生新的 SpellSpawnParams 回到创建入口；反弹与折射只改现有实体的方向与计数，不产生新实体。",
+    "P:分裂子弹被强制 Count=0 且清除全部触发器，防止指数递归。",
+    "E:SpellDestroySystem.cs:476-583 · SpellSpawnParamsStorage.cs:36-58",
+    "E:SpellMoveJob.cs:218-251 (反弹) · SpellTools.cs:1900-1974 (折射)"]},
+
+  /* --- tab2 --- */
+  s1:{t:"A1 · 线性扫描槽位",c:"SpellGroupParser 构造函数",b:[
+    "P:从左到右遍历 normalSlots（或 postSlots），构建扁平列表 _flatSpells：每项 = (可发射法术, 它左侧累积的 Enhance 数组)。",
+    "E:SpellGroupParser.cs:27-50"]},
+  s2:{t:"A2 · 封印槽？",c:"SlotData.isSealSlot",b:[
+    "P:多格法术（slotCost > 1）会把后续格子占为封印槽（sealSlotOwner 指向本体），扫描时直接跳过。",
+    "E:SlotData.cs:102-104",
+    "E:WandConfig.cs:183-208 (OnLoadedAfter 按 slotCost 生成封印槽)"]},
+  s3:{t:"A3 · 是触发器？",c:"SlotData.IsTrigger()",b:[
+    "P:五种 abilityType 判定为触发器：OnOverTrigger(3201) / OnOverSplitTrigger(3202) / OnMoveTrigger(3203) / OnStartRotationTrigger(3204) / OnHitTrigger(3205)。",
+    "P:触发器不进入 _flatSpells 主列表，而在阶段 B 由 NextShoot 挂到它左边的法术上。",
+    "E:SlotData.cs:655-658 · SpellGroupParser.cs:32-48"]},
+  s4:{t:"A4 · 是强化符文？",c:"useType == SpellType.Enhance",b:[
+    "P:Enhance 不单独成组，而是压入临时列表 pendingEnhances，等遇到下一个可发射法术时一次性挂给它。",
+    "P:这正是「强化必须放在主动法术左侧」的实现根源。",
+    "E:SpellGroupParser.cs:40-47"]},
+  s5:{t:"A5 · 是可发射法术？",c:"useType == Missile || Summon",b:[
+    "P:命中则 flush：_flatSpells.Add((spell, pendingEnhances.ToArray()))，随后清空 pendingEnhances。",
+    "P:Passive 类不进入解析（它们已在 CheckWandSlotPassiveEffect 中改写法杖状态），直接 continue。",
+    "E:SpellGroupParser.cs:37-48"]},
+  s6:{t:"B1 · 组装发射组",c:"SpellGroupParser.NextGroup()",b:[
+    "P:循环调用 NextShoot 收集 SpellShootData，直到组内数量达到并发上限或槽位耗尽。",
+    "P:并发上限 = max(WandCfg.shootCount, GetMaxMeantimeShootCount())；Volley(3001) / TotalScattering(3003) 的 int1 会加到该上限 —— 即同一组内并排更多法术 = 同时打出。",
+    "E:SpellGroupParser.cs:52-91 · SpellShootData.cs:52-67"]},
+  s7:{t:"B2 · 取一次发射",c:"SpellGroupParser.NextShoot()",b:[
+    "P:取出 (spell, enhances)，构造 SpellShootData 并把 EnhanceList 挂上；从 hideEnhances 中移除已消费的强化。",
+    "E:SpellGroupParser.cs:93-118"]},
+  s8:{t:"B3 · 需要子组？",c:"下一个是 Trigger || isParentTypeSpell",c2:"",b:[
+    "P:两种情况会开子组：紧跟着触发器符文，或该法术本身是「父类型法术」（isParentTypeSpell，如奥术新星、引线这类会内嵌施放其它法术的）。",
+    "E:SpellGroupParser.cs:119-130"]},
+  s9:{t:"B4 · 递归建子组",c:"Triggers[] + NextGroup(hideEnhances, owner)",b:[
+    "P:连续吃掉后面所有触发器写入 Triggers[]；把父级强化 + HindInSubGroup() 的 Multishot 放进 hideEnhances；然后递归 NextGroup 得到 SubGroup。",
+    "P:因此 Multishot(3002) 作用在子组内部法术上，而非父弹本身。",
+    "P:SubGroup 可无限嵌套 —— 触发器套触发器就是这样成立的。",
+    "E:SpellGroupParser.cs:119-131 · SlotData.cs:671-674 (HindInSubGroup)"]},
+  s10:{t:"B5 · 输出",c:"List&lt;SpellShootGroup&gt;",b:[
+    "P:最终缓存进 Wand.shootGroups / postSlotShootGroups，并顺带算出 PostSlotMaxCharge。",
+    "P:开火时只按 currentSpellGroupsIndex 取用，不再解析。",
+    "E:Wand.cs:2698-2707 · SpellGroupParser.cs:52-66"]},
+
+  /* --- tab5 --- */
+  f1:{t:"基础伤害",c:"SpellConfig.damage",b:["P:来自 JSON 配置表，按法术等级(Lv1/2/3) 分别配置。","E:assets_export/SpellConfig.json"]},
+  f2:{t:"加算通道",c:"RatioValue.AddRatio()",b:[
+    "P:同段序列中位于目标法术之前的强化符文，按 float1/100 累加：EnhanceAttackRatio(3102) / FireCrystal(3111) / OverDrive(3123)；再加玩家全局 ExtraDamageRatio。",
+    "E:CanShootSpellUtils.cs:7-33 (GetDamage) · 35-40 (FinalPlayerValue)"]},
+  f3:{t:"乘算通道",c:"RatioValue.MulRatio()",b:[
+    "P:Refraction(3121).float2 与 PowerSavingMode(3104).float3 走连乘；随后再乘法杖 passiveDamageRatio 与 WandCfg.damageCorrection/100。",
+    "E:CanShootSpellUtils.cs:21-26,38"]},
+  f4:{t:"停止条件（顺序依赖）",c:"stopTarget 提前 return",b:[
+    "P:GetDamage 遍历 enhances 时，一旦遇到 stopTarget（即目标法术自身）立即 return —— 所以只有它左侧的强化被计入。",
+    "E:CanShootSpellUtils.cs:10-31"]},
+  f5:{t:"ECS 端最终结算",c:"AttributeValue.Calculate() / TakeDamageInfo_Dots",b:[
+    "P:实际战斗用 ECS 侧公式；DPS 类法术额外乘 DamageInterval。击退力 = normalize(direction) × Knockback。",
+    "E:TakeDamageInfo_Dots.cs:149-173 · ShootSpellUtils.cs:264-269"]},
+  m1:{t:"法术基础蓝耗",c:"SpellConfig.mpCost",b:["P:配置表原始值。","E:assets_export/SpellConfig.json"]},
+  m2:{t:"组内修正",c:"SpellShootGroup.GetGroupManaCostRatio()",b:[
+    "P:Volley 按 pow(float1/100, n−1) 随并发数缩放；Multishot 连乘 mpCostMulDivCorrection；ArcaneNova / PreFirework 作为父法术再乘比例。",
+    "E:SpellShootGroup.cs:87-135 · SpellShootData.cs:604-643"]},
+  m3:{t:"法杖修正",c:"Wand.GetWandMpCorrection()",b:[
+    "P:WandCfg.costCorrection × passiveMpCostCorrection × PlayerMgr.MpCostRatioFromWandAbility()。",
+    "E:Wand.cs:2671-2696 · SpellShootDataExtend.cs:177-198"]},
+  m4:{t:"组求和 + 子组",c:"GetGroupManaCost_FinalPlayerValue()",b:[
+    "P:组蓝耗 = Σ 各 SpellShootData；若 NeedCostSubGroupMana 还要加上 SubGroup（触发器子组计算时用 ignoreParentGroup:true 避免父组倍增）。",
+    "E:SpellShootDataExtend.cs:201-218"]},
+  m5:{t:"实际扣除",c:"Wand.CostMp() → Battery 池",b:[
+    "P:本杖 CurrentMP 优先，不足从 Battery 类法杖共享池扣；Echo 免蓝时跳过。",
+    "E:Wand.cs:2388-2401 · PlayerWandAbilityExtend.cs:37-70"]}
+};
+
+/* ========== 数据：图 1 总览 ========== */
+const D1_NODES = [
+  {id:"prep1",  col:1,row:1, k:"alt",   t:"槽位变更事件",       c:"装杖 / 拾取 / 合成 / 重置", n:"准备阶段 · 非每帧"},
+  {id:"prep2",  col:1,row:2, k:"alt",   t:"槽位预处理",         c:"Wand.ResetAndRecheck()", n:"Mimic · 等级强化 · 卷须 · 被动扫描"},
+  {id:"prep3",  col:1,row:3, k:"alt",   t:"分组解析（编译期）", c:"SpellGroupParser.Parse()", n:"→ shootGroups / postSlotShootGroups"},
+  {id:"pin",    col:2,row:1, k:"io",    t:"玩家输入",           c:"PlayerController.Shoot()", n:"每帧检查开火意图"},
+  {id:"pcharge",col:3,row:1, k:"alt",   t:"蓄力模式",           c:"StartCharge / TryChargeOnce", n:"ChargeMode 被动 · 替代路径"},
+  {id:"pgate",  col:2,row:3, k:"dec",   t:"开火门禁",           c:"CanShootCurrentGroup()", n:"间隔 / 冷却 / MP 三级判定"},
+  {id:"padv",   col:3,row:4, k:"loop",  t:"状态推进",           c:"EnterNextGroup()", n:"组间 interval · 整轮 coolDown"},
+  {id:"pmp",    col:2,row:4, k:"stage", t:"扣蓝",               c:"Wand.CostMp()", n:"本杖 MP → Battery 共享池"},
+  {id:"psip",   col:2,row:5, k:"stage", t:"参数构建 SIP",       c:"SpellInitialParameter.Build()", n:"玩家 → 法杖 → ShootData 四层叠加"},
+  {id:"pecho",  col:3,row:5, k:"loop",  t:"回声符文",           c:"TryTriggerEchoEffect()", n:"EchoRune(4008) · 让其他法杖再发射"},
+  {id:"pexpand",col:2,row:6, k:"stage", t:"弹数展开",           c:"CreateShootInfoFromShootData()", n:"shootCount × Multishot"},
+  {id:"pssp",   col:2,row:7, k:"stage", t:"SSP 转换（预计算）", c:"SipToSSP + Processor", n:"托管 → ECS 组件翻译"},
+  {id:"pqueue", col:2,row:8, k:"ecs",   t:"入队（跨帧）",       c:"SpellShootSystem.Shoot()", n:"写 Singleton Buffer，下帧消费"},
+  {id:"pspawn", col:2,row:9, k:"ecs",   t:"实体实例化",         c:"SpawnSpellEntity()", n:"SpellCreateSystemGroup · OrderFirst"},
+  {id:"psim",   col:2,row:10,k:"ecs",   t:"每帧模拟",           c:"Spacial → Enhance → Effect", n:"位置 → 强化结算 → 特效同步"},
+  {id:"pphys",  col:2,row:11,k:"ecs",   t:"物理定步长",         c:"SpellSystem → SpellMoveSystem", n:"命中/寿命 → 移动/反弹(Burst)"},
+  {id:"ptrig",  col:3,row:11,k:"loop",  t:"触发器回环",         c:"ShootByTrigger()", n:"命中 / 移动 / 结束 / 环绕"},
+  {id:"pdmg",   col:2,row:12,k:"ecs",   t:"伤害结算",           c:"UnitTakeDamageGroup → Result", n:"扣血 → 穿透/折射 → 命中触发"},
+  {id:"pend",   col:2,row:13,k:"ecs",   t:"生命周期结束",       c:"Over → Destroy → Cleanup", n:"SimulationSystemGroup · OrderLast"},
+  {id:"psplit", col:3,row:13,k:"loop",  t:"派生法术",           c:"Split / Rebound / Refraction", n:"分裂产生新实体 · 防递归"},
+  {id:"ppost1", col:1,row:4, k:"alt",   t:"蓄能槽充能事件",     c:"WandPostSlotTrigger.*Check()", n:"九种充能来源"},
+  {id:"ppost2", col:1,row:5, k:"alt",   t:"充能累加 / 阈值",    c:"ChargePostSlots()", n:"阈值 = post 组蓝耗总和"},
+  {id:"ppost3", col:1,row:6, k:"alt",   t:"蓄能槽发射",         c:"ShootPostSlotsSpell()", n:"复用同一管线 · 不扣 MP"}
+];
+const D1_EDGES = [
+  ["prep1","prep2"],["prep2","prep3"],
+  ["prep3","pgate","dash","提供 shootGroups"],
+  ["pcharge","pin","dash","被动改道"],
+  ["pin","pgate"],
+  ["pgate","pmp","","通过"],
+  ["pgate","padv","dash","跳过/推进"],
+  ["padv","pgate","dash","下一组"],
+  ["pmp","psip"],["psip","pexpand"],
+  ["psip","pecho","dash",""],["pecho","pgate","dash","额外一发"],
+  ["pexpand","pssp"],["pssp","pqueue"],["pqueue","pspawn"],
+  ["pspawn","psim"],["psim","pphys"],["pphys","pdmg"],["pdmg","pend"],
+  ["ppost1","ppost2"],["ppost2","ppost3"],["ppost3","pexpand","dash","汇入共用管线"],
+  ["pdmg","ptrig","dash",""],["ptrig","pqueue","dash","子组入队"],
+  ["pend","psplit","dash",""],["psplit","pqueue","dash","分裂入队"]
+];
+
+/* ========== 数据：图 2 解析算法 ========== */
+const D2_NODES = [
+  {id:"s1", col:2,row:1, k:"stage",t:"A1 · 线性扫描槽位",   c:"for i in slots (左 → 右)", n:"构造 _flatSpells"},
+  {id:"s2", col:2,row:2, k:"dec",  t:"A2 · 封印槽？",       c:"isSealSlot", n:"多格法术占位 → 跳过"},
+  {id:"s3", col:2,row:3, k:"dec",  t:"A3 · 是触发器？",     c:"IsTrigger() · 3201-3205", n:"暂存，阶段 B 挂到左邻法术"},
+  {id:"s4", col:2,row:4, k:"dec",  t:"A4 · 是强化符文？",   c:"useType == Enhance", n:"压入 pendingEnhances"},
+  {id:"s5", col:2,row:5, k:"dec",  t:"A5 · 是可发射法术？", c:"useType == Missile / Summon", n:"flush 成一项；Passive 直接跳过"},
+  {id:"s6", col:2,row:6, k:"stage",t:"B1 · 组装发射组",     c:"NextGroup()", n:"并发上限受 Volley int1 提升"},
+  {id:"s7", col:2,row:7, k:"stage",t:"B2 · 取一次发射",     c:"NextShoot()", n:"绑定 EnhanceList"},
+  {id:"s8", col:2,row:8, k:"dec",  t:"B3 · 需要子组？",     c:"下一个是 Trigger || isParentTypeSpell", n:""},
+  {id:"s9", col:3,row:8, k:"loop", t:"B4 · 递归建子组",     c:"Triggers[] + 递归 NextGroup()", n:"Multishot 隐藏进子组 · 可嵌套"},
+  {id:"s10",col:2,row:9, k:"io",   t:"B5 · 输出",           c:"List&lt;SpellShootGroup&gt;", n:"缓存到 Wand，开火时只读"}
+];
+const D2_EDGES = [
+  ["s1","s2"],["s2","s3","dash","否"],["s3","s4","dash","否"],["s4","s5","dash","否"],
+  ["s5","s6","","扫描完成"],["s6","s7"],["s7","s8"],
+  ["s8","s9","dash","是"],["s9","s7","dash","子组内继续"],
+  ["s8","s10","","否 / 组已满"]
+];
+
+/* ========== 数据：图 5 数值链 ========== */
+const D5A_NODES = [
+  {id:"f1",col:1,row:1,k:"io",   t:"基础伤害",        c:"SpellConfig.damage", n:""},
+  {id:"f2",col:2,row:1,k:"stage",t:"加算通道 ⊕",     c:"AddRatio", n:"3102 / 3111 / 3123 + 玩家全局"},
+  {id:"f3",col:3,row:1,k:"stage",t:"乘算通道 ⊗",     c:"MulRatio", n:"3121 / 3104 + 法杖修正"},
+  {id:"f4",col:2,row:2,k:"dec",  t:"顺序依赖",        c:"stopTarget → return", n:"只计左侧强化"},
+  {id:"f5",col:3,row:2,k:"ecs",  t:"ECS 最终结算",    c:"AttributeValue.Calculate()", n:"DPS 再乘 DamageInterval"}
+];
+const D5A_EDGES = [["f1","f2"],["f2","f3"],["f2","f4","dash","顺序约束"],["f3","f5"]];
+
+const D5B_NODES = [
+  {id:"m1",col:1,row:1,k:"io",   t:"法术基础蓝耗",  c:"SpellConfig.mpCost", n:""},
+  {id:"m2",col:2,row:1,k:"stage",t:"组内修正",      c:"GetGroupManaCostRatio()", n:"Volley 幂次 / Multishot 连乘"},
+  {id:"m3",col:3,row:1,k:"stage",t:"法杖修正",      c:"GetWandMpCorrection()", n:"costCorrection × 被动"},
+  {id:"m4",col:2,row:2,k:"stage",t:"组求和 + 子组",  c:"GetGroupManaCost_FinalPlayerValue()", n:"ignoreParentGroup 防倍增"},
+  {id:"m5",col:3,row:2,k:"dec",  t:"实际扣除",      c:"CostMp() → Battery 池", n:"Echo 可免蓝"}
+];
+const D5B_EDGES = [["m1","m2"],["m2","m3"],["m3","m4"],["m4","m5"]];
+
+/* ========== 数据：图 3 帧内时序 ========== */
+const D3_TREE = [
+  {g:"SimulationSystemGroup", at:"Unity 标准仿真组", items:[
+    {n:"SpellSingletonSystem", at:"[OrderFirst]", cm:"构建 Prefab / 特效 / SpellConfig_Struct 字典", d:{t:"SpellSingletonSystem",c:"[UpdateInGroup(SimulationSystemGroup, OrderFirst)]",b:["P:把 SpellConfig.list（JSON 反序列化结果）转成 ECS 可用的 SpellConfig_Struct 字典，并登记 Prefab/特效引用。","E:SpellSingletonSystem.cs:8 · 121-136"]}},
+    {g:"SpellSimulationSystemGroup", at:"[After VariableRate] [Before UnitTakeDamageGroup]", items:[
+      {g:"SpellCreateSystemGroup", at:"[OrderFirst]", items:[
+        {n:"SpellMoveTriggerSystem / SpellWandSpiritShootSystem / Spell2005GrimoireShootSystem", at:"[Before SpellShootSystem]", cm:"移动触发器判定、法杖之魂与法典自动施法", d:{t:"创建前置 System",c:"[UpdateBefore(SpellShootSystem)]",b:["P:这些 System 会在本帧实例化之前追加新的发射请求，保证同帧生效。","E:SpellMoveTriggerSystem.cs:14-17,227-247"]}},
+        {n:"SpellShootSystem", at:"核心", cm:"消费 SpellSpawnParams Buffer → SpawnSpellEntity 实例化", d:DETAIL.pspawn},
+        {n:"SpellTwineTriggerSystem / TeammateRegisterSystem / Spell4027ProcessSystem", at:"[After SpellShootSystem]", cm:"环绕触发器（生成后首帧一次性）、召唤物注册、蓝符文处理", d:{t:"创建后置 System",c:"[UpdateAfter(SpellShootSystem)]",b:["P:环绕触发器在法术生成后的第一帧触发，然后自我禁用组件。","P:召唤物在此按 SIP 修正 maxHP / 移速并注册进 Teammate 系统。","E:SpellTwineTriggerSystem.cs:193-241 · TeammateRegisterSystem.cs:189-304"]}}
+      ]},
+      {n:"SpellChargeSystem", at:"[Before SpacialSpellSystemGroup]", cm:"蓄力计时推进", d:{t:"SpellChargeSystem",c:"",b:["P:推进 SpellChargeData 的计时（闪耀之星、超新星等蓄力类）。","E:SpellChargeSystem.cs"]}},
+      {n:"SpacialSpellSystemGroup", at:"", cm:"空间/位置类特化：环绕、悬浮、跟随、龙息、激光等", d:{t:"SpacialSpellSystemGroup",c:"[UpdateInGroup(SpellSimulationSystemGroup)]",b:["P:处理与位置强相关的特化法术逻辑，必须在强化结算之前完成。","E:SpacialSpellSystemGroup.cs:4"]}},
+      {n:"SpellChargeEndSystem", at:"[After SpacialSpellSystemGroup]", cm:"蓄力/持续施法结束处理（非蓄能槽）", d:{t:"SpellChargeEndSystem",c:"",b:["P:处理法术自身蓄力结束（KeepCasting 类），与法杖的 postSlot 蓄能槽是两套机制。","E:SpellChargeEndSystem.cs:12-15,232-238"]}},
+      {n:"EnhanceSpellSystemGroup", at:"[After SpacialSpellSystemGroup]", cm:"强化符文效果结算", d:{t:"EnhanceSpellSystemGroup",c:"[UpdateAfter(SpacialSpellSystemGroup)]",b:["P:位置确定后再结算强化效果，保证范围/半径类强化基于当帧真实位置。","E:EnhanceSpellSystemGroup.cs:4-5"]}},
+      {n:"SpellEffectSystemGroup", at:"[After EnhanceSpellSystemGroup]", cm:"视觉特效：对象池 GameObject 与 ECS Transform 同步", d:DETAIL.psim},
+      {n:"EndSpellSimulationEntityCommandBufferSystem", at:"[OrderLast]", cm:"回放本组累积的结构变更（创建/销毁/组件增删）", d:{t:"ECB 回放点",c:"[UpdateInGroup(SpellSimulationSystemGroup, OrderLast)]",b:["P:并行 Job 中的结构变更都写入 ECB，在这里统一回放。","P:同为 OrderLast 的还有 SpellRemoveDuplicatesHitEntityBufferSystem（命中列表去重），两者相对顺序依赖注册顺序（推测）。","E:EndSpellSimulationEntityCommandBufferSystem.cs:6"]}}
+    ]},
+    {g:"FixedStepSimulationSystemGroup", at:"定步长 · 每帧 0～N 次", items:[
+      {n:"PhysicsSystemGroup", at:"Unity Physics", cm:"物理步进，产出 StatefulTriggerEvent / StatefulCollisionEvent", d:{t:"Unity PhysicsSystemGroup",c:"",b:["P:法术的碰撞事件由 Unity Physics 产生，因此 SpellPhysicsSystemGroup 必须 [UpdateAfter] 它。","E:SpellPhysicsSystemGroup.cs:5"]}},
+      {g:"SpellPhysicsSystemGroup", at:"[After PhysicsSystemGroup] [Before EndFixedStepECB]", items:[
+        {n:"SpellSystem", at:"[OrderFirst]", cm:"Trigger 命中 → 写伤害与 SpellHitEntity；推进 Duration；撞墙/穿透耗尽判销毁", d:{t:"SpellSystem（命中与寿命）",c:"[UpdateInGroup(SpellPhysicsSystemGroup, OrderFirst)]",b:["P:读 StatefulTriggerEvent Enter → spell.MakeDamageInfo(costPenetrate:true) → CMD.TryAttackEntity 写目标 TakeDamageInfo_Dots buffer + 法术 SpellHitEntity buffer。","P:撞到非单位且不能穿墙且无剩余反弹 → 打 SpellDestroyTag。","P:UpdateDuration：Timer ≥ Duration → 销毁或按 ReduceSizeWhenLifeEnd 缩圈。","E:SpellSystem.cs:184-242 · 280-306 · SpellTools.cs:2754-2762"]}},
+        {n:"SpellHoverDamageSystem / Spell1010SnakeWalkSystem 等", at:"[After SpellSystem]", cm:"悬浮伤害、蛇形轨迹等特化", d:{t:"特化物理 System",c:"",b:["P:介于命中与移动之间的特化逻辑。","E:SpellPhysicsSystemGroup 内各 System 特性"]}},
+        {n:"SpellMoveSystem → SpellMoveJob", at:"[OrderLast] · Burst", cm:"按 SpellSpecialMovementType 分派位移；读 CollisionEvent 处理反弹与坠落", d:{t:"SpellMoveSystem / SpellMoveJob",c:"[OrderLast] · [BurstCompile] IJobEntity",b:["P:五种移动类型分派：Normal / Rotation / ChaseMouse / ChaseEnemy / ChaseOwner，每类再按 abilityType 二级特化（蝴蝶、鬼火、审判之刃、回旋镖、蓝符文…）。","P:碰撞 Enter → ReboundCount--、反射方向、耗尽则禁用反弹碰撞体并生成反弹特效。","P:末尾统一走 Normal_Fall（或火球特化）处理坠落，落地打 SpellGroundedTag。","P:被排除的实体：TeammateDisableSpellMovementTag、SpellKeepCastingAttach、龙息/锤/盾/鱼叉等特殊 Data。","E:SpellMoveJob.cs:19-31,218-251,264-505 · SpellMoveSystem.cs:13-14,195-219 · SpellSpecialMovementType.cs:1-8"]}}
+      ]},
+      {n:"EndFixedStepSimulationEntityCommandBufferSystem", at:"定步长末", cm:"回放移动阶段的结构变更（反弹特效等）", d:{t:"定步长 ECB",c:"",b:["P:SpellMoveSystem 使用该 ECB Singleton。","E:SpellMoveSystem.cs:195-219"]}}
+    ]},
+    {g:"UnitTakeDamageGroup", at:"[After FixedStepSimulationSystemGroup]", items:[
+      {n:"UnitBeforeTakeDamage / UnitProperty / UnitTakeDamageDeadSystem", at:"", cm:"实际扣血、属性结算、死亡判定", d:{t:"扣血与死亡",c:"",b:["P:消费各单位的 TakeDamageInfo_Dots buffer，完成实际伤害应用。","E:UnitTakeDamageGroup.cs:4"]}},
+      {n:"SpellTakeDamageResultSystem", at:"[After Dead] [Before Clear]", cm:"命中特效/音效、折射、穿透消耗、命中触发器置位", d:DETAIL.pdmg},
+      {n:"SpellHitTriggerSystem", at:"[After SpellTakeDamageResultSystem]", cm:"扣子组蓝耗并 ShootByTrigger 发射命中触发内容", d:{t:"SpellHitTriggerSystem",c:"[UpdateAfter(SpellTakeDamageResultSystem)]",b:["P:命中触发器 CD = 1 / Σint2 秒；子组蓝耗 = 子组总蓝耗 × Average(int1%)。","E:SpellHitTriggerSystem.cs:170-199 · ShootSpellUtils.cs:473-480"]}},
+      {n:"UnitTakeDamageClearSystem", at:"", cm:"清空本帧伤害 buffer", d:{t:"清理",c:"",b:["P:一帧的伤害信息在此清空，保证 buffer 不跨帧累积。"]}}
+    ]},
+    {n:"SpellKeepCastingAttachSystem", at:"[After PlayerController] [Before SpellEndSystemGroup]", cm:"持续施法法术（激光等）跟随施法者附着", d:{t:"SpellKeepCastingAttachSystem",c:"",b:["P:把持续施法类法术每帧吸附到施法者的发射点，这类实体不参与通用 SpellMoveJob。","E:SpellKeepCastingAttachSystem.cs · SpellMoveJob.cs:20-29"]}},
+    {g:"SpellEndSystemGroup", at:"[OrderLast in SimulationSystemGroup]", items:[
+      {n:"SpellOverTriggerSystem", at:"[Before SpellDestroySystem]", cm:"结束触发器 / 结束分裂触发器发射子组（含伤害继承）", d:{t:"SpellOverTriggerSystem",c:"[UpdateInGroup(SpellEndSystemGroup)]",b:["P:OnOverTrigger(3201)：对每个触发器发射一次子组，finalDamageExtra += 父伤害 × int2%。","P:OnOverSplitTrigger(3202)：按 int2 个方向扇形发射，伤害 ×int3%；低帧率时减少 spawn 数并提高单发比例补偿。","E:SpellOverTriggerSystem.cs:573-638"]}},
+      {n:"SpellDestroySystem", at:"[OrderLast]", cm:"若 Split.Count>0 先生成分裂参数，再 DestroyEntity", d:{t:"SpellDestroySystem",c:"[OrderLast]",b:["P:销毁前调用 Split()：用 SpellSpawnParamsStorage.ToSplit() 生成子弹参数（伤害×0.33、半径×0.8、击退×0.5、速度×0.5、Count=0、清除全部触发器）。","P:随后 entityCommandBuffer.DestroyEntity。","E:SpellDestroySystem.cs:476-583 · SpellSpawnParamsStorage.cs:36-58"]}},
+      {n:"SpellCleanupSystem", at:"[After SpellDestroySystem] [OrderLast]", cm:"移除 SpawnParamsStorage、结束 KeepCasting 注册", d:{t:"SpellCleanupSystem",c:"",b:["P:清理跨帧存储与施法者的 KeepCasting 登记，解除法杖循环阻塞。","E:SpellCleanupSystem.cs:357-370"]}}
+    ]},
+    {n:"BeforeEndSimulationEntityCommandBufferSystem", at:"[After SpellEndSystemGroup] [OrderLast]", cm:"帧末全局 ECB 回放", d:{t:"帧末 ECB",c:"",b:["P:推测为 Simulation 最末的全局结构变更回放点。","E:BeforeEndSimulationEntityCommandBufferSystem.cs:6-7"]}}
+  ]}
+];
+
+/* ========== 数据：图 4 触发器与派生 ========== */
+const TRIGGERS = [
+  {id:"3201",nm:"OnOverTrigger · 结束触发",parse:"作为 Trigger 收进 Triggers[]，其右侧法术进入 SubGroup；子组次数 = +1 × shootCount",run:"法术被打上 SpellDestroyTag 时，由 SpellOverTriggerSystem 在 SpellEndSystemGroup 判定",fire:"每个触发器发射一次子组；finalDamageExtra += 父法术伤害 × int2%",mp:"不扣 MP",fields:"int2 = 继承父伤害比例(%)",ev:"SpellOverTriggerSystem.cs:622-633 · ShootSpellUtils.cs:483-490"},
+  {id:"3202",nm:"OnOverSplitTrigger · 结束分裂",parse:"同上；子组次数 = Σint2 × shootCount",run:"同一 System 的第二段 query（SpellDestroyTag + OverSplit 组件）",fire:"按 Count=int2 个方向扇形发射（i×90° + 随机）；伤害 ×int3%；低帧率降 spawn 并补偿单发比例",mp:"不扣 MP",fields:"int2 = 分裂方向数 · int3 = 子组伤害比例(%)",ev:"SpellOverTriggerSystem.cs:573-611 · ShootSpellUtils.cs:457-471"},
+  {id:"3203",nm:"OnMoveTrigger · 移动触发",parse:"同上；生成期写入 SubGroupMpCost = 子组蓝耗 × Min(int1)/100，TriggerDistanceRatio = Σfloat1",run:"SpellMoveTriggerSystem（SpellCreateSystemGroup，Before SpellShootSystem）每帧累加位移；阈值 = SubGroupMpCost / Σfloat1，且需 MP 足够；距相机焦点过远(x≥23 或 y≥18)跳过",fire:"CostMp(SubGroupMpCost) → ShootByTrigger，方向 ±90° 交替",mp:"扣：子组蓝耗 × Min(int1%)",fields:"int1 = 蓝耗比例(%，多个取 Min) · float1 = 距离系数(Σ)",ev:"SpellMoveTriggerSystem.cs:223-247 · ShootSpellUtils.cs:446-455"},
+  {id:"3204",nm:"OnStartRotationTrigger · 环绕",parse:"同上；子组次数 = Σint2 × shootCount；Count=Σint2，Radius=Max(float1)",run:"SpellTwineTriggerSystem（After SpellShootSystem）—— 法术生成后第一帧",fire:"按 Count 均匀分布 360° 发射，设 SpellTag.Twine 与 Rotation 运动；触发后自我禁用组件（一次性）",mp:"不扣 MP",fields:"int2 = 环绕子法术数 · float1 = 环绕半径",ev:"SpellTwineTriggerSystem.cs:193-241 · ShootSpellUtils.cs:492-497"},
+  {id:"3205",nm:"OnHitTrigger · 命中触发",parse:"同上；生成期写入 SubGroupMp = 子组蓝耗 × Average(int1/100)，Cooldown = 1 / Σint2",run:"两段式：SpellTakeDamageResultSystem 命中且 CD 结束 → NeedTrigger=true 并记录 TriggerPoint；随后 SpellHitTriggerSystem 执行",fire:"扣 SubGroupMp → ShootByTrigger（随机方向）；触发后 ResetCooldown()",mp:"扣：子组蓝耗 × Avg(int1%)",fields:"int1 = 蓝耗比例(%，多个取 Average) · int2 = 频率分母，间隔 = 1/Σint2 秒",ev:"SpellTakeDamageResultSystem.cs:240-248 · SpellHitTriggerSystem.cs:170-199"}
+];
+const DERIVED = [
+  {id:"3013",nm:"SpellSplit · 法术分裂",steps:[
+    "解析：Enhance 中 Σint1 → GetSplitCount()",
+    "生成：SipToSSP 写 SplitComponentData{ Count, DamageRatio=0.33 }",
+    "销毁帧：SpellDestroySystem 检测 DestroyTag + Count>0 → Split()",
+    "子弹参数：ToSplit() 复制父参数，但伤害×0.33、半径×0.8、击退×0.5、速度×0.5",
+    "防递归：子弹 IsSplitSpell=true 且 Count=0，并清除全部 Trigger / SubGroup",
+    "副作用：分裂弹使用 _Split 后缀 Prefab；禁用 SpellEndTeleport"],
+   ev:"SpellShootData.cs:226-231 · ShootSpellUtils.cs:314-318 · SpellDestroySystem.cs:476-583 · SpellSpawnParamsStorage.cs:36-58"},
+  {id:"3012",nm:"Rebound · 反弹",steps:[
+    "解析：Σint1 = 反弹次数；Max(float1) = 每次反弹额外持续时间",
+    "生成：MovementComponentData.ReboundCount / ReboundAddTime",
+    "运行：SpellMoveJob 读 StatefulCollisionEvent Enter → ReboundCount--、反射方向、+Duration",
+    "耗尽：关闭反弹碰撞体；SpellSystem 中 ReboundCount>0 时撞墙不销毁",
+    "坠落反弹：SpellTools.TryReboundWhenFall 另有一路",
+    "伤害不衰减 —— 反弹只改方向与计数"],
+   ev:"SpellShootData.cs:579-593 · ShootSpellUtils.cs:236-237 · SpellMoveJob.cs:218-247 · SpellSystem.cs:217-220"},
+  {id:"3121",nm:"Refraction · 折射",steps:[
+    "解析：GetSpellRefractionInfo() → (Σint1 次数, Max(float1) 搜索半径)",
+    "生成：SpellRefractionData + SpellRefractionHitEntities buffer",
+    "运行：命中/坠落结算时 TryRefractOrReboundWhenFall —— 优先折射，失败才反弹",
+    "折射逻辑：搜索新目标 → RemainCount--、改 movement.Direction",
+    "已折射目标记入 buffer，避免重复命中同一目标",
+    "不改伤害倍率；但 float2 会作为乘算伤害进入伤害链（见 ⑤）"],
+   ev:"SpellShootData.cs:531-542 · SpellShootSystem.cs:362-369 · SpellTools.cs:1900-1974"},
+  {id:"2001+",nm:"Summon · 召唤物",steps:[
+    "解析：Summon 法术作为可发射槽进入 SpellShootGroup（可带 Enhance / Trigger）",
+    "预计算：GetSummonHp() = UnitConfig.map[summonID].maxHP + 强化（回血/献祭等）；攻速/移速/精灵等级同理",
+    "SipToSSP：abilityType → TeammateType 映射；TeammateId = type + level；填 TeammateComponentData",
+    "实例化：ConfigComponentData.IsTeammate → 写 TeammateData",
+    "注册：TeammateRegisterSystem 首帧 maxHP ×= HpRatio、移速 = unitCfg.moveSpeed × SpeedRatio，注册进 Teammate 系统并生成光环/融合/生命线"],
+   ev:"SpellShootData.cs:152-218 · ShootSpellUtils.cs:325-409 · SpellShootSystem.cs:326-328 · TeammateRegisterSystem.cs:189-304"}
+];
+
+/* ========== 渲染引擎 ========== */
+function buildDiagram(elId, nodes, edges){
+  const box=document.getElementById(elId);
+  const svgNS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(svgNS,"svg");
+  svg.setAttribute("class","conn");
+  const defs=document.createElementNS(svgNS,"defs");
+  defs.innerHTML='<marker id="ah-'+elId+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b80"/></marker>';
+  svg.appendChild(defs);
+  box.appendChild(svg);
+  const maxRow=Math.max(...nodes.map(n=>n.row));
+  box.style.gridTemplateRows="repeat("+maxRow+",auto)";
+  nodes.forEach(n=>{
+    const d=document.createElement("div");
+    d.className="node "+n.k; d.id=elId+"-"+n.id; d.dataset.detail=n.id;
+    d.style.gridColumn=n.col; d.style.gridRow=n.row;
+    d.innerHTML='<div class="t">'+n.t+'</div><div class="c">'+n.c+'</div>'+(n.n?'<div class="n">'+n.n+'</div>':'');
+    d.addEventListener("click",()=>selectNode(d,n.id));
+    box.appendChild(d);
+  });
+  const draw=()=>{
+    [...svg.querySelectorAll("path,text")].forEach(e=>e.remove());
+    const br=box.getBoundingClientRect();
+    edges.forEach(([a,b,style,label],ei)=>{
+      const ea=document.getElementById(elId+"-"+a), eb=document.getElementById(elId+"-"+b);
+      if(!ea||!eb) return;
+      const ra=ea.getBoundingClientRect(), rb=eb.getBoundingClientRect();
+      const A={l:ra.left-br.left,r:ra.right-br.left,t:ra.top-br.top,b:ra.bottom-br.top,cx:ra.left-br.left+ra.width/2,cy:ra.top-br.top+ra.height/2};
+      const B={l:rb.left-br.left,r:rb.right-br.left,t:rb.top-br.top,b:rb.bottom-br.top,cx:rb.left-br.left+rb.width/2,cy:rb.top-br.top+rb.height/2};
+      let d="",lx=0,ly=0;
+      if(B.t-A.b>2){                                   // 向下
+        if(Math.abs(A.cx-B.cx)<26){ d="M"+A.cx+","+A.b+" L"+B.cx+","+B.t; lx=A.cx+8; ly=(A.b+B.t)/2; }
+        else{ const my=(A.b+B.t)/2; d="M"+A.cx+","+A.b+" L"+A.cx+","+my+" L"+B.cx+","+my+" L"+B.cx+","+B.t; lx=(A.cx+B.cx)/2; ly=my-5; }
+      } else if(A.b-B.t>2 && B.b-A.t>2){               // 同一带：水平
+        if(B.l-A.r>2){ d="M"+A.r+","+A.cy+" L"+B.l+","+B.cy; lx=(A.r+B.l)/2; ly=A.cy-6; }
+        else{ d="M"+A.l+","+A.cy+" L"+B.r+","+B.cy; lx=(A.l+B.r)/2; ly=A.cy-6; }
+      } else {                                          // 向上回环：绕右侧（按边序错开，避免重叠）
+        const gx=Math.max(A.r,B.r)+16+(ei%4)*9;
+        d="M"+A.r+","+A.cy+" L"+gx+","+A.cy+" L"+gx+","+B.cy+" L"+B.r+","+B.cy;
+        lx=gx+6; ly=(A.cy+B.cy)/2;
+      }
+      const p=document.createElementNS(svgNS,"path");
+      p.setAttribute("d",d); p.setAttribute("fill","none");
+      p.setAttribute("stroke", style==="dash"?"#46566b":"#5b6b80");
+      p.setAttribute("stroke-width", style==="dash"?"1.4":"1.8");
+      if(style==="dash") p.setAttribute("stroke-dasharray","5,4");
+      p.setAttribute("marker-end","url(#ah-"+elId+")");
+      svg.appendChild(p);
+      if(label){ const t=document.createElementNS(svgNS,"text");
+        t.setAttribute("class","elabel"); t.setAttribute("x",lx); t.setAttribute("y",ly);
+        t.textContent=label; svg.appendChild(t); }
+    });
+  };
+  requestAnimationFrame(draw);
+  window.addEventListener("resize",()=>requestAnimationFrame(draw));
+  box._redraw=draw;
+}
+
+function selectNode(el,id){
+  document.querySelectorAll(".node.sel,.tree li.sel").forEach(e=>e.classList.remove("sel"));
+  el.classList.add("sel");
+  const d=DETAIL[id]||el._detail;
+  showDetail(d);
+}
+function showDetail(d){
+  if(!d) return;
+  document.getElementById("dTitle").textContent=d.t||"";
+  document.getElementById("dCode").innerHTML=d.c||"";
+  const body=document.getElementById("dBody");
+  let html="",inList=false;
+  (d.b||[]).forEach(line=>{
+    const kind=line.slice(0,2), txt=line.slice(2);
+    if(kind==="L:"){ if(!inList){html+="<ul>";inList=true;} html+="<li>"+txt+"</li>"; return; }
+    if(inList){html+="</ul>";inList=false;}
+    if(kind==="P:") html+="<p>"+txt+"</p>";
+    else if(kind==="E:") html+='<p class="ev"><b>证据 </b>'+txt+"</p>";
+    else if(kind==="O:") html+="<p>"+txt+"</p>";
+    else html+="<p>"+line+"</p>";
+  });
+  if(inList)html+="</ul>";
+  body.innerHTML=html;
+}
+
+/* 树形（图3） */
+function buildTree(elId,data){
+  const root=document.getElementById(elId);
+  const render=(items)=>{
+    const ul=document.createElement("ul");
+    items.forEach(it=>{
+      const li=document.createElement("li");
+      if(it.g){
+        li.className="grp";
+        li.innerHTML='<span class="nm">▤ '+it.g+'</span> <span class="at">'+(it.at||"")+'</span>';
+        if(it.d){ li.classList.add("sys"); li._detail=it.d; li.addEventListener("click",e=>{e.stopPropagation();selectTree(li,it.d)}); }
+        ul.appendChild(li);
+        if(it.items) ul.appendChild(render(it.items));
+      } else {
+        li.className="sys";
+        li.innerHTML='<span class="nm">'+it.n+'</span> <span class="at">'+(it.at||"")+'</span>'+(it.cm?'<br><span class="cm">↳ '+it.cm+'</span>':"");
+        li._detail=it.d;
+        li.addEventListener("click",e=>{e.stopPropagation();selectTree(li,it.d)});
+        ul.appendChild(li);
+      }
+    });
+    return ul;
+  };
+  root.appendChild(render(data));
+}
+function selectTree(li,d){
+  document.querySelectorAll(".node.sel,.tree li.sel").forEach(e=>e.classList.remove("sel"));
+  li.classList.add("sel"); showDetail(d);
+}
+
+/* 卡片（图4） */
+function buildTriggerCards(){
+  document.getElementById("d4a").innerHTML=TRIGGERS.map(t=>
+    '<div class="card"><div class="id">abilityType '+t.id+'</div><h4>'+t.nm+'</h4><dl>'+
+    '<dt>解析期</dt><dd>'+t.parse+'</dd>'+
+    '<dt>运行期判定</dt><dd>'+t.run+'</dd>'+
+    '<dt>发射行为</dt><dd>'+t.fire+'</dd>'+
+    '<dt>蓝耗</dt><dd>'+t.mp+'</dd>'+
+    '<dt>字段语义</dt><dd><code>'+t.fields+'</code></dd>'+
+    '<dt>证据</dt><dd><code>'+t.ev+'</code></dd></dl></div>').join("");
+  document.getElementById("d4b").innerHTML=DERIVED.map(t=>
+    '<div class="card"><div class="id">abilityType '+t.id+'</div><h4>'+t.nm+'</h4>'+
+    '<ol style="margin:9px 0 0;padding-left:20px;font-size:12.3px">'+t.steps.map(s=>"<li>"+s+"</li>").join("")+'</ol>'+
+    '<dl><dt>证据</dt><dd><code>'+t.ev+'</code></dd></dl></div>').join("");
+}
+
+/* Tab 切换 */
+document.querySelectorAll("nav.tabs button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll("nav.tabs button").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    document.getElementById(b.dataset.tab).classList.add("on");
+    document.querySelectorAll(".diagram").forEach(d=>{ if(d._redraw) requestAnimationFrame(d._redraw); });
+  });
+});
+
+/* 初始化 */
+buildDiagram("d1",D1_NODES,D1_EDGES);
+buildDiagram("d2",D2_NODES,D2_EDGES);
+buildTree("d3",D3_TREE);
+buildTriggerCards();
+buildDiagram("d5a",D5A_NODES,D5A_EDGES);
+buildDiagram("d5b",D5B_NODES,D5B_EDGES);
+showDetail(DETAIL.prep3);
+</script>
+</body>
+</html>

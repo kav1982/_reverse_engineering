@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>范围增强 Spell3107 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>范围增强 · Spell3107</h1>
+  <p>Enhance 符文 · ID 31071–31073 · 法术影响半径加算 · 无独立 ECS 行为，只改 extraSizeRatio</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>插在主动 / 召唤法术<strong>左侧</strong>的纯数值符文。把 <code>float1%</code> 写进半径的<strong>加算池</strong>（<code>AddRatio</code> → <code>extraSizeRatio</code>）。</p>
+<p>文案：法术影响半径+<code>float1</code>%。三级同名，只有百分比不同。</p>
+<ul>
+  <li>没有 <code>Spell3107*System</code> / Authoring</li>
+  <li>配置标了 <code>haveEffecforSummonSpell=false</code>，运行时<strong>不读</strong>；手动插在召唤左侧仍生效</li>
+</ul>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">float1 加算%</th><th class="num">售价</th><th>可合成</th></tr>
+  <tr><td>31071</td><td class="num">1</td><td class="num"><b>30</b></td><td class="num">9</td><td>true</td></tr>
+  <tr><td>31072</td><td class="num">2</td><td class="num"><b>60</b></td><td class="num">27</td><td>true</td></tr>
+  <tr><td>31073</td><td class="num">3</td><td class="num"><b>120</b></td><td class="num">81</td><td>false</td></tr>
+</table>
+<ul>
+  <li><code>float1</code> 每级 ×2；售价每级 ×3</li>
+  <li><code>float2/3</code>、<code>int1/2/3</code> 全 0，未使用</li>
+</ul>
+
+<div class="box">1×Lv2 = 2×Lv1 = +60%
+1×Lv3 = 2×Lv2 = 4×Lv1 = +120%
+· 合成只省槽，不提高单点效率</div>
+
+<h2>3. 叠加：加算，不是连乘</h2>
+<div class="grid">
+  <div class="card right">
+    <h3>实际 · 加算</h3>
+    <ul>
+      <li>2×Lv1 → <code>×1.60</code></li>
+      <li><code>addRatio += 0.30</code> 两次</li>
+      <li>奥爆术 3 → <b>4.8</b></li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>误解 · 连乘</h3>
+    <ul>
+      <li>2×Lv1 ≠ <code>1.3×1.3 = 1.69</code></li>
+      <li>不是 3 → 5.07</li>
+      <li>高级也不会覆盖低级</li>
+    </ul>
+  </div>
+</div>
+
+<div class="box">最终半径 ≈ R × (1 + Σ范围增强float1/100 + 遗物/诅咒半径% + 法杖半径%) × 聚爆乘算
+无衰减 · 无上限 · 不取最高级 · 出现几次加几次</div>
+
+<div class="code">
+  <div class="bar"><b>SpellShootData.GetSpellEffectRadius</b><span>谁进加算池 / 谁进乘算池</span></div>
+<pre>case EnhanceRadiusRatio:   // 范围增强
+    ratioValue.AddRatio(finalConfig.float1 / 100f); break;
+
+case RadiuRatioDown:       // 聚爆
+    ratioValue.MulRatio(finalConfig.float1 / 100f); break;</pre>
+</div>
+
+<p>之后拆进 <code>extraSizeRatio</code>（加算）和 <code>finalSizeRatio</code>（乘算）。Mono：<code>spellCfg.radius *= radiusRatio * finalRadiusRatio</code>。ECS：<code>Radius.AddRatio = extraSizeRatio</code>。这一层两边一致。</p>
+<p class="note">槽位解析、RatioValue 与伤害强化同一套，见那份文档。这里没有 stopTarget 截断。</p>
+
+<h2>4. 两层对照</h2>
+<div class="grid">
+  <div class="card add">
+    <h3>加算池 AddRatio</h3>
+    <ul>
+      <li>范围增强 30 / 60 / 120</li>
+      <li>遗物 / 诅咒 <code>ExtraRadiusOfInfluence(isSpell: true)</code></li>
+      <li>法杖「全杖影响半径%」</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>乘算层 MulRatio</h3>
+    <ul>
+      <li>聚爆 ×50%</li>
+      <li>个别法术自己再乘 <code>finalSizeRatio</code></li>
+      <li>多张聚爆是<strong>连乘</strong></li>
+    </ul>
+  </div>
+</div>
+
+<p>遗物自己的圈（圣剑、戒指等）走 <code>isSpell: false</code>，<strong>不吃</strong>这张卡。</p>
+<p class="note">范围增强把半径做大后，聚爆「少掉的米」也变多，转伤更高。这是聚爆吃加算层，不是范围增强自己转伤。</p>
+
+<h2>5. 摆放：左侧累积，不清空</h2>
+<p>只强化<strong>自己右边、同一段</strong>里的主动 / 召唤。主槽加不到后槽。</p>
+
+<div class="card" style="margin-bottom:10px">
+  <div class="slots">
+    <span class="chip en">范</span><span class="chip sp">奥爆</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>两张都吃</span>
+  </div>
+  <div class="slots">
+    <span class="chip sp">奥爆</span><span class="chip en">范</span><span class="chip sp">弹</span>
+    <span class="arrow">→</span>
+    <span>只有弹吃</span>
+  </div>
+  <div class="slots">
+    <span class="chip sp">奥爆</span><span class="chip sp">弹</span><span class="chip en">范</span>
+    <span class="arrow">→</span>
+    <span>都吃不到（强化在右侧）</span>
+  </div>
+</div>
+
+<p>自动填槽只配给表里 <code>radius &gt; 0</code> 的主法术；流星、火球、死亡蝰蛇会被避开。手动摆不受影响。</p>
+
+<h2>6. 实际放大什么</h2>
+<p>不自己画圈，只提高 <code>radiusRatio</code>。谁乘这个倍率，谁就变大。</p>
+<ul>
+  <li>表半径（奥爆术 <code>R=3</code>）</li>
+  <li>爆炸 / 坠落炸 / 虚空炸</li>
+  <li>公转半径、部分弹体缩放</li>
+  <li>召唤物拾取、自爆、探测</li>
+  <li>闪电链牵引（从宿主抄倍率，自己不单独结算）</li>
+</ul>
+<p><strong>不是射程。</strong> 不改速度、持续时间、蓝耗。</p>
+<p class="note">魔法弹等 <code>radius=0</code>：配置半径仍是 0，硬编码圈照样 +30%。自动填槽不会给它们配这张卡，手动摆仍然生效。</p>
+
+<h2>7. 算例（奥爆术 R=3）</h2>
+<table>
+  <tr><th>组合</th><th>计算</th><th class="num">半径</th></tr>
+  <tr><td>无</td><td><code>3 × 1.00</code></td><td class="num">3.0</td></tr>
+  <tr><td>1×Lv1</td><td><code>3 × 1.30</code></td><td class="num">3.9</td></tr>
+  <tr><td>2×Lv1 / 1×Lv2</td><td><code>3 × 1.60</code></td><td class="num">4.8</td></tr>
+  <tr><td>1×Lv3 / 4×Lv1</td><td><code>3 × 2.20</code></td><td class="num">6.6</td></tr>
+  <tr><td>Lv1 + 玩家 +20%</td><td><code>3 × (1+0.30+0.20)</code></td><td class="num">4.5</td></tr>
+  <tr><td>Lv1 + 聚爆 ×50%</td><td><code>3 × 1.30 × 0.50</code></td><td class="num">1.95</td></tr>
+</table>
+<p class="note">玩家那行不是 <code>3 × 1.30 × 1.20 = 4.68</code>。全局半径率与范围增强同池。</p>
+
+<h2>8. 关键文件</h2>
+<table>
+  <tr><td>加算写入</td><td><code>SpellShootData.GetSpellEffectRadius</code></td></tr>
+  <tr><td>玩家 / 法杖层</td><td><code>GetSpellEffectRadius_FinalPlayerValue</code></td></tr>
+  <tr><td>实伤写入</td><td><code>SpellBase</code>：<code>radiusRatio</code> / <code>spellCfg.radius</code></td></tr>
+  <tr><td>自动填槽</td><td><code>SpellAutoFullTool.Filter_EffectRangeEnhance</code></td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.EnhanceRadiusRatio = 3107</code></td></tr>
+</table>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 范围增强逆向分析.md · 槽位解析见 伤害强化逆向分析.md</footer>
+</body>
+</html>

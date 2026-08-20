@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1,
+    "WandIDs": [
+      11,
+      12,
+      13,
+      14
+    ],
+    "relicID": 0,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      50,
+      100,
+      150
+    ]
+  },
+  {
+    "id": 2,
+    "WandIDs": [
+      21,
+      21,
+      21
+    ],
+    "relicID": 41,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      90,
+      180
+    ]
+  },
+  {
+    "id": 3,
+    "WandIDs": [
+      31,
+      31,
+      31
+    ],
+    "relicID": 936,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      100,
+      200
+    ]
+  },
+  {
+    "id": 4,
+    "WandIDs": [
+      41,
+      42,
+      43,
+      44
+    ],
+    "relicID": 0,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      100,
+      200,
+      300
+    ]
+  },
+  {
+    "id": 5,
+    "WandIDs": [
+      51,
+      51,
+      51
+    ],
+    "relicID": 931,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      60,
+      120
+    ]
+  },
+  {
+    "id": 6,
+    "WandIDs": [
+      61,
+      61,
+      61
+    ],
+    "relicID": 932,
+    "unlockInt1": 300,
+    "upgradeCosts": [
+      80,
+      160
+    ]
+  },
+  {
+    "id": 7,
+    "WandIDs": [
+      71,
+      71,
+      71
+    ],
+    "relicID": 933,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      50,
+      100
+    ]
+  },
+  {
+    "id": 8,
+    "WandIDs": [
+      81,
+      81
+    ],
+    "relicID": 934,
+    "unlockInt1": 1500,
+    "upgradeCosts": [
+      100
+    ]
+  },
+  {
+    "id": 9,
+    "WandIDs": [
+      91,
+      91
+    ],
+    "relicID": 935,
+    "unlockInt1": 6,
+    "upgradeCosts": [
+      100
+    ]
+  },
+  {
+    "id": 10,
+    "WandIDs": [
+      101,
+      101,
+      101
+    ],
+    "relicID": 937,
+    "unlockInt1": 200,
+    "upgradeCosts": [
+      100,
+      200
+    ]
+  },
+  {
+    "id": 11,
+    "WandIDs": [
+      121,
+      121
+    ],
+    "relicID": 938,
+    "unlockInt1": 0,
+    "upgradeCosts": [
+      100
+    ]
+  }
+]

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分裂（Spell3013 / SpellSplit）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 320px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    transform: rotate(0);
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 168px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>分裂（Spell3013 / SpellSplit）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「分裂」（<code>abilityType = 3013</code>，配置 ID <code>30131–30133</code>）。重点是<strong>子弹继承哪些其它 Buff / 强化 / 触发器</strong>。</p>
+    <p>不展开绚丽烟火（<code>OnOverSplitTrigger = 3202</code>）、闪电链自身的分裂弹、召唤触手分裂、敌人分裂弹。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase.TrySplit</code> 为残留轨，系数略有不同，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，悬停结束才分裂见《悬停逆向分析.md》，闪电链分裂弹系数见《闪电链逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值结构</a></li>
+    <li><a href="#s3">继承模型（核心）</a>（<a href="#s32">满额重开</a>）</li>
+    <li><a href="#s4">明确不继承：触发器 / 子组 / 再分裂</a></li>
+    <li><a href="#s5">快照里还在、但被 IsSplitSpell 挡住</a></li>
+    <li><a href="#s6">已烘焙 → 子弹带着走</a></li>
+    <li><a href="#s7">发射时一次性：不重触发</a></li>
+    <li><a href="#s8">召唤专用强化</a></li>
+    <li><a href="#s9">逐条总表</a></li>
+    <li><a href="#s10">生成与特殊法术补丁</a></li>
+    <li><a href="#s11">Mono 残留轨对照</a></li>
+    <li><a href="#s12">证据索引</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>分裂</td></tr>
+  <tr><td>英文名</td><td>Split</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3013</code> / <code>SpellAbilityType.SpellSplit</code></td></tr>
+  <tr><td>配置 ID</td><td><code>30131</code>（Lv1）/ <code>30132</code>（Lv2）/ <code>30133</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=false</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>12 / 36 / 108</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：母弹生命结束（含悬停第二段走完）时，按发射快照再生成 <code>int1</code> 发子法术；子弹<strong>不会再扫一遍 EnhanceList</strong>，而是复制母弹发射时的 <code>SpellSpawnParams</code>，清掉触发器 / 子组 / 分裂次数，再改写伤害、半径、击退、速度。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList → 快照</div>
+    <div class="arrow">↓</div>
+    <div class="box">母弹结束</div>
+    <div class="arrow">↓</div>
+    <div class="dia">可分裂？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">结束</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">复印快照，不再扫列表</div>
+        <div class="arrow">↓</div>
+        <div class="box">清触发器 / 子组 / 分裂次数</div>
+        <div class="arrow">↓</div>
+        <div class="box">改写伤 · 半径 · 击退 · 速度</div>
+        <div class="arrow">↓</div>
+        <div class="box ok">生成 int1 发</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="note"><strong>EnhanceList 是发射前的 Buff 集合，只在扣蓝开火时扫描一次做计算；分裂只复印那次的计算结果。</strong></p>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7130131–7130133</code>）：</p>
+<p class="quote">法术结束时会分裂成 <strong>int1</strong> 个伤害 × <strong>int2</strong>% 的法术</p>
+<p>名称（<code>7030131–7030133</code>）：分裂 / Split。三级名称相同，只有 <code>int1</code> 不同。</p>
+
+<h2 id="s2">2. 数值结构</h2>
+<h3>2.1 配置表（<code>assets_export/SpellConfig.json</code>）</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>int1 分裂数</th><th>int2 文案伤害%</th><th>float3</th><th>float1</th><th>float2</th><th>耗蓝倍率</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>30131</td><td>1</td><td><strong>3</strong></td><td>33</td><td>0.33</td><td>0.5</td><td>0.7</td><td>×150%</td><td>12</td><td>true</td></tr>
+  <tr><td>30132</td><td>2</td><td><strong>5</strong></td><td>33</td><td>0.33</td><td>0.5</td><td>0.7</td><td>×150%</td><td>36</td><td>true</td></tr>
+  <tr><td>30133</td><td>3</td><td><strong>8</strong></td><td>33</td><td>0.33</td><td>0.5</td><td>0.7</td><td>×150%</td><td>108</td><td>false</td></tr>
+</table>
+<p>规律：<code>int1</code> 每级增加；售价每级 ×3。多张分裂的 <code>int1</code> <strong>相加</strong>（<code>SpellShootData.GetSplitCount</code>）。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>int1</strong></td><td>分裂出的子弹数量（多张求和）</td><td>是</td><td>高</td></tr>
+  <tr><td><strong>int2</strong></td><td>文案伤害百分比（33）</td><td>仅文案</td><td>高</td></tr>
+  <tr><td><strong>float3</strong></td><td>与 int2 对应的 0.33</td><td>ECS <strong>未读</strong>；<code>SipToSSP</code> 把 <code>DamageRatio</code> <strong>写死为 0.33f</strong></td><td>高</td></tr>
+  <tr><td>float1 / float2</td><td>配置 0.5 / 0.7</td><td>ECS <code>ToSplit</code> <strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>mpCostMulDivCorrection=150</code></td><td>母弹耗蓝 ×150%；子弹不再耗蓝</td><td>是（发射扣蓝时）</td><td>高</td></tr>
+</table>
+<p>ECS 子弹改写（与配置字段脱钩，以代码为准）：</p>
+<table>
+  <tr><th>项</th><th>系数</th><th>证据</th></tr>
+  <tr><td>伤害</td><td><code>Damage.MulRatio *= 0.33</code></td><td><code>ToSplit</code> 读 <code>splitData.DamageRatio</code>；该值在 <code>SipToSSP</code> 写死</td></tr>
+  <tr><td>半径</td><td><code>Radius.Base/Extra *= 0.8</code></td><td><code>ToSplit</code></td></tr>
+  <tr><td>击退</td><td><code>Knockback *= 0.5</code></td><td><code>ToSplit</code></td></tr>
+  <tr><td>速度（非坠落）</td><td><code>Speed *= 0.5</code></td><td><code>ToSplit</code></td></tr>
+  <tr><td>坠落</td><td>标记已落地反弹，<code>FallingReboundForceRatio *= 0.7</code></td><td><code>ToSplit</code></td></tr>
+  <tr><td>低帧</td><td>少生子弹，伤害 / <code>SpellEfficiency</code> 按比例补回</td><td><code>SpellDestroySystem.Split</code></td></tr>
+</table>
+
+<h2 id="s3">3. 继承模型（核心）</h2>
+<p>子弹<strong>不是「再跑一遍 EnhanceList」</strong>。流程：</p>
+<ol>
+  <li>发射时 <code>ShootSpellUtils.SipToSSP</code> 把左侧强化烘焙进 <code>SpellSpawnParams</code>，并存进 <code>SpellSingleton.SpellSpawnParamsStorage[entity]</code>。</li>
+  <li>母弹挂 <code>SpellDestroyTag</code> 且带 <code>SpellSplitComponentData</code>、未标 <code>DisableSplitEffect</code> 时，<code>SpellDestroySystem.Split</code> 调 <code>ToSplit</code>。</li>
+  <li><code>ToSplit</code>：<strong>整包复制快照</strong> → <code>ClearTriggerInfoAndSubGroup</code> → <code>IsSplitSpell=true</code>、<code>Split.Count=0</code> → 改写伤害 / 半径 / 击退 / 速度。</li>
+  <li>子参数再进 <code>SpellShootSystem.SpawnSpellEntity</code>，快照里还在的栏位会重新挂到子弹上。</li>
+</ol>
+<p><strong>继承的是发射当下的快照，不是母弹「现在剩多少」。 </strong>穿透、反弹、持续、折射次数都是发射时的满额。计时器随快照重开（<code>DurationTimer</code> / <code>HoverTimer</code> 为 0），子弹重新飞完整段飞行 + 悬停。</p>
+<p>唯一活体例外：若母弹有 <code>SpellChargeData</code>，<code>ChargeTimer</code> 从母弹<strong>当前值</strong>抄到子弹。</p>
+
+<h3>3.1 速查</h3>
+<table>
+  <tr><th>判定</th><th>含义</th><th>代表</th></tr>
+  <tr><td><strong>传（已烘焙）</strong></td><td>数值 / 运动 / 元素已写进快照，整包复制</td><td>伤害、持续、速度、范围、暴击、元素、穿透、反弹、折射、悬停、追赶 / 环绕、坠落、肥胖、聚爆、半途传送、闪电链（链伤再 ×0.35）</td></tr>
+  <tr><td><strong>不传（清掉或挡住）</strong></td><td>生成前清掉，或 <code>IsSplitSpell</code> 不挂组件</td><td>五类触发器（见<a href="#s4">第 4 节</a>）、后槽子组、再分裂、结束传送、常驻施法黏连、蓝符文回魔</td></tr>
+  <tr><td><strong>不重跑</strong></td><td>发射时已发生，子弹不再触发一次</td><td>齐射、多重施法、超载散射</td></tr>
+  <tr><td><strong>满额重开</strong></td><td>不是母弹剩余量（见 <a href="#s32">3.2</a>）</td><td>穿透、反弹、持续、悬停、折射次数</td></tr>
+</table>
+
+<h3 id="s32">3.2 「满额重开」怎么理解</h3>
+<p>子弹拿到的是<strong>开火当时的完整额度，并且计时从零再走一遍</strong>；不是母弹死掉那一刻「还剩多少」。分裂复印的是发射快照，不是母弹身上已经被消耗过的活体状态。</p>
+<table>
+  <tr><th>例子</th><th>母弹飞行中</th><th>子弹拿到的</th></tr>
+  <tr><td>穿透 3</td><td>已经穿了 2 个，还剩 1</td><td>仍是 <strong>3</strong>，不是 1</td></tr>
+  <tr><td>反弹 4</td><td>已经弹了 1 次，还剩 3</td><td>仍是 <strong>4</strong></td></tr>
+  <tr><td>折射 2</td><td>已经折过 1 次</td><td>仍是 <strong>2</strong></td></tr>
+  <tr><td>持续 5 秒 / 悬停 2 秒</td><td>飞了 4 秒、悬停也快走完才分裂</td><td><code>DurationTimer</code> / <code>HoverTimer</code> 都是 <strong>0</strong>，再飞满 5 秒 + 再悬停 2 秒</td></tr>
+</table>
+<p>拆开两个字：</p>
+<ul>
+  <li><strong>满额</strong>：次数、时长用发射时算好的完整值</li>
+  <li><strong>重开</strong>：计时器归零，子弹当一发新法术重新活一遍</li>
+</ul>
+<p>对照：伤害不是满额重开——快照里的伤害会再乘 0.33。只有穿透、反弹、持续、悬停、折射次数走这套「用满、重计」。</p>
+<p>唯一例外是充能条 <code>ChargeTimer</code>：从母弹<strong>当前值</strong>抄，不是满额重开。</p>
+
+<h2 id="s4">4. 明确不继承：触发器 / 子组 / 再分裂</h2>
+<p><strong>五类触发器</strong>指法杖上挂在主动法术后面、靠时机再放后槽的 5 种触发符文（<code>Triggers</code>，不是 EnhanceList 里的伤害 / 穿透等强化）：</p>
+<table>
+  <tr><th>类型</th><th>ID</th><th>中文名</th></tr>
+  <tr><td>结束触发</td><td>3201 <code>OnOverTrigger</code></td><td>二重奏</td></tr>
+  <tr><td>结束分裂触发</td><td>3202 <code>OnOverSplitTrigger</code></td><td>绚丽烟火</td></tr>
+  <tr><td>移动触发</td><td>3203 <code>OnMoveTrigger</code></td><td>连环</td></tr>
+  <tr><td>起始环绕触发</td><td>3204 <code>OnStartRotationTrigger</code></td><td>缠绕</td></tr>
+  <tr><td>命中触发</td><td>3205 <code>OnHitTrigger</code></td><td>回响</td></tr>
+</table>
+<p>后槽整组（<code>SubGroup</code>）挂在这些触发器后面：触发器被清掉，后槽也不会再被子弹打出来。<code>ToSplit</code> 里 <code>ClearTriggerInfoAndSubGroup</code> 无条件执行：</p>
+<table>
+  <tr><th>Buff</th><th>ID / 类型</th><th>子弹结果</th></tr>
+  <tr><td>二重奏（结束触发）</td><td>3201 <code>OnOverTrigger</code></td><td><code>OverTriggerComponentData</code> 清成 default，不挂</td></tr>
+  <tr><td>绚丽烟火（结束分裂触发）</td><td>3202 <code>OnOverSplitTrigger</code></td><td><code>OverSplitTriggerBufferEntity = Null</code></td></tr>
+  <tr><td>连环（移动触发）</td><td>3203 <code>OnMoveTrigger</code></td><td><code>MoveTriggerComponentData</code> 清掉</td></tr>
+  <tr><td>缠绕（起始环绕触发）</td><td>3204 <code>OnStartRotationTrigger</code></td><td><code>TwineTriggerComponentData</code> 清掉</td></tr>
+  <tr><td>回响（命中触发）</td><td>3205 <code>OnHitTrigger</code></td><td><code>HitTriggerComponentData</code> 清掉</td></tr>
+  <tr><td>触发器后槽整组</td><td><code>SubGroup</code></td><td><code>SubGroupEntity = Null</code>，后槽法术不再被触发</td></tr>
+  <tr><td>分裂自己</td><td>3013 <code>SpellSplit</code></td><td><code>SplitComponentData.Count = 0</code>，子弹不再分裂</td></tr>
+</table>
+<p>母弹已经触发过的后槽，子弹<strong>不会再触发一次</strong>。</p>
+<p>防递归还有第二道：<code>IsSplitSpell = true</code>。Mono 残留下 <code>TrySplit</code> 同样在 <code>isSplitSpell</code> 或 <code>spellSplitCount==0</code> 时直接返回空。</p>
+
+<h2 id="s5">5. 快照里还在、但被 <code>IsSplitSpell</code> 挡住</h2>
+<table>
+  <tr><th>Buff / 行为</th><th>快照</th><th>生成条件</th><th>子弹实际</th></tr>
+  <tr><td>结束传送 3116</td><td><code>SpellEndTeleport</code> 仍为 true</td><td><code>SpellEndTeleport &amp;&amp; !IsSplitSpell</code> 才加 <code>SpellEndTeleportTag</code></td><td><strong>不传送</strong></td></tr>
+  <tr><td>龙息 / 分解射线 / 高压水枪常驻施法</td><td>元件条件仍在</td><td>再加 <code>!IsSplitSpell</code></td><td><strong>不挂 KeepCasting、不黏玩家</strong></td></tr>
+  <tr><td>加特林鸽（1031）环绕角</td><td>—</td><td><code>ShotGun &amp;&amp; !IsSplitSpell</code> 才均分 360°</td><td>子弹走一般环绕</td></tr>
+  <tr><td>加特林鸽射击音</td><td>—</td><td><code>PrefabId==1031 &amp;&amp; IsSplitSpell</code> 不播</td><td>静音</td></tr>
+  <tr><td>蓝符文回魔</td><td>子弹实体仍是蓝符文</td><td><code>IsSplitSpell</code> 直接 <code>continue</code></td><td><strong>不回魔</strong></td></tr>
+</table>
+
+<h2 id="s6">6. 已烘焙 → 子弹带着走</h2>
+<p>这些不是「再挂一张符文」，而是发射时已写入 <code>Config</code> / <code>Movement</code> / <code>Element</code> / 其它快照字段。</p>
+
+<h3>6.1 纯数值强化</h3>
+<table>
+  <tr><th>Buff</th><th>abilityType</th><th>写入位置</th><th>子弹效果</th></tr>
+  <tr><td>伤害强化</td><td>3102</td><td><code>Damage.AddRatio</code></td><td>继承后再 ×0.33</td></tr>
+  <tr><td>过载</td><td>3123</td><td>同一加算池</td><td>同上</td></tr>
+  <tr><td>炽焰晶石的伤害段</td><td>3111</td><td><code>Damage.AddRatio</code> + 燃烧 Element</td><td>伤害与燃烧都在</td></tr>
+  <tr><td>节能模式的伤害段</td><td>3104</td><td><code>Damage.MulRatio</code></td><td>继承</td></tr>
+  <tr><td>折射的伤害段</td><td>3121</td><td><code>Damage.MulRatio</code></td><td>继承；次数见 6.3</td></tr>
+  <tr><td>时长强化</td><td>3103</td><td><code>Duration.AddBase</code></td><td>满额重计时</td></tr>
+  <tr><td>节能模式的持续段</td><td>3104</td><td><code>Duration.MulRatio</code></td><td>同上</td></tr>
+  <tr><td>公转的额外持续</td><td>3009</td><td><code>Duration.Extra</code></td><td>同上</td></tr>
+  <tr><td>自由公转的持续</td><td>3117</td><td><code>Duration.AddBase</code></td><td>同上</td></tr>
+  <tr><td>主观缓时</td><td>3128</td><td>发射时已加进 Duration、乘进 Speed</td><td>两段都在</td></tr>
+  <tr><td>精准施法</td><td>3105</td><td><code>CriticalChance</code></td><td>继承；溢出转伤旗标也在</td></tr>
+  <tr><td>加速器</td><td>3106</td><td>Speed 加算</td><td>再 ×0.5（非坠落）</td></tr>
+  <tr><td>寻踪的速度段</td><td>3010</td><td>Speed 加算</td><td>同上</td></tr>
+  <tr><td>范围增强</td><td>3107</td><td><code>Radius.AddRatio</code></td><td>再 ×0.8</td></tr>
+  <tr><td>聚爆</td><td>3113</td><td><code>Radius.MulRatio</code> + <code>radiuDecrease*</code></td><td>半径与换伤比都在</td></tr>
+  <tr><td>虚胖法术</td><td>3124</td><td><code>SpellExtraSizeRatio</code></td><td>继承体积比</td></tr>
+  <tr><td>魔能升阶</td><td>3126</td><td>槽位阶段已改母法术等级</td><td>子弹用已升等的母法术数值</td></tr>
+  <tr><td>拟态魔方</td><td>3109</td><td><code>GetFinalConfig</code> 已解析</td><td>子弹是「模仿后的那发」</td></tr>
+</table>
+<p>耗蓝修正（多重 / 分裂 / 节能 / 过载的 <code>mpCostMulDivCorrection</code>）只在<strong>母弹发射扣蓝</strong>时用过，子弹不扣蓝。</p>
+
+<h3>6.2 弹道形态</h3>
+<p>发射时 <code>GetSpellMovementType</code> <strong>从右往左</strong>只取第一个命中的运动类型，快照里只有这一种。</p>
+<table>
+  <tr><th>Buff</th><th>子弹运动</th><th>备注</th></tr>
+  <tr><td>公转 3009 / 自由公转 3117</td><td><code>Rotation</code></td><td><code>AroundTarget</code> 改成母弹实体；母弹随即销毁，中心退回分裂点</td></tr>
+  <tr><td>寻踪 3010</td><td><code>ChaseMouse</code></td><td><code>ChaseMouseLerpSpeed</code> 一起复制</td></tr>
+  <tr><td>自动导航 3011</td><td><code>ChaseEnemy</code></td><td><code>ChaseRotateSpeed</code> 复制</td></tr>
+  <tr><td>自我追踪 3114</td><td><code>ChaseOwner</code></td><td>同上</td></tr>
+  <tr><td>悬停 3008</td><td><code>HoverDuration</code></td><td>计时器从 0 再走完；分裂发生在悬停第二段结束</td></tr>
+  <tr><td>坠落 3119</td><td><code>IsFallSpell</code></td><td>见第 2.2 节坠落改写</td></tr>
+  <tr><td>反向施法 3125</td><td><code>ReserveDirection</code></td><td>方向旗标在；不会再翻一次发射角</td></tr>
+  <tr><td>随机落点瞄鼠标 4022</td><td><code>RandomPosFocusMouse</code> → <code>SpellRemoteShootTag</code></td><td>继承</td></tr>
+</table>
+
+<h3>6.3 命中 / 生存（满额，不是母弹剩余）</h3>
+<table>
+  <tr><th>Buff</th><th>子弹拿到的</th></tr>
+  <tr><td>穿透 3006</td><td>发射时的完整穿透次数</td></tr>
+  <tr><td>反弹 3012</td><td>完整次数 + <code>ReboundAddTime</code></td></tr>
+  <tr><td>折射 3121</td><td><code>RemainCount</code> = 发射时次数（母弹已折射过也不扣）</td></tr>
+  <tr><td>半途传送 3130</td><td><code>HalfLifeTeleport</code> 次数 / 半径；坠落、符文锤、激光、龙息、高压水枪不挂</td></tr>
+  <tr><td>无视墙壁（遗物）</td><td><code>IsIgnoreWall</code></td></tr>
+</table>
+
+<h3>6.4 元素晶石（<code>ElementComponentData</code> 整包复制）</h3>
+<table>
+  <tr><th>Buff</th><th>继承字段</th></tr>
+  <tr><td>粘液晶石 3004</td><td>持续、移速比、法术速度比</td></tr>
+  <tr><td>毒液晶石 3005</td><td>持续、层数（生成时层数再 × <code>SpellEfficiency</code>）</td></tr>
+  <tr><td>寒霜晶石 3014</td><td><code>FrozenDuration</code></td></tr>
+  <tr><td>炽焰晶石 3111</td><td>燃烧时长、每秒烧血%</td></tr>
+  <tr><td>雷霆晶石 3101</td><td><code>ThunderHitRadius</code>、<code>ThunderHitDamageRatio</code>（半径已含范围强化）</td></tr>
+  <tr><td>坍缩晶石 3129</td><td>虚空即死阈值、爆炸伤、爆炸范围</td></tr>
+  <tr><td>强力牵引 3112</td><td>拉扯范围 / 力 / 次数（在 Config，不在 Element）</td></tr>
+</table>
+<p>雷霆晶石的 <strong>HitChance 没有写入 ECS Element</strong>（母弹也没有），不是分裂特有缺口。</p>
+<p>法杖随机染色 / 彩虹丝带在发射时已写入 Color + Element，子弹带着走。</p>
+
+<h3>6.5 闪电链 3007</h3>
+<ul>
+  <li><code>LightningChainDamage</code> 在快照里，子弹会再走 <code>TrySpawnLightningChain</code>。</li>
+  <li>子弹链伤 = 快照链伤 <strong>× 0.35</strong>（还可能再乘低帧补偿）。</li>
+  <li>穿透用 <code>1 + BonusPenetrate</code>（发射时穿透数）。</li>
+  <li>彼岸刃 / 伞 / 符文锤 / 激光束本来就不在发射时生成链。</li>
+</ul>
+
+<h3>6.6 法杖 / 充能 / 击杀掉落</h3>
+<table>
+  <tr><th>来源</th><th>子弹</th></tr>
+  <tr><td>击杀掉金币 / 水晶法杖</td><td><code>DropCoin/CrystalRatioOnKill</code> 继承</td></tr>
+  <tr><td>友伤降低法杖</td><td><code>UndifferDamageRatio</code> 继承</td></tr>
+  <tr><td>四向法杖角</td><td><code>FourDirectionWandAngle</code> 继承</td></tr>
+  <tr><td>充能模式 4004</td><td><strong>从母弹当下 <code>ChargeTimer</code> 抄</strong>（唯一活体例外）</td></tr>
+  <tr><td>回响符文 / 后槽发射</td><td><code>FromEcho</code> / <code>FromPostSlot</code> 旗标在</td></tr>
+  <tr><td>红符文可触发</td><td><code>EnableTriggerRedRune</code> 在</td></tr>
+  <tr><td><code>Wand</code> 引用</td><td>同一把杖</td></tr>
+</table>
+
+<h2 id="s7">7. 发射时一次性：不重触发</h2>
+<table>
+  <tr><th>Buff</th><th>母弹发射时</th><th>子弹</th></tr>
+  <tr><td>齐射 3001</td><td>多发同时生成</td><td>不再齐射</td></tr>
+  <tr><td>多重施法 3002</td><td>连发多发</td><td>不再连发；<code>MultiShootAddictionCount</code> 仍在，只给激光 / 破法者等读偏移</td></tr>
+  <tr><td>超载散射 3003</td><td>加同时发数</td><td>不再散射</td></tr>
+  <tr><td>均分角度（杖被动 / 散弹）</td><td>发射时算角</td><td>子弹用分裂自己的均分角（360°/N + 随机起点）</td></tr>
+</table>
+
+<h2 id="s8">8. 召唤专用强化</h2>
+<p>分裂配置 <code>haveEffecforSummonSpell=false</code>（自动填槽不往召唤上插）。下列字段会进 <code>TeammateComponentData</code> 快照：挂在<strong>弹道</strong>上通常没有召唤体可作用；若极少数路径把召唤当法术实体再分裂，理论上会跟着走。</p>
+<table>
+  <tr><th>Buff</th><th>快照字段</th></tr>
+  <tr><td>寄生虫 3015</td><td>掉血、产虫数、攻速 / 移速比</td></tr>
+  <tr><td>脐带 3110</td><td><code>LifeLineDamage</code>；生命线实体自己会 <code>DisableSplitEffect</code></td></tr>
+  <tr><td>巨魔血清 3108</td><td>每秒回血、HP 比</td></tr>
+  <tr><td>融合召唤 3115</td><td>融合等级</td></tr>
+  <tr><td>精魄 3120</td><td>进阶技能等级</td></tr>
+  <tr><td>尸爆术 3118</td><td>即死阈值、爆炸</td></tr>
+  <tr><td>不屈 3122</td><td>延迟死亡时间</td></tr>
+  <tr><td>灵魂链接 3127</td><td>穿墙率、吸血比</td></tr>
+</table>
+<p>其它会关掉分裂的路径：<code>DisableSplitEffect</code> 还出现在队友死亡、绿符文记录、红符文斩击、<code>SpellTools</code> 若干生成。</p>
+
+<h2 id="s9">9. 逐条总表（强化 3001–3130 + 触发器 3201–3205）</h2>
+<p>图例：<code>继承</code> = 已烘焙效果传到子弹；<code>清除</code> = 明确清掉；<code>挡住</code> = 快照有、生成不挂；<code>不重跑</code> = 发射一次性；<code>满额</code> = 不是母弹剩余。</p>
+<table>
+  <tr><th>ID</th><th>中文名</th><th>类型</th><th>继承判定</th><th>子弹上实际发生什么</th></tr>
+  <tr><td>3001</td><td>齐射</td><td>发射形态</td><td>不重跑</td><td>不再齐射</td></tr>
+  <tr><td>3002</td><td>多重施法</td><td>发射形态</td><td>不重跑</td><td>不再连发；偏移计数仍在</td></tr>
+  <tr><td>3003</td><td>超载散射</td><td>发射形态</td><td>不重跑</td><td>不再散射</td></tr>
+  <tr><td>3004</td><td>粘液晶石</td><td>元素</td><td>继承</td><td>Element 整包</td></tr>
+  <tr><td>3005</td><td>毒液晶石</td><td>元素</td><td>继承</td><td>层数 × SpellEfficiency</td></tr>
+  <tr><td>3006</td><td>穿透</td><td>生存</td><td>继承 / 满额</td><td>发射时完整次数</td></tr>
+  <tr><td>3007</td><td>闪电链</td><td>命中附加</td><td>继承后打折</td><td>再生成链，伤害 ×0.35</td></tr>
+  <tr><td>3008</td><td>悬停</td><td>生命周期</td><td>继承 / 满额</td><td>Hover 从 0 再走完</td></tr>
+  <tr><td>3009</td><td>公转</td><td>运动</td><td>继承</td><td>Rotation；中心退回分裂点</td></tr>
+  <tr><td>3010</td><td>寻踪</td><td>运动</td><td>继承</td><td>ChaseMouse</td></tr>
+  <tr><td>3011</td><td>自动导航</td><td>运动</td><td>继承</td><td>ChaseEnemy</td></tr>
+  <tr><td>3012</td><td>反弹</td><td>生存</td><td>继承 / 满额</td><td>完整次数 + 加时</td></tr>
+  <tr><td><strong>3013</strong></td><td><strong>分裂</strong></td><td><strong>自身</strong></td><td><strong>清除</strong></td><td><strong>Count=0，不再分裂</strong></td></tr>
+  <tr><td>3014</td><td>寒霜晶石</td><td>元素</td><td>继承</td><td>FrozenDuration</td></tr>
+  <tr><td>3015</td><td>寄生虫</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate 字段</td></tr>
+  <tr><td>3101</td><td>雷霆晶石</td><td>元素</td><td>继承（无 Chance）</td><td>半径 + 伤害比</td></tr>
+  <tr><td>3102</td><td>伤害强化</td><td>数值</td><td>继承</td><td>AddRatio 后再 ×0.33</td></tr>
+  <tr><td>3103</td><td>时长强化</td><td>数值</td><td>继承 / 满额</td><td>持续重开</td></tr>
+  <tr><td>3104</td><td>节能模式</td><td>数值</td><td>继承</td><td>伤 / 持续已烘焙；耗蓝不重扣</td></tr>
+  <tr><td>3105</td><td>精准施法</td><td>数值</td><td>继承</td><td>CriticalChance</td></tr>
+  <tr><td>3106</td><td>加速器</td><td>数值</td><td>继承</td><td>速度后再 ×0.5</td></tr>
+  <tr><td>3107</td><td>范围增强</td><td>数值</td><td>继承</td><td>半径后再 ×0.8</td></tr>
+  <tr><td>3108</td><td>巨魔血清</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3109</td><td>拟态魔方</td><td>槽位解析</td><td>继承结果</td><td>已是模仿后的法术</td></tr>
+  <tr><td>3110</td><td>脐带</td><td>召唤</td><td>快照在；自身禁分裂</td><td>DisableSplitEffect</td></tr>
+  <tr><td>3111</td><td>炽焰晶石</td><td>数值+元素</td><td>继承</td><td>伤害加算 + 燃烧</td></tr>
+  <tr><td>3112</td><td>强力牵引</td><td>命中附加</td><td>继承</td><td>引力三字段</td></tr>
+  <tr><td>3113</td><td>聚爆</td><td>数值</td><td>继承</td><td>缩小 + 换伤</td></tr>
+  <tr><td>3114</td><td>自我追踪</td><td>运动</td><td>继承</td><td>ChaseOwner</td></tr>
+  <tr><td>3115</td><td>融合召唤</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3116</td><td>结束传送</td><td>结束行为</td><td>挡住</td><td>不传送</td></tr>
+  <tr><td>3117</td><td>自由公转</td><td>运动</td><td>继承</td><td>Rotation</td></tr>
+  <tr><td>3118</td><td>尸爆术</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3119</td><td>坠落</td><td>运动</td><td>继承 + 改写</td><td>已反弹、力 ×0.7</td></tr>
+  <tr><td>3120</td><td>精魄</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3121</td><td>折射</td><td>生存+数值</td><td>继承 / 满额</td><td>次数满额 + 伤害倍率</td></tr>
+  <tr><td>3122</td><td>不屈</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3123</td><td>过载</td><td>数值</td><td>继承</td><td>同伤害加算池</td></tr>
+  <tr><td>3124</td><td>虚胖法术</td><td>数值</td><td>继承</td><td>ExtraSizeRatio</td></tr>
+  <tr><td>3125</td><td>反向施法</td><td>发射旗标</td><td>继承旗标 / 不重跑翻角</td><td>ReserveDirection</td></tr>
+  <tr><td>3126</td><td>魔能升阶</td><td>槽位解析</td><td>继承结果</td><td>已升等的母法术</td></tr>
+  <tr><td>3127</td><td>灵魂链接</td><td>召唤</td><td>快照在 / 弹道无对象</td><td>Teammate</td></tr>
+  <tr><td>3128</td><td>主观缓时</td><td>数值</td><td>继承</td><td>速 / 持续已烘焙</td></tr>
+  <tr><td>3129</td><td>坍缩晶石</td><td>元素</td><td>继承</td><td>虚空三字段</td></tr>
+  <tr><td>3130</td><td>半途传送</td><td>生存</td><td>继承（部分法术不挂）</td><td>HalfLifeTeleport</td></tr>
+  <tr><td>3201</td><td>二重奏</td><td>触发器</td><td>清除</td><td>不触发后槽</td></tr>
+  <tr><td>3202</td><td>绚丽烟火</td><td>触发器</td><td>清除</td><td>不结束分裂</td></tr>
+  <tr><td>3203</td><td>连环</td><td>触发器</td><td>清除</td><td>不移动触发</td></tr>
+  <tr><td>3204</td><td>缠绕</td><td>触发器</td><td>清除</td><td>不环绕触发</td></tr>
+  <tr><td>3205</td><td>回响</td><td>触发器</td><td>清除</td><td>不命中触发</td></tr>
+</table>
+
+<h2 id="s10">10. 生成与特殊法术补丁</h2>
+<p><code>SpellDestroySystem.Split</code> 在 <code>ToSplit</code> 之后还会按母弹<strong>当前实体</strong>补几项（不是整包改用活体 Config）：</p>
+<table>
+  <tr><th>法术</th><th>补丁</th></tr>
+  <tr><td>通用</td><td>位置 = 母弹当前位置；方向均分 360°；坠落用母弹坐标，否则沿方向偏移半径（或 0.333）</td></tr>
+  <tr><td>审判之刃</td><td>生成点再沿方向偏 0.5/1，方向取反</td></tr>
+  <tr><td>魔力金币</td><td>抄活体 <code>CoinUseCount</code>、<code>BuffRatio</code></td></tr>
+  <tr><td>次元旅行者</td><td>重力清 0，抄活体坠落速度与加成伤 / 持续</td></tr>
+  <tr><td>破法者</td><td>抄 <code>Int3</code>；非坠落把 <code>AroundCenter</code> 设为母弹位置</td></tr>
+  <tr><td>雷霆光环</td><td>重力与坠落速度清 0</td></tr>
+</table>
+<p>分裂发生在母弹销毁当帧。悬停法术要等 <code>HoverTimer</code> 走完才销毁，因此「悬停 + 分裂」的分裂点在悬停结束，不是飞行刚停（见《悬停逆向分析.md》）。</p>
+
+<h2 id="s11">11. Mono 残留轨对照</h2>
+<p><code>SpellBase.TrySplit</code> / <code>CreateSplitSpell</code> 仍可能被分裂弹或旧路径走到。与 ECS 的差异：</p>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono</th></tr>
+  <tr><td>配置来源</td><td>发射快照 <code>SpellSpawnParams</code></td><td><code>InitialParameter.Copy()</code> + <code>ShootData.Copy</code>（<code>SubGroup=null</code>）</td></tr>
+  <tr><td>伤害</td><td>×0.33</td><td>×0.35（<code>finalDamageRatio</code>）</td></tr>
+  <tr><td>链伤</td><td>再生成时 ×0.35</td><td><code>lightningChainDamage × 0.5</code> 后 <code>CreateChains</code></td></tr>
+  <tr><td>半径 / 体型</td><td>Radius ×0.8</td><td><code>finalSizeRatio × 0.8</code></td></tr>
+  <tr><td>击退</td><td>×0.5</td><td><code>finalKnockBackRatio × 0.5</code></td></tr>
+  <tr><td>速度</td><td>非坠落 ×0.5</td><td>非坠落 <code>finalSpeedRatio × 0.5</code></td></tr>
+  <tr><td>再分裂</td><td><code>Count=0</code></td><td><code>spellSplitCount=0</code> 且 <code>isSplitSpell=true</code></td></tr>
+  <tr><td>触发器</td><td>五类字段清掉</td><td><code>SubGroup=null</code>，<code>InitTriggerController</code> 无组则 Disable</td></tr>
+</table>
+<p>讨论玩家构筑时以 <strong>ECS 表（第 9 节）</strong> 为准。</p>
+
+<h2 id="s12">12. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code> / <code>ClearTriggerInfoAndSubGroup</code></td><td>复制快照、清触发器、改写系数、Count=0</td></tr>
+  <tr><td><code>SpellDestroySystem.Split</code></td><td>销毁时生成子弹、低帧减数、特殊法术补丁</td></tr>
+  <tr><td><code>SpellShootSystem.SpawnSpellEntity</code></td><td>按快照挂组件；<code>IsSplitSpell</code> 挡住结束传送 / 常驻施法</td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td>发射时把 EnhanceList 烘焙进快照；<code>DamageRatio=0.33f</code> 写死</td></tr>
+  <tr><td><code>SpellInitialParameter.Builder.ProcessShootDataEffect</code></td><td>Enhance → SIP 字段</td></tr>
+  <tr><td><code>SpellShootData.GetSplitCount</code> 等</td><td>各强化如何进 SIP</td></tr>
+  <tr><td><code>CanShootSpellUtils.GetDamage</code></td><td>伤害强化 / 炽焰 / 过载加算，折射 / 节能乘算</td></tr>
+  <tr><td><code>SpellBase.TrySplit</code> / <code>CreateSplitSpell*</code></td><td>Mono 残留</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>30131–30133</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703013*</code> / <code>713013*</code></td><td>名称与文案</td></tr>
+</table>
+
+<footer>由《分裂逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+public enum TagEnum
+{
+	Abyss,
+	Access,
+	Brittleness,
+	Butterfly,
+	Cliff,
+	Destructible,
+	GroundNeedle,
+	InteractiveObj,
+	Item,
+	Monster,
+	Mucus,
+	Player,
+	RollBall,
+	Spell,
+	Teammate,
+	Untagged,
+	Venom,
+	Water,
+	Wall,
+	SolidObj
+}

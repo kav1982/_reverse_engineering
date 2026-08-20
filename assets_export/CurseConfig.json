@@ -1,0 +1,1161 @@
+[
+  {
+    "id": 1,
+    "iconH": "",
+    "abilityType": 1,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 10,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 2,
+    "iconH": "",
+    "abilityType": 2,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 3,
+    "iconH": "",
+    "abilityType": 3,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 100,
+      "valueUpgrade": 100
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 4,
+    "iconH": "",
+    "abilityType": 4,
+    "count": 5,
+    "dropType": 1,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 5,
+    "iconH": "",
+    "abilityType": 5,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 6,
+      "valueUpgrade": 6
+    }
+  },
+  {
+    "id": 6,
+    "iconH": "",
+    "abilityType": 6,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 7,
+    "iconH": "",
+    "abilityType": 7,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 8,
+    "iconH": "",
+    "abilityType": 8,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 9,
+    "iconH": "",
+    "abilityType": 9,
+    "count": 10,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 2,
+      "valueUpgrade": 1
+    }
+  },
+  {
+    "id": 10,
+    "iconH": "",
+    "abilityType": 10,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 11,
+    "iconH": "",
+    "abilityType": 11,
+    "count": 3,
+    "dropType": 1,
+    "int1": {
+      "value": 12,
+      "valueUpgrade": 8
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 12,
+    "iconH": "",
+    "abilityType": 12,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 5,
+      "valueUpgrade": 3
+    }
+  },
+  {
+    "id": 13,
+    "iconH": "",
+    "abilityType": 13,
+    "count": 9,
+    "dropType": 1,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 14,
+    "iconH": "",
+    "abilityType": 14,
+    "count": 9,
+    "dropType": 1,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 15,
+    "iconH": "",
+    "abilityType": 15,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 16,
+    "iconH": "",
+    "abilityType": 16,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 2
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 17,
+    "iconH": "",
+    "abilityType": 17,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 18,
+    "iconH": "",
+    "abilityType": 18,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 19,
+    "iconH": "",
+    "abilityType": 19,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 20,
+    "iconH": "",
+    "abilityType": 20,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 50,
+      "valueUpgrade": 50
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 21,
+    "iconH": "",
+    "abilityType": 21,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 22,
+    "iconH": "",
+    "abilityType": 22,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 23,
+    "iconH": "",
+    "abilityType": 23,
+    "count": 6,
+    "dropType": 1,
+    "int1": {
+      "value": 15,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 24,
+    "iconH": "",
+    "abilityType": 24,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 25,
+    "iconH": "",
+    "abilityType": 25,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 115,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 26,
+    "iconH": "",
+    "abilityType": 26,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 100,
+      "valueUpgrade": 100
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 27,
+    "iconH": "",
+    "abilityType": 27,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 28,
+    "iconH": "",
+    "abilityType": 28,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 6,
+      "valueUpgrade": 4
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 29,
+    "iconH": "",
+    "abilityType": 29,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 32,
+    "iconH": "",
+    "abilityType": 32,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 34,
+    "iconH": "",
+    "abilityType": 34,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 35,
+    "iconH": "",
+    "abilityType": 35,
+    "count": 7,
+    "dropType": 1,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 36,
+    "iconH": "",
+    "abilityType": 36,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 4,
+      "valueUpgrade": 4
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 37,
+    "iconH": "",
+    "abilityType": 37,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 80,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 15,
+      "valueUpgrade": 40
+    }
+  },
+  {
+    "id": 38,
+    "iconH": "",
+    "abilityType": 38,
+    "count": 5,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 39,
+    "iconH": "",
+    "abilityType": 39,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 40,
+    "iconH": "40H",
+    "abilityType": 40,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 5,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 41,
+    "iconH": "",
+    "abilityType": 41,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 3,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 42,
+    "iconH": "",
+    "abilityType": 42,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 43,
+    "iconH": "",
+    "abilityType": 43,
+    "count": 10,
+    "dropType": 1,
+    "int1": {
+      "value": -10,
+      "valueUpgrade": -10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 44,
+    "iconH": "",
+    "abilityType": 44,
+    "count": 3,
+    "dropType": 1,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 45,
+    "iconH": "",
+    "abilityType": 45,
+    "count": 5,
+    "dropType": 1,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 46,
+    "iconH": "",
+    "abilityType": 46,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 2,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 47,
+    "iconH": "",
+    "abilityType": 47,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 48,
+    "iconH": "",
+    "abilityType": 48,
+    "count": 5,
+    "dropType": 1,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 49,
+    "iconH": "",
+    "abilityType": 49,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 50,
+    "iconH": "",
+    "abilityType": 50,
+    "count": 5,
+    "dropType": 2,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 15
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 51,
+    "iconH": "",
+    "abilityType": 51,
+    "count": 5,
+    "dropType": 1,
+    "int1": {
+      "value": 15,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 52,
+    "iconH": "",
+    "abilityType": 52,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "float1": {
+      "value": 50,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 53,
+    "iconH": "",
+    "abilityType": 53,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 54,
+    "iconH": "",
+    "abilityType": 54,
+    "count": 5,
+    "dropType": 1,
+    "int1": {
+      "value": 10,
+      "valueUpgrade": 10
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 55,
+    "iconH": "",
+    "abilityType": 55,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 55,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 56,
+    "iconH": "",
+    "abilityType": 56,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0.15,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 57,
+    "iconH": "",
+    "abilityType": 57,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 58,
+    "iconH": "",
+    "abilityType": 58,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 5,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 7,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0.2,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 59,
+    "iconH": "",
+    "abilityType": 59,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0.25,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 60,
+    "iconH": "",
+    "abilityType": 60,
+    "count": 1,
+    "dropType": 1,
+    "int1": {
+      "value": 20,
+      "valueUpgrade": 20
+    },
+    "int2": {
+      "value": -30,
+      "valueUpgrade": -30
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 61,
+    "iconH": "",
+    "abilityType": 61,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 62,
+    "iconH": "",
+    "abilityType": 62,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 63,
+    "iconH": "",
+    "abilityType": 63,
+    "count": 1,
+    "dropType": 2,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 0
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  },
+  {
+    "id": 999,
+    "iconH": "",
+    "abilityType": 999,
+    "count": 1,
+    "dropType": 0,
+    "int1": {
+      "value": 1,
+      "valueUpgrade": 1
+    },
+    "int2": {
+      "value": 0,
+      "valueUpgrade": 0
+    },
+    "float1": {
+      "value": 0,
+      "valueUpgrade": 0
+    }
+  }
+]

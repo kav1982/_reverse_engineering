@@ -1,0 +1,19 @@
+public enum PlayerLook
+{
+	Default,
+	Jojo,
+	PrettyGril,
+	TVMan,
+	Nvliu,
+	Tomato,
+	Frog,
+	Halloween,
+	TapTap,
+	HaoYou,
+	MaoNiang,
+	XingNan,
+	Horse,
+	SummerBoy,
+	SummerGirl,
+	SnowMan
+}
