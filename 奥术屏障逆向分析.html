@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>奥术屏障（Spell4012 / Umbrella）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 360px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    transform: rotate(0);
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 168px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>奥术屏障（Spell4012 / Umbrella）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家被动符文「奥术屏障」（<code>abilityType = 4012</code>，配置 ID <code>40121</code>）。含 <code>Wand.RefreshUmbrella</code> 生成、<code>UmbrellaShieldController</code> 抵伤 / 反伤、<code>Spell4012MagicShield*</code> ECS。</p>
+    <p>保护伞法杖（<code>WandConfig</code> <code>4012</code>）只写<strong>如何启用盾</strong>，不做法杖全属性表。</p>
+    <p>不展开 3001–3130 逐条空表；只核实盾会读的强化。不写敌人护盾、其它 40xx 自动法术。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家挨打主路径是 ECS。Mono <code>UnitProperty.considerUmbrella</code> 为残留轨，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，伤害加算池见《伤害强化逆向分析.md》，半径加算见《范围增强逆向分析.md》，子弹分裂（不是盾分裂）见《分裂逆向分析.md》。晶石自扫旁路见《毒液晶石逆向分析.md》《雷霆晶石逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值结构</a></li>
+    <li><a href="#s3">生成与开关</a></li>
+    <li><a href="#s4">抵伤：蓝换血</a></li>
+    <li><a href="#s5">反伤爆炸</a></li>
+    <li><a href="#s6">盾分裂（不是 ECS ToSplit）</a></li>
+    <li><a href="#s7">强化怎么作用</a></li>
+    <li><a href="#s8">明确的死字段 / 文案差</a></li>
+    <li><a href="#s9">多杖、排除、保护伞杖</a></li>
+    <li><a href="#s10">Mono 残留轨对照</a></li>
+    <li><a href="#s11">证据索引</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>奥术屏障</td></tr>
+  <tr><td>英文名</td><td>Arcane Barrier</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>4012</code> / <code>SpellAbilityType.Umbrella</code></td></tr>
+  <tr><td>配置 ID</td><td><code>40121</code>（只有 1 级）</td></tr>
+  <tr><td>文案 ID</td><td>名 <code>7040121</code> / 机制 <code>7140121</code> / 风味 <code>7240121</code></td></tr>
+  <tr><td>稀有度</td><td>史诗（<code>dropType=3</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>3</code>（Passive 被动，法杖核心机制）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=3</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=false</code>，<code>haveEffecforSummonSpell=false</code></td></tr>
+  <tr><td>合成</td><td>不可合成（<code>canCompound=false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>75</td></tr>
+  <tr><td>预制体字段</td><td><code>prefab=""</code>；ECS 用 <code>PrefabId = 40121/10 = 4012</code></td></tr>
+  <tr><td>视觉 / 爆炸</td><td><code>Prefabs/Spell/4012/40121Shield</code>、<code>4012_Explosion</code></td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在法杖上的被动。先把法杖蓝上限 <strong>+int2</strong>；这根杖<strong>曾经回满过一次</strong>之后，玩家挨打时用蓝按「<strong>float2 点蓝 = 1 点血</strong>」抵伤，并按「<strong>耗蓝 × int1 × 伤害倍率</strong>」对周围打一圈反伤。抵伤看的是<strong>当前这根杖还够不够付 30 蓝</strong>，不是「必须一直满蓝」。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">槽位里有 40121</div>
+    <div class="arrow">↓</div>
+    <div class="box">passiveUmbrellaEnable</div>
+    <div class="arrow">↓</div>
+    <div class="box">RefreshUmbrella 生成盾实体</div>
+    <div class="arrow">↓</div>
+    <div class="dia">CurrentMP 曾回满？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">实体在，视觉/抵伤不在</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">视觉盾 + maxBlockDamage</div>
+        <div class="arrow">↓</div>
+        <div class="box">ECS 截玩家伤害</div>
+        <div class="arrow">↓</div>
+        <div class="box">扣蓝：30 蓝 = 1 血</div>
+        <div class="arrow">↓</div>
+        <div class="box">写 MagicShieldDmgEvent</div>
+        <div class="arrow">↓</div>
+        <div class="box ok">圈内 TryAttackEntity</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="note"><strong>和分裂相反：分裂是开火扫一次 EnhanceList、子弹只复印快照。盾是「生成时烘焙一份给实体元素」，挨打时再扫一遍整杖强化算伤 / 齐发点数 / 分裂点数。</strong></p>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7140121</code>）：</p>
+<p class="quote">法杖魔法值上限+<strong>int2</strong><br>奥术屏障可以用 <strong>float2</strong> 点魔法值抵消 1 点伤害，并对半径 <strong>float3</strong> 米内的目标造成所消耗魔法值 <strong>int1</strong> 倍的伤害</p>
+<p>名称（<code>7040121</code>）：奥术屏障 / Arcane Barrier。</p>
+<p>风味（<code>7240121</code>）：</p>
+<p class="quote">只有在法杖满魔力时才会生成屏障，当法杖魔力耗尽时屏障消失。</p>
+<p>风味后半句和实现不一致，见 3.2。</p>
+
+<h2 id="s2">2. 数值结构</h2>
+<h3>2.1 配置表（<code>assets_export/SpellConfig.json</code>）</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>int1 伤倍</th><th>int2 蓝上限</th><th>float1</th><th>float2 蓝/血</th><th>float3 半径</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>40121</td><td>1</td><td><strong>3</strong></td><td><strong>400</strong></td><td>0.12</td><td><strong>30</strong></td><td><strong>4</strong></td><td>75</td><td>false</td></tr>
+</table>
+<p>只有这一行。<code>int3=0</code>，<code>speed/duration/knockback/radius</code> 全 0。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>int1</strong></td><td>反伤 = 耗蓝 × int1 × 伤害倍率</td><td>是（<code>Mp2DamageRatio</code>）</td><td>高</td></tr>
+  <tr><td><strong>int2</strong></td><td>法杖蓝上限加算（<code>passiveBonusMaxMp</code>）</td><td>是（<code>CheckWandSlotPassiveEffect</code>）</td><td>高</td></tr>
+  <tr><td><strong>float2</strong></td><td>抵 1 点血要花的蓝</td><td>是（<code>GetWandOneHpAsMp</code> <strong>直接返回 30</strong>）</td><td>高</td></tr>
+  <tr><td><strong>float3</strong></td><td>爆炸半径（米）</td><td>是（<code>DamageRadius</code>）</td><td>高</td></tr>
+  <tr><td><strong>float1</strong></td><td>抵伤后的无敌帧（秒）</td><td>是（<code>InvincibleTime</code>）；<strong>文案未写</strong></td><td>高</td></tr>
+  <tr><td><code>Mp2HpRatio</code></td><td><code>float2/100 = 0.3</code></td><td><strong>全工程无读取</strong></td><td>高</td></tr>
+  <tr><td><code>mpCostRatio</code></td><td>扫描强化的耗蓝倍率再乘杖修正</td><td>写了，<strong>抵伤不读</strong></td><td>高</td></tr>
+</table>
+<p><code>GetWandOneHpAsMp(float maxMp)</code> 的参数没用，恒返回 <code>SpellConfig.dic[40121].float2</code>。</p>
+<p>保护伞杖本体 <code>WandConfig 4012</code>：<code>maxMP=110</code>、<code>mpRecovery=19</code>、<code>costCorrection=80</code>、<code>specialAbility=0</code>。插上奥术屏障后上限变成 <code>ceil((110 + 其它加算 + 400) × 各种倍率)</code>，不是「这把杖自带盾」。任意杖插 <code>40121</code> 都能开盾。</p>
+
+<h2 id="s3">3. 生成与开关</h2>
+<h3>3.1 两套对象</h3>
+<p>插上符文后其实有两件东西：</p>
+<table>
+  <tr><th>对象</th><th>谁生成</th><th>何时存在</th><th>干什么</th></tr>
+  <tr><td>ECS 盾实体（<code>Spell4012MagicShieldData</code>）</td><td><code>Wand.RefreshUmbrella</code> → <code>SpawnUmbrella</code></td><td>只要 <code>passiveUmbrellaEnable</code></td><td>挂 <code>MagicShieldDmgEvent</code> 缓冲、带发射时烘焙的 Element</td></tr>
+  <tr><td>视觉罩（<code>40121Shield</code>）</td><td><code>UmbrellaShieldController.SpawnShieldObject</code></td><td>至少一根杖 <strong>enable + MpFull</strong></td><td>跟着玩家、按总蓝比变色、播受击/破碎</td></tr>
+</table>
+<p><code>RefreshUmbrella</code> 先 <code>ClearAutoSpell(typeof(Spell4012MagicShieldData))</code> 清掉本杖旧实体，再 <code>ShootSpellGroup</code>。生成组是 <code>GetApplyWandAllEnhanceEffectShootGroup</code>：主动法术用<strong>这根杖前后槽全部 Enhance</strong>，不是「奥术屏障左边那几张」。</p>
+<p>同一杖多张 <code>40121</code>：<code>int2</code> 蓝上限<strong>相加</strong>，实体只按<strong>第一张</strong> Umbrella 槽的 ID 生成一次。</p>
+<p><code>SpellMoveJob</code> / 寿命计时都把 <code>Umbrella</code> 排除在外：盾实体不飞、不靠 <code>duration</code> 回收，直到槽位刷新或卸符文。</p>
+
+<h3>3.2 <code>passiveUmbrellaMpFull</code> 闩锁</h3>
+<p><code>Wand.CurrentMP</code> 的 setter：</p>
+<ol>
+  <li>第一次插上时若原先没开伞，强制 <code>MpFull = false</code>。</li>
+  <li><code>CurrentMP &gt;= MaxMP</code> 且 <code>MaxMP &gt; 0</code> → 闩上（满过）。</li>
+  <li><code>CurrentMP &lt; 30</code> 或 <code>MaxMP &lt;= 0</code> → 打开（不够付 1 点血）。</li>
+</ol>
+<p><strong>不是「掉下满蓝就碎」，也不是风味写的「蓝耗尽（0）才碎」。</strong> 满过一次之后，蓝可以花到只剩 ≥30，视觉和抵伤都还在；降到 30 以下才从 <code>GetTargetWands</code> 里踢出去，视觉破碎。</p>
+<p>插上的当帧 MaxMP 已经 +400，必须把<strong>新的更大上限</strong>回满，闩才会合上。</p>
+
+<h3>3.3 谁算「目标杖」</h3>
+<pre><code>private Wand[] GetTargetWands()
+{
+    List&lt;Wand&gt; list = PlayerMgr.Inst.Wands.Where((Wand w) =&gt;
+        (object)w != null &amp;&amp; w.passiveUmbrellaEnable
+        &amp;&amp; w.passiveUmbrellaMpFull &amp;&amp; w.WandCfg != null).ToList();
+    // ...
+}</code></pre>
+<p>多根杖各自闩锁。视觉只有一个，颜色用这些杖的 <strong>当前蓝总和 / 上限总和</strong>。</p>
+
+<h2 id="s4">4. 抵伤：蓝换血</h2>
+<h3>4.1 ECS 主路径</h3>
+<p><code>Spell4012MagicShieldDamageChangeSystem</code> 挂在 <code>UnitTakeDamageGroup</code>，<code>TakeDamageInfoPreProcessSystem</code> 之后、<code>UnitPropertySystem</code> 之前。</p>
+<p>条件：</p>
+<ul>
+  <li>目标 <code>unitType == Player</code>（队友不挡）</li>
+  <li>目标当前不是无敌</li>
+  <li><code>!ignoreUmbrella</code></li>
+  <li><code>attackerType != FromUI</code></li>
+</ul>
+<p>然后用 Controller 上的 <code>maxBlockDamage</code>（本帧 Update 里按当前蓝算出来的「还能挡几滴血」）去削 <code>TakeDamageInfo_Dots.damage</code>：</p>
+<ul>
+  <li>伤害 ≤ 剩余格挡：玩家这发伤害清 0，记入 <code>hitMagicShieldDamage</code>，<code>damageBlockThisFrame += 伤害</code>，<code>maxBlockDamage -= 伤害</code></li>
+  <li>伤害更大：只挡掉剩余格挡，余数继续打玩家，<code>maxBlockDamage = 0</code></li>
+</ul>
+<p>同一帧多段伤害会按顺序吃同一份 <code>maxBlockDamage</code>，吃完就不再挡。</p>
+<p><code>ignoreUmbrella</code> 会出现在部分特殊物件、战斗脚本、遗物结算、UI 伤害上。那些打的是「真伤 / 扣费」，不进盾。</p>
+
+<h3>4.2 实际扣蓝发生在下一拍 Update</h3>
+<p>ECS 只记账。<code>UmbrellaShieldController.Update</code>：</p>
+<ol>
+  <li>对上杖 ↔ 实体</li>
+  <li>按闩锁决定视觉在不在</li>
+  <li><code>maxBlockDamage = Σ floor(CurrentMP / 30)</code>（只计目标杖）</li>
+  <li><code>CheckBlockDamage</code>：若上一拍 <code>damageBlockThisFrame &gt; 0</code>，调用 <code>UnderDamage</code></li>
+  <li>走盾分裂延迟</li>
+  <li><code>InvincibleTimer -= dt</code></li>
+</ol>
+<p><code>UnderDamage</code>：</p>
+<ul>
+  <li><code>damage &lt;= 0</code> 或 <code>InvincibleTimer &gt; 0</code> → <strong>直接返回</strong>，不扣蓝、不爆炸</li>
+  <li>否则 <code>CostMpByHp((int)damage)</code>：在目标杖之间<strong>轮流</strong>每次扣 30 蓝，直到伤害扣完或大家都付不起</li>
+  <li>再给<strong>每根目标杖</strong>各打一轮反伤（见第 5 节）</li>
+  <li><code>InvincibleTimer = 0.12</code></li>
+</ul>
+<p><code>float1=0.12</code> 的无敌只挡 <strong>UnderDamage</strong>（扣蓝 + 爆炸）。ECS 格挡仍按 <code>maxBlockDamage</code> 走。短时间内连挨打：第一拍会扣蓝并爆炸，0.12 秒内后续格挡<strong>可能不再扣蓝、不再爆炸</strong>。</p>
+
+<h3>4.3 算例（单杖，无伤害强化）</h3>
+<p>MaxMP 因 int2 变大。满蓝后挨 10 点：</p>
+<ul>
+  <li>格挡 10，扣 <code>10 × 30 = 300</code> 蓝</li>
+  <li>反伤基数 <code>300 × 3 = 900</code></li>
+  <li>杖上还剩的蓝只要 ≥30，闩还在，视觉不碎</li>
+</ul>
+<p>蓝不足 30 时：ECS 这帧 <code>maxBlockDamage</code> 已是 0，余伤打玩家本体。</p>
+
+<h2 id="s5">5. 反伤爆炸</h2>
+<h3>5.1 公式</h3>
+<p>对每根目标杖：</p>
+<pre><code>mp      = 本轮总耗蓝 × GetDamageRatio() / 目标杖数量
+damage  = int1 × mp          // 3 × mp
+radius  = float3 × ShieldSize × GetRadiusRatio()</code></pre>
+<p><code>GetDamageRatio() = (sip.extraDamageRatio + 1) × sip.finalDamageRatio</code>。</p>
+<p><code>sip</code> <strong>不是</strong>生成盾时那份快照，而是挨打当下 <code>UpdateShieldBuffState</code> 用假法术 <code>10001</code>（<code>abilityType=1000</code>，<code>damage=0</code>）再跑一遍 <code>ApplySpellShootDataEffect</code> 建出来的。假法术的基础伤害是 0，但加算 / 乘算池照常进 SIP，所以伤害强化仍然改倍率。</p>
+<p>多杖时总反伤仍是 <code>int1 × 总耗蓝 × 倍率</code>；每根杖各放一圈，单圈伤害按杖数均分。各杖强化不同则各用各的 <code>GetDamageRatio</code>。</p>
+
+<h3>5.2 半径实际上是 4</h3>
+<p><code>GetRadiusRatio</code> 一进来就判断 <code>ProtectTarget</code>。反编译里这个字段<strong>从未赋值</strong>，恒为 null，函数恒返回 <code>1</code>。</p>
+<p>因此：</p>
+<ul>
+  <li>爆炸半径 = <code>4 × ShieldSize</code>（<code>ShieldSize</code> 默认 1）</li>
+  <li>范围增强 / 虚胖写进了 SIP 的 <code>extraSizeRatio</code> / <code>finalSizeRatio</code>，<strong>爆炸读不到</strong></li>
+  <li>悬停说明里的 <code>float3</code> 也会按 <code>GetRadiusRatio()==1</code> 显示，不会因范围强化变色</li>
+</ul>
+<p>聚爆仍能改<strong>伤害</strong>（见 7.2），但不缩小这圈半径。</p>
+
+<h3>5.3 结算</h3>
+<p><code>MakeDamageDots</code> 往该杖盾实体的 <code>MagicShieldDmgEvent</code> 写 <code>{damage, Position, radius}</code>。<code>Spell4012MagicShieldSystem</code> 用物理圈查可攻击单位（含脆片），<code>TakeDamageInfo_Dots.NewInfo</code> 抄盾实体的 Config / Movement / <strong>Element</strong>，再把 <code>info.damage</code> <strong>覆盖成事件里的值</strong>。<code>CostPenetrate=false</code>，<code>CostRefraction=false</code>。不生成闪电链（<code>SpellShootSystem</code> 显式排除 <code>Umbrella</code>）。</p>
+<p>元素效果用的是<strong>生成盾实体时</strong>烘焙进实体的 <code>SpellElementEffectComponentData</code>，不是挨打时 Controller 里那些 <code>spellVenomTime</code> 字段。</p>
+
+<h3>5.4 视觉</h3>
+<p>爆炸预制体按「目标杖总蓝比」取渐变色。挨打播 <code>SE_UmbrellaHit</code> + Hit 动画；没目标杖时播破碎并 2 秒后销毁视觉。</p>
+
+<h2 id="s6">6. 盾分裂（不是 ECS <code>ToSplit</code>）</h2>
+<p>挨打时若 <code>spellSplitCount &gt; 0</code>（杖上分裂符文的 <code>int1</code> 求和）：</p>
+<ul>
+  <li>主爆炸伤害仍是满额 <code>int1 × mp</code></li>
+  <li>0.25 秒后，在每个主爆点周围再放 <code>spellSplitCount</code> 个点</li>
+  <li>子爆伤害 <strong>×0.33</strong>，半径 <strong>×0.5</strong></li>
+  <li>不再递归</li>
+</ul>
+<p>这是 Controller 本地延迟 AoE，<strong>不走</strong> <code>SpellSpawnParamsStorage.ToSplit</code>，没有低帧减数，也不清触发器。和《分裂逆向分析.md》里的子弹分裂是两套。</p>
+<p>齐发点数见下一节：读的是 <strong>多重施法 3002</strong>，不是齐射 3001。</p>
+
+<h2 id="s7">7. 强化怎么作用（对照分裂）</h2>
+<p>盾吃强化有三条时间线：</p>
+<table>
+  <tr><th>时间</th><th>做什么</th><th>爆炸时谁还在用</th></tr>
+  <tr><td>槽位刷新 <code>SpawnUmbrella</code></td><td>整杖 EnhanceList 烘焙进盾实体</td><td>Element、实体 Config（暴击等走通用预处理）</td></tr>
+  <tr><td>挨打 <code>UpdateShieldBuffState</code></td><td>再扫一遍强化 + 用 <code>10001</code> 重建 SIP</td><td>伤害倍率、聚爆换伤、多重点数、分裂点数</td></tr>
+  <tr><td>Controller 自扫字段</td><td>粘液 / 毒 / 冻 / 烧 / 雷 / 牵引 / 坍缩</td><td><strong>爆炸不读</strong>（毒的 <code>int1</code> 累进 <code>spellVenomBonusStackCount</code> 也没人读）</td></tr>
+</table>
+<p>槽位一变会 <code>RefreshUmbrella</code>，实体会重建，生成时那份 Element 会跟上。</p>
+
+<h3>7.1 挨打时 switch 真会改爆炸的</h3>
+<table>
+  <tr><th>Buff</th><th>abilityType</th><th>盾上实际</th></tr>
+  <tr><td><strong>多重施法</strong></td><td>3002 <code>Multishot</code></td><td><code>multiShootCount += int1</code>（1/2/4 → 总共 2/3/5 个爆点）。<code>==1</code> 时在脚下；<code>&gt;1</code> 时沿 360° 均分，半径取爆炸半径一半</td></tr>
+  <tr><td><strong>分裂</strong></td><td>3013 <code>SpellSplit</code></td><td>见第 6 节</td></tr>
+  <tr><td>粘液 / 毒 / 寒霜 / 炽焰 / 雷霆 / 牵引 / 坍缩</td><td>3004 / 3005 / 3014 / 3111 / 3101 / 3112 / 3129</td><td>写入 Controller 字段后<strong>没有读者</strong></td></tr>
+</table>
+<p>注意命名：<code>SpellAbilityType.Multishot</code> 是 <strong>3002 多重施法</strong>，不是 3001 齐射。齐射不进这个 switch。</p>
+
+<h3>7.2 挨打时 SIP 重建：改伤害倍率</h3>
+<p><code>GetDamageRatio</code> 读假法术 <code>10001</code> + 整杖 Enhance 的 SIP，规则与《伤害强化逆向分析.md》同一套池：</p>
+<table>
+  <tr><th>Buff</th><th>池</th><th>盾爆</th></tr>
+  <tr><td>伤害强化 3102</td><td><code>extraDamageRatio</code> 加算</td><td>继承</td></tr>
+  <tr><td>炽焰晶石 3111 的伤害段</td><td>同一加算池</td><td>继承</td></tr>
+  <tr><td>过载 3123</td><td>同一加算池</td><td>继承</td></tr>
+  <tr><td>折射 3121 / 节能 3104 的乘段</td><td><code>finalDamageRatio</code></td><td>继承</td></tr>
+  <tr><td>聚爆 3113</td><td><code>radiuDecreaseRatio &lt; 1</code> 时再乘 <code>1 + GetSpellRadiusToDamageRatio(4×ShieldSize×1, …)</code></td><td><strong>只改伤，不缩圈</strong></td></tr>
+  <tr><td>法杖 <code>damageCorrection</code> / <code>passiveDamageRatio</code> / 玩家全局加伤</td><td>Build SIP 时进同一套</td><td>继承</td></tr>
+  <tr><td>节能 / 过载 / 多重 的 <code>mpCostMulDivCorrection</code></td><td>写入 <code>mpCostRatio</code></td><td><strong>抵伤不读</strong>，30 蓝/血不变</td></tr>
+</table>
+<p><code>GetCriticalChance()</code> 只给 <code>SpellInfoFormatters</code> 悬停说明用。爆炸是否暴击看盾<strong>实体</strong>快照里的 CriticalChance，走通用预处理，不看 Controller 这份 SIP。</p>
+
+<h3>7.3 生成时烘焙、爆炸命中会带上的</h3>
+<p><code>SpawnUmbrella</code> 走正常 <code>SipToSSP</code>。爆炸 <code>NewInfo</code> 带上实体 <code>Element</code>，命中附加与普通弹同一套管线：</p>
+<table>
+  <tr><th>Buff</th><th>爆炸命中</th></tr>
+  <tr><td>粘液晶石 3004</td><td>Element 在则上粘液</td></tr>
+  <tr><td>毒液晶石 3005</td><td>Element 在则上毒（层数 × <code>SpellEfficiency</code>）；Controller 多写的 <code>int1</code> 无效</td></tr>
+  <tr><td>寒霜晶石 3014</td><td><code>FrozenDuration</code></td></tr>
+  <tr><td>炽焰晶石 3111</td><td>燃烧段在 Element</td></tr>
+  <tr><td>坍缩晶石 3129</td><td>虚空三字段在 Element</td></tr>
+  <tr><td>雷霆晶石 3101</td><td>半径 / 伤比写进 Element；<strong>落雷要实体 Destroy 且仍是雷色</strong>。盾平时不销毁，爆炸不当「法术结束」。卸符文 <code>ClearAutoSpell</code> 毁掉实体时，才可能走一次销毁落雷</td></tr>
+  <tr><td>闪电链 3007</td><td>生成时被排除，不建链</td></tr>
+  <tr><td>法杖随机染色 / 彩虹</td><td>生成时写入 Color + Element，命中带着走</td></tr>
+</table>
+
+<h3>7.4 写了但爆炸当空气</h3>
+<table>
+  <tr><th>Buff</th><th>原因</th></tr>
+  <tr><td>齐射 3001 / 超载散射 3003</td><td>switch 不读；也不会再「齐射一次盾」</td></tr>
+  <tr><td>穿透 / 反弹 / 折射次数 / 悬停 / 坠落 / 公转 / 寻踪 / 导航</td><td>盾不飞</td></tr>
+  <tr><td>范围增强 3107 / 虚胖 3124</td><td>SIP 有尺寸比，<code>GetRadiusRatio</code> 短路为 1</td></tr>
+  <tr><td>加速器 / 时长 / 主观缓时</td><td>无飞行、无寿命</td></tr>
+  <tr><td>结束传送 / 半途传送</td><td>盾不走这些销毁/半命路径</td></tr>
+  <tr><td>五类触发器 3201–3205</td><td>EnhanceList 里会带着生成，盾不是普通弹，时机用不上</td></tr>
+  <tr><td>召唤专用（寄生 / 脐带 / 血清…）</td><td>可能进 Teammate 快照，盾上没召唤体</td></tr>
+  <tr><td>精准施法 3105</td><td>只稳定影响悬停文案里的暴击显示</td></tr>
+</table>
+<p>有伞（以及锤 / 激光晶石 / 彼岸刃 / 鱼叉）时，<code>GetUnusedSlotsAndType</code> 直接返回空：杖不会提示「这些强化没人用」。</p>
+
+<h2 id="s8">8. 明确的死字段 / 文案差</h2>
+<table>
+  <tr><th>项</th><th>结论</th></tr>
+  <tr><td><code>Mp2HpRatio = float2/100</code></td><td>从未被读；真公式用的是裸 <code>float2=30</code></td></tr>
+  <tr><td><code>mpCostRatio</code></td><td>强化耗蓝倍率乘进去了，扣蓝不用</td></tr>
+  <tr><td><code>GetWandOneHpAsMp(maxMp)</code></td><td>忽略参数</td></tr>
+  <tr><td><code>Spell4012MagicShieldData.ShieldMaxReduce</code> / <code>IsInitialized</code></td><td>结构有，无人写无人读</td></tr>
+  <tr><td>Controller 元素字段（粘液/毒/冻/烧/雷/牵引/坍缩）</td><td>挨打时重写，爆炸不读</td></tr>
+  <tr><td>风味「蓝耗尽才消失」</td><td>代码阈值是 <strong>&lt;30 蓝</strong>，不是 0</td></tr>
+  <tr><td><code>float1=0.12</code></td><td>无敌帧，机制文案没写</td></tr>
+</table>
+
+<h2 id="s9">9. 多杖、排除、保护伞杖</h2>
+<h3>9.1 多杖</h3>
+<p>每根插了 <code>40121</code> 且闩上的杖都进 <code>GetTargetWands</code>。扣蓝轮流付 30。视觉共用。反伤按杖数均分后再各自放圈。</p>
+
+<h3>9.2 不挡的伤害</h3>
+<ul>
+  <li><code>unitType != Player</code>（召唤物自己挨打不吃这面盾）</li>
+  <li><code>ignoreUmbrella</code></li>
+  <li><code>AttackerType.FromUI</code></li>
+  <li>目标已无敌（系统直接 <code>continue</code>）</li>
+</ul>
+
+<h3>9.3 保护伞杖</h3>
+<p><code>WandConfig 4012</code> 中文名「保护伞 / Protective Umbrella」，<code>specialAbility=0</code>，<strong>没有</strong>单独的开盾被动。盾只来自槽位里的 <code>40121</code>。这把杖可以不插屏障；别的杖插屏障也能开。</p>
+
+<h2 id="s10">10. Mono 残留轨对照</h2>
+<p><code>UnitProperty</code> 在 <code>considerUmbrella &amp;&amp; UmbrellaCtrl.CanUnderDamage</code> 时直接 <code>UnderDamage(info.damage)</code>。<code>CanUnderDamage</code> = 任一目杖蓝 ≥30。</p>
+<p>和 ECS 的差别：</p>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono</th></tr>
+  <tr><td>入口</td><td><code>Spell4012MagicShieldDamageChangeSystem</code></td><td><code>UnitProperty</code> 受伤</td></tr>
+  <tr><td>格挡上限</td><td>本帧预先算的 <code>maxBlockDamage</code></td><td>立刻按伤害扣蓝</td></tr>
+  <tr><td>记帐 vs 扣蓝</td><td>先改伤害数字，Update 再扣蓝 / 爆炸</td><td>同步扣蓝并爆炸</td></tr>
+  <tr><td>队友</td><td><code>unitType==Player</code> 才进</td><td>只有玩家身上挂着 Controller</td></tr>
+  <tr><td>忽略</td><td><code>ignoreUmbrella</code> / FromUI</td><td><code>considerUmbrella==false</code></td></tr>
+</table>
+<p>讨论玩家挨打以 <strong>ECS</strong> 为准。</p>
+
+<h2 id="s11">11. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>Wand.CheckWandSlotPassiveEffect</code> / <code>RefreshUmbrella</code> / <code>SpawnUmbrella</code></td><td>启用、+400 蓝、生成实体、整杖 Enhance</td></tr>
+  <tr><td><code>Wand.CurrentMP</code> setter</td><td>MpFull 闩锁（满上 / 低于 30）</td></tr>
+  <tr><td><code>Wand.GetWandAllEnhanceList</code></td><td>前后槽全部 Enhance</td></tr>
+  <tr><td><code>UmbrellaShieldController</code></td><td>视觉、扣蓝、爆炸、分裂延迟、自扫强化</td></tr>
+  <tr><td><code>Spell4012MagicShieldDamageChangeSystem</code></td><td>ECS 截玩家伤害</td></tr>
+  <tr><td><code>Spell4012MagicShieldSystem</code></td><td>消费 <code>MagicShieldDmgEvent</code> 圈伤</td></tr>
+  <tr><td><code>Spell4012MagicShieldData</code> / Authoring</td><td>标签 + 伤害缓冲</td></tr>
+  <tr><td><code>Spell40121MPRatioEffect</code> / <code>ExplosionMPRatioEffect</code></td><td>按蓝比染色</td></tr>
+  <tr><td><code>SpellInfoFormatters</code> <code>4012</code></td><td>悬停：半径 / int1 乘当下倍率</td></tr>
+  <tr><td><code>SpellShootSystem</code> / <code>SpellSystem</code> / <code>SpellMoveJob</code></td><td>排除链、排除寿命、排除位移</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>40121</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>7040121</code> / <code>7140121</code> / <code>7240121</code></td><td>名称、机制、风味</td></tr>
+  <tr><td><code>WandConfig.json</code> <code>4012</code></td><td>保护伞杖本体（仅启用关系）</td></tr>
+</table>
+
+<footer>由《奥术屏障逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

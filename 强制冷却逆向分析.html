@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>强制冷却（Spell4006 / ForceCoolDown）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 420px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 188px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  .bad { background: #f8ecec; border-color: #b06060; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  .slots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: .3em 0 .8em; font-size: .92rem; }
+  .chip {
+    padding: 2px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: Consolas, "Sarasa Mono SC", monospace;
+    font-size: .85rem;
+  }
+  .chip.en { border-color: #6b3fa0; color: #6b3fa0; background: #f7f2fc; }
+  .chip.sp { border-color: #3d6b8b; color: #2a5470; background: #eef5f8; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>强制冷却（Spell4006 / ForceCoolDown）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家被动符文「强制冷却」（<code>abilityType = 4006</code>，配置 ID <code>40061–40063</code>）。重点是<strong><code>coolDownRatio</code> 怎么进法杖冷却</strong>，以及<strong>谁真正吃到这份连乘</strong>。</p>
+    <p>不展开 <code>4014</code> 激光晶体的 <code>ForceCooling</code>、遗物/诅咒独立 CD、施法间隔。遗物 / 诅咒只点合成顺序，不逐条拆。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>这张卡是法杖级被动，主路径在 <code>Wand</code>，没有 <code>Spell4006*System</code> / Authoring，也不进弹体 ECS。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">谁吃得到这张卡</a></li>
+    <li><a href="#s4">谁真正吃到这份倍率</a></li>
+    <li><a href="#s5">和其它法术的关系</a></li>
+    <li><a href="#s6">运行时 vs 预览 / UI 对照</a></li>
+    <li><a href="#s7">证据索引</a></li>
+    <li><a href="#s8">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>强制冷却</td></tr>
+  <tr><td>英文名</td><td>Forced Cooldown</td></tr>
+  <tr><td>内部名</td><td><code>ForceCoolDown</code> 强制冷却</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>4006</code> / <code>SpellAbilityType.ForceCoolDown</code></td></tr>
+  <tr><td>配置 ID</td><td><code>40061</code>（Lv1）/ <code>40062</code>（Lv2）/ <code>40063</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>3</code>（<code>SpellType.Passive</code> 被动符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code>、<code>shootCount=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=false</code>，<code>haveEffecforSummonSpell=false</code>（自动填槽的强化过滤用；运行时不读）</td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>7 / 21 / 63</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在法杖<strong>任意有效槽</strong>里的法杖级被动。不改伤害、半径、速度、蓝耗、施法间隔；只把卡上的 <code>coolDownRatio</code> 连乘进 <code>passiveWandCoolDownTimeRatio</code>。没有独立 System。左右位置不决定「谁吃得到」——吃的是这根法杖的整轮冷却。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">换槽 / ResetAndRecheck</div>
+    <div class="arrow">↓</div>
+    <div class="box">扫主槽 + 后槽 GetFinalConfig</div>
+    <div class="arrow">↓</div>
+    <div class="dia">abilityType == ForceCoolDown?</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">ratio *= coolDownRatio</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">其它被动另计；加减修正无条件累加</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="box">WandCoolDown = max(0, 底数+Σ加减) × 诅咒/遗物 × ratio</div>
+    <div class="arrow">↓</div>
+    <div class="dia">打完最后一组?</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box bad">只写 ShootInterval · 不吃这份倍率</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box ok">CoolingTimer = max(0.015, WandCoolDown)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>卡面没有独立机制文案。<code>TextConfig_Spell</code> <code>7140061–7140063</code>、底部补充 <code>7240061</code> 全空。名称（<code>7040061–7040063</code>）：强制冷却 / Forced Cooldown。三级名称相同，只有 <code>coolDownRatio</code> 不同。展示靠 <code>SpellConfig.GetInfo</code> 自动吐一行：</p>
+<div class="quote">◆ 冷却 <strong>×60 / ×30 / ×15</strong>%</div>
+<p><code>×60%</code> 的意思是冷却变成原来的 <strong>60%</strong>，不是「减少 60%」。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>coolDownRatio</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>40061</td><td>1</td><td><strong>0.6</strong>（×60%）</td><td>7</td><td>true</td></tr>
+  <tr><td>40062</td><td>2</td><td><strong>0.3</strong>（×30%）</td><td>21</td><td>true</td></tr>
+  <tr><td>40063</td><td>3</td><td><strong>0.15</strong>（×15%）</td><td>63</td><td>false</td></tr>
+</table>
+<p>规律：售价每级 ×3（7 / 21 / 63，比悬停的 8 / 24 / 72 便宜 1 金）。<code>coolDownRatio</code> 每级 ÷2（0.6 → 0.3 → 0.15）。<code>float1/2/3</code>、<code>int1/2/3</code> 全 0，不用。无耗蓝倍率。<code>coolDownAddSubRevise</code> 也是 0——这张卡自己不加不减秒数。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong><code>coolDownRatio</code></strong></td><td>法杖冷却连乘系数；多张相乘写入 <code>passiveWandCoolDownTimeRatio</code></td><td>是</td><td>高</td></tr>
+  <tr><td><code>coolDownAddSubRevise</code></td><td>配置为 0</td><td>扫描时会 <code>+=</code>，此卡贡献 0</td><td>高</td></tr>
+  <tr><td><code>shootIntervalAddSubRevise</code></td><td>配置为 0</td><td>进施法间隔池，此卡贡献 0</td><td>高</td></tr>
+  <tr><td>float1–3 / int1–3</td><td>配置为 0</td><td><strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>haveEffecfor*</code></td><td>表上均为 <code>false</code></td><td>仅自动填槽的强化过滤；<code>ForceCoolDown</code> 分支 <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p>没有独立 <code>Spell4006*System</code> / Authoring。这张卡本身不挂伤害组件，也不进发射包。玩家卡里，<code>coolDownRatio ≠ 1</code> 的只有 <code>40061–40063</code>。<code>WandConfig.GetCoolDownRatio</code> 会乘「任意槽」的该字段，但<strong>没有任何调用方</strong>，见第 6 节。</p>
+
+<h3>2.3 连乘，不是加算，也不是取 min</h3>
+<p>两张 Lv1 是 <strong>×0.36</strong>，不是 <code>0.6 + 0.6</code>，也不是 <code>min(0.6, 0.6)</code>。</p>
+<pre class="code">case SpellAbilityType.ForceCoolDown:
+    passiveWandCoolDownTimeRatio *= spell.coolDownRatio;
+    break;</pre>
+<p>循环里没有「已处理过同类型就跳过」。同类型出现几次乘几次。无上限、无「只取最高级」。底数从 <code>1</code> 乘，没有这张卡时 <code>passiveWandCoolDownTimeRatio = 1</code>。</p>
+<p>等级不能互替。法杖底数先按常见的 <code>0.5s</code> 算（多数 <code>WandConfig.coolDown</code> 是这个数），先不算加减 / 诅咒 / 遗物 / 0.015 地板：</p>
+<table>
+  <tr><th>槽位</th><th>连乘</th><th>最终 CD</th><th>说明</th></tr>
+  <tr><td>无</td><td>1</td><td>0.50</td><td></td></tr>
+  <tr><td>1×Lv1</td><td>0.6</td><td><strong>0.30</strong></td><td></td></tr>
+  <tr><td>1×Lv2</td><td>0.3</td><td><strong>0.15</strong></td><td></td></tr>
+  <tr><td>1×Lv3</td><td>0.15</td><td><strong>0.075</strong></td><td></td></tr>
+  <tr><td>2×Lv1</td><td>0.6×0.6 = 0.36</td><td><strong>0.18</strong></td><td>比 1×Lv2 差</td></tr>
+  <tr><td>Lv1+Lv2</td><td>0.6×0.3 = 0.18</td><td><strong>0.09</strong></td><td>比 1×Lv3 差</td></tr>
+  <tr><td>2×Lv3</td><td>0.15×0.15 = 0.0225</td><td><strong>0.01125 → 地板 0.015</strong></td><td>见 4.4</td></tr>
+</table>
+<p>和悬停相反：悬停叠两张 Lv1 比一张 Lv2 更「多」；这里倍率越小越好，<strong>合成既省槽又更狠</strong>。自动填槽<strong>不自排斥</strong>（<code>SelfRepelSpells</code> 只有元素晶石），手摆和自动都可以叠多张。</p>
+<p>写入时机：<code>ResetAndRecheck</code> / <code>ProcessSharedSpell</code> 里先解析拟态、魔能升阶，再 <code>CheckWandSlotPassiveEffect</code>。每次重算都先把 <code>passiveWandCoolDownTimeRatio</code> 置回 <code>1</code>，再扫一遍。没有「遗物 / 诅咒 / 法杖底数」进这个连乘池——它们走 <code>WandCoolDown</code> 取值器的另外几层。</p>
+
+<h3>2.4 不进施法间隔</h3>
+<p><code>WandShootInterval</code> 只加 <code>passiveWandShootIntervalAddSubAmount</code>，再乘慢杖诅咒 / 静止专注，<strong>没有</strong> <code>passiveWandCoolDownTimeRatio</code>。这张卡的 <code>shootIntervalAddSubRevise</code> 是 0。组与组之间的等待不吃这份连乘，见 4.2。</p>
+
+<h3>2.5 魔能升阶抬的是这张卡的 coolDownRatio</h3>
+<p><code>CheckWandSlotPassiveEffect</code> 取 <code>GetFinalConfig()</code>。魔能升阶先把槽位的 <code>slotSpellExtraLevel</code> 加上，<code>GetFinalLevelId</code> 再把 <code>40061</code> 抬成 <code>40062</code> / <code>40063</code>。叠加规则不变，变的是送进连乘的系数。</p>
+
+<h2 id="s3">3. 谁吃得到这张卡</h2>
+<h3>3.1 法杖级被动，不走 EnhanceList</h3>
+<p><code>SpellGroupParser</code> 的左侧累积是给 Enhance / 触发器用的。强制冷却是 <code>useType = Passive</code>，<code>CheckWandSlotPassiveEffect</code> 直接扫 <code>GetValidSlotsData</code>：主槽一遍、后槽一遍，每张有效槽的 <code>GetFinalConfig()</code> 丢进同一个 <code>action</code>。</p>
+<p>左右位置不决定「强化谁」。插在魔法弹左边、右边、后槽，吃的都是<strong>这根法杖</strong>的 <code>WandCoolDown</code>。主槽加得到后槽——后槽里的一张同样乘进同一个 <code>passiveWandCoolDownTimeRatio</code>。</p>
+<div class="slots"><span class="chip en">强冷</span><span class="chip sp">弹</span><span>→ 法杖 CD ×0.6</span></div>
+<div class="slots"><span class="chip sp">弹</span><span class="chip en">强冷</span><span>→ 同样 ×0.6</span></div>
+<div class="slots"><span class="chip sp">弹</span><span>…后槽</span><span class="chip en">强冷</span><span>→ 同样 ×0.6</span></div>
+<div class="slots"><span class="chip en">强冷A</span><span class="chip en">强冷B</span><span class="chip sp">弹</span><span>→ ×0.6 ×0.6</span></div>
+<p>封印槽（<code>isSealSlot</code>）不进 <code>GetValidSlotsData</code>。空槽跳过。背包里没插上的不算。</p>
+
+<h3>3.2 haveEffecfor* = false 拦不住运行时</h3>
+<p><code>ForceCoolDown</code> 分支只看 <code>abilityType</code> 和 <code>coolDownRatio</code>，不读两个 <code>haveEffecfor*</code>。表标「对导弹 / 召唤无效」只影响自动填槽的<strong>强化过滤</strong>；这张卡根本不是 Enhance，填槽走的是 Passive 通道。</p>
+
+<h3>3.3 自动填槽当普通被动</h3>
+<p>不在 <code>IgnoreSpells</code>（忽略的是触发器、传送石、全域强化、拟态等），不在 <code>SelfRepelSpells</code>，不在 <code>SpellAvoidEnhances</code>。<code>AppendPassiveSpells</code> 只要求 <code>useType == Passive</code>。手摆和自动都可以叠多张。</p>
+
+<h3>3.4 全域强化会把右边那张抄走</h3>
+<p><code>AllFieldEnhance</code>（<code>4010</code>）把<strong>紧挨在自己右边</strong>的那张卡复制到其它法杖。<code>[全域][强制冷却]</code> 会让别的杖也带上一份同等级（等级被全域自己的等级封顶）。复制过去的槽同样走 <code>GetFinalConfig</code> + <code>ForceCoolDown</code> 连乘。这是「一张卡喂多根杖」的入口，不是这张卡自己的逻辑。</p>
+
+<h2 id="s4">4. 谁真正吃到这份倍率</h2>
+<p>真正用这份连乘的，是 <code>Wand.WandCoolDown</code> 取值器，以及打完<strong>最后一组</strong>时写入的 <code>CoolingTimer</code>。谁不走这条，谁就不是文案说的「冷却 ×N%」。</p>
+
+<h3>4.1 合成顺序：先加减夹 0，再乘诅咒/遗物，最后乘这份 ratio</h3>
+<pre class="code">public float WandCoolDown
+{
+    get
+    {
+        float num = 0f;
+        if (WandCfg != null)
+            num = WandCfg.coolDown;
+        num += passiveWandCoolDownAddSubAmount;
+        num = Mathf.Max(0f, num);
+        if (curseCfg_SlowWand != null &amp;&amp; num &gt; 0f)
+            num *= 1f + curseCfg_SlowWand.int1.result / 100f;
+        if (relic_StayAndFocus != null &amp;&amp; num &gt; 0f)
+            num *= 1f - relic_StayAndFocus.Cfg.floatTimer;
+        return num * passiveWandCoolDownTimeRatio;
+    }
+}</pre>
+<pre class="code">法杖底数     WandCfg.coolDown
++ 槽位加减   Σ coolDownAddSubRevise（任意卡，不限 4006）
+夹 0         max(0, ·)
+× 慢杖诅咒   仅 num &gt; 0；点名，不拆
+× 静止专注   仅 num &gt; 0；点名，不拆
+× 强制冷却   最后一层</pre>
+<p>加减在乘之前。<code>[超载散射 Lv1][强制冷却 Lv1]</code>、底数 <code>0.5</code>：先 <code>0.5 - 0.15 = 0.35</code>，再 <code>×0.6 = 0.21</code>。不是 <code>0.5×0.6 - 0.15 = 0.15</code>。</p>
+<p>底数加完若已经是 0，诅咒 / 遗物那两段因 <code>num &gt; 0</code> 不走，结果仍是 <code>0 × ratio = 0</code>。写入计时器时还会被地板托住，见 4.4。</p>
+<p><code>CheckWandManaRelatePassiveEffect</code>（扩槽后的蓝量旁路）会再 <code>+= coolDownAddSubRevise</code>，但<strong>不改</strong> <code>passiveWandCoolDownTimeRatio</code>。这份连乘只在 <code>CheckWandSlotPassiveEffect</code> 里从 1 重算。加减底数会不会被加两次，不在此穷尽。</p>
+
+<h3>4.2 只有打完最后一组才写入 CoolingTimer</h3>
+<pre class="code">public void EnterNextGroup(bool setCoolDownOrInterval)
+{
+    currentSpellGroupsIndex++;
+    if (currentSpellGroupsIndex &gt;= shootGroups.Count)
+    {
+        if (setCoolDownOrInterval)
+            CoolingTimer = max(0.015, WandCoolDown);  // 低帧时再和 0.08×(fps/40) 取 max
+        currentSpellGroupsIndex = 0;
+    }
+    else if (setCoolDownOrInterval)
+        ShootIntervalTimer = WandShootInterval;
+}</pre>
+<pre class="code">组未打完       写 ShootIntervalTimer = WandShootInterval      不吃 4006
+最后一组打完   写 CoolingTimer = max(0.015, WandCoolDown)    吃 4006
+冷却中         CoolingTimer -= PlayerDeltaTime
+能开火         CoolingTimer ≤ 0 且 ShootIntervalTimer ≤ 0</pre>
+<p>一根杖若被拆成多组（多张主动按解析切组），组间等待是施法间隔，强制冷却插了也缩短不了。只有整轮打完，才按 <code>WandCoolDown</code> 休息。只有一组时，每一轮结束都走冷却，这张卡每轮都生效。</p>
+<p><code>setCoolDownOrInterval == false</code> 的切组（蓝不够等）不写计时器。</p>
+
+<h3>4.3 不改弹体寿命，也不改施法间隔</h3>
+<p>它只改法杖「整轮打完之后等多久」。弹体 <code>Duration</code> / <code>HoverDuration</code>、持续施法锁、组间 <code>WandShootInterval</code> 都不读 <code>passiveWandCoolDownTimeRatio</code>。</p>
+
+<h3>4.4 写入后有 0.015s 地板</h3>
+<p><code>CoolingTimer = max(0.015, WandCoolDown)</code>。低帧优化打开时，再和 <code>0.08 × (fps/40)</code> 取 max。</p>
+<p><code>WandCoolDown</code> 算出来小于 0.015（例如底数 0.5、两张 Lv3 → <code>0.5×0.0225 = 0.01125</code>）时，实际仍按 <strong>0.015s</strong> 冷却。<code>WandCoolDown == 0</code> 同样被托到 0.015。连乘能把取值器吐出的数压到接近 0，但计时器不会真的变成 0——除非后面被法杖特殊能力清掉。</p>
+
+<h3>4.5 写入后可能被立刻清零</h3>
+<p><code>ChanceInstentCoolDownAndFullMana</code> 法杖能力在 <code>EnterNextGroup</code> 写完 <code>CoolingTimer</code> 之后掷骰：<code>float2</code> 概率把 <code>CoolingTimer</code> 置 0。倍率已经进了 <code>WandCoolDown</code>，只是这发没用上。</p>
+<p><code>FreeShoot</code>（回响等免费射击）：若开火前 <code>CoolingTimer</code> 已经是 0，打完切组后会再把 <code>CoolingTimer</code> 清 0。免费射击不因为插了强制冷却就「白写一轮 CD」。</p>
+
+<h3>4.6 没挂上活 Wand 的 UI 看不到这份连乘</h3>
+<table>
+  <tr><th>表面</th><th>用的公式</th><th>吃不吃 4006</th></tr>
+  <tr><td><code>UIInfoWand</code>（手上有 <code>Wand</code>）</td><td><code>wand.WandCoolDown</code></td><td><strong>吃</strong>（含诅咒 / 遗物 / 地板之前的连乘）</td></tr>
+  <tr><td><code>UIInfoWand</code>（只有 <code>WandConfig</code>）</td><td><code>coolDown + GetExtraCoolDown()</code></td><td><strong>不吃</strong></td></tr>
+  <tr><td><code>UIRewardWand</code> / <code>UIGallery</code></td><td>同上，只加加减</td><td><strong>不吃</strong></td></tr>
+  <tr><td>卡面 <code>GetInfo</code></td><td>单独一行 <code>×60%</code></td><td>展示这张卡自己的系数，不合成整杖</td></tr>
+</table>
+<div class="note">商店 / 图鉴 / 奖励预览里的「冷却: X」往往还是底数加加减。装备到活 Wand 之后，<code>UIInfoWand</code> 才会把连乘算进去。不要按商店数字验收运行时。</div>
+
+<h3>4.7 这张卡不出伤、不改蓝</h3>
+<p>它只缩短（或在极端叠乘后被地板托住的）整轮冷却。出不出伤、耗多少蓝，看法术和法杖自己。</p>
+
+<h2 id="s5">5. 和其它法术的关系</h2>
+<p>齐射 / 多重 / 伤害强化 / 加速器 / 悬停只改发射或弹体，不改这份连乘，不列。</p>
+<table>
+  <tr><th>对象</th><th>强制冷却怎么变</th></tr>
+  <tr><td>魔能升阶 <code>3126</code></td><td>抬这张卡的 <code>coolDownRatio</code>（0.6→0.3→0.15）</td></tr>
+  <tr><td>拟态魔方 <code>3109</code></td><td><code>GetFinalConfig</code> 已解析；模仿成 4006 的那格也会再乘一次</td></tr>
+  <tr><td>全域强化 <code>4010</code></td><td>紧挨右边的 4006 被抄到其它杖，那些杖各自连乘</td></tr>
+  <tr><td>带 <code>coolDownAddSubRevise</code> 的卡（超载散射 <code>3003</code>、激光 <code>1004</code> 等）</td><td>先加减再乘；改的是被乘的底数，不是 ratio 本身</td></tr>
+  <tr><td>慢杖诅咒 / 静止专注</td><td>在 ratio <strong>之前</strong>乘；只点名</td></tr>
+  <tr><td>法杖能力「概率立刻冷却」</td><td>写完 <code>CoolingTimer</code> 后可能清 0</td></tr>
+  <tr><td>回响免费射击</td><td>开火前不在 CD 时，写完再清 0</td></tr>
+  <tr><td>节能模式 <code>3104</code> 等改间隔的卡</td><td>不进 <code>WandCoolDown</code></td></tr>
+</table>
+
+<h2 id="s6">6. 运行时 vs 预览 / UI 对照</h2>
+<p>这张卡没有 ECS / Mono 双轨。对照的是「活 Wand」和「只拿着 WandConfig 的预览」。</p>
+<p>和运行时对齐的部分：连乘、从 1 起、同类型出现几次乘几次；主槽 + 后槽都算，封印槽不算；取值器最后乘 <code>passiveWandCoolDownTimeRatio</code>。</p>
+<table>
+  <tr><th></th><th>活 Wand（运行时）</th><th>WandConfig / 多数 UI</th></tr>
+  <tr><td>读哪份配置</td><td><code>slot.GetFinalConfig()</code>（拟态、魔能升阶后）</td><td><code>SpellConfig.dic[id]</code> 原始 ID；<code>GetExtraCoolDown</code> 只加加减</td></tr>
+  <tr><td>是否检查 <code>abilityType == ForceCoolDown</code></td><td><strong>是</strong>，只乘这一种</td><td><code>GetCoolDownRatio</code> 会乘<strong>任意</strong>槽的 <code>coolDownRatio</code>，但该方法<strong>零引用</strong></td></tr>
+  <tr><td>最终展示</td><td><code>UIInfoWand</code> 走 <code>WandCoolDown</code></td><td>奖励 / 图鉴：<code>coolDown + GetExtraCoolDown()</code>，<strong>不加 ratio</strong></td></tr>
+  <tr><td>0.015 地板 / 低帧地板</td><td><code>EnterNextGroup</code> 写入时才有</td><td>UI 数字没有地板</td></tr>
+</table>
+<p>玩家主路径以 <code>Wand.WandCoolDown</code> + <code>EnterNextGroup</code> 为准。<code>WandConfig.GetCoolDownRatio</code> 不要当成预览真源——没有人调用它。</p>
+
+<h2 id="s7">7. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>Wand.CheckWandSlotPassiveEffect</code></td><td>从 1 重算；<code>ForceCoolDown</code> 连乘 <code>coolDownRatio</code></td></tr>
+  <tr><td><code>Wand.WandCoolDown</code></td><td>底数 + 加减 → 夹 0 → 诅咒 / 遗物 → × ratio</td></tr>
+  <tr><td><code>Wand.WandShootInterval</code></td><td>无 ratio；组间等待不吃 4006</td></tr>
+  <tr><td><code>Wand.EnterNextGroup</code></td><td>最后一组写 <code>CoolingTimer</code>；未完写间隔</td></tr>
+  <tr><td><code>Wand.Update</code></td><td><code>CoolingTimer -= PlayerDeltaTime</code></td></tr>
+  <tr><td><code>Wand.FreeShoot</code></td><td>开火前不在 CD 则写完再清 0</td></tr>
+  <tr><td><code>TryUseWandAbility_…InstentCoolDown</code></td><td>写完后概率清 0</td></tr>
+  <tr><td><code>CheckSpellListForLevelEnhanceEffect</code></td><td>先于被动扫描；抬 <code>slotSpellExtraLevel</code></td></tr>
+  <tr><td><code>GetWandAllFieldEnhanceSpell</code></td><td>全域抄走右边那张</td></tr>
+  <tr><td><code>CheckWandManaRelatePassiveEffect</code></td><td>蓝量旁路；不改 ratio</td></tr>
+  <tr><td><code>WandConfig.GetValidSlotsData</code></td><td>非空且非封印</td></tr>
+  <tr><td><code>WandConfig.GetCoolDownRatio</code></td><td>全槽连乘 raw <code>coolDownRatio</code>；<strong>无调用方</strong></td></tr>
+  <tr><td><code>WandConfig.GetExtraCoolDown</code></td><td>只加 <code>coolDownAddSubRevise</code></td></tr>
+  <tr><td><code>SlotData.GetFinalConfig</code></td><td>拟态 + 魔能升阶后的配置</td></tr>
+  <tr><td><code>SpellConfig.GetInfo</code></td><td><code>coolDownRatio ≠ 1</code> 时吐 <code>×N%</code></td></tr>
+  <tr><td><code>UIInfoWand</code></td><td>有 Wand 用 <code>WandCoolDown</code>；否则只加加减</td></tr>
+  <tr><td><code>UIRewardWand</code> / <code>UIGallery</code></td><td><code>coolDown + GetExtraCoolDown()</code></td></tr>
+  <tr><td><code>SpellAutoFullTool.AppendPassiveSpells</code></td><td>当 Passive 填；不自斥、不忽略</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>40061–40063</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>704006*</code> / <code>714006*</code></td><td>名称与空文案</td></tr>
+</table>
+
+<h2 id="s8">8. 待决 / 局限</h2>
+<ol>
+  <li><strong>加减底数旁路</strong>：<code>CheckWandManaRelatePassiveEffect</code> 会再累加 <code>coolDownAddSubRevise</code> 且不先清零。是否会在扩槽路径把底数加两次，未对 <code>PlayerMgr.WandCheckSlotCount</code> 全路径核对。不影响「ratio 从 1 重算」这条结论。</li>
+  <li><strong>法杖能力与免费射击</strong>：只确认会清 <code>CoolingTimer</code>。各回响 / 自动杖切组是否每次都 <code>setCoolDownOrInterval: true</code>，不逐条拆。</li>
+  <li><strong>全域复制等级封顶</strong>：抄走时若源卡等级高于全域等级，会把复制 ID 压到全域等级。只点入口，不拆全域自己的规则。</li>
+  <li><strong>低帧地板</strong>：<code>0.08 × (fps/40)</code> 的触发条件是 <code>IsLowFpsOptimizeActive(40f)</code>，未核玩家设置项。</li>
+  <li><strong>90261 等非玩家卡</strong>的 <code>coolDownRatio = 0</code>：不进 <code>ForceCoolDown</code> 分支，运行时连乘不会吃到。<code>GetCoolDownRatio</code> 若被调用会乘进去，但该方法无引用。</li>
+</ol>
+
+<footer>与 <code>强制冷却逆向分析.md</code> 同步。离线可开，流程图不依赖外网。</footer>
+</div>
+</body>
+</html>

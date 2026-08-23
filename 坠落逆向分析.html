@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>坠落（Spell3119 / Fall）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 380px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 200px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>坠落（Spell3119 / Fall）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「坠落」（<code>abilityType = 3119</code>，配置 ID <code>31191–31193</code>）。重点是<strong>怎么把弹变成从天而降、落地炸</strong>，以及<strong>会改坠落行为的其它法术</strong>。</p>
+    <p>不展开陨石 / 龙息 / 超新星 / 审判之刃等固有坠落法术的专属 Job。它们只作为「3119 在这些法术上怎么变」来写。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 一致，落地圈公式略有差别，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，落地弹次数见《反弹逆向分析.md》，附加圈乘算见《范围增强逆向分析.md》，竖直初速见《加速器逆向分析.md》，子弹改写见《分裂逆向分析.md》，悬停短路见《悬停逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">和其它法术的关系</a></li>
+    <li><a href="#s5">Mono 残留轨对照</a></li>
+    <li><a href="#s6">证据索引</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>坠落</td></tr>
+  <tr><td>英文名</td><td>Fall</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3119</code> / <code>SpellAbilityType.Fall</code></td></tr>
+  <tr><td>配置 ID</td><td><code>31191</code>（Lv1）/ <code>31192</code>（Lv2）/ <code>31193</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=false</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>12 / 36 / 108</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：发射时把 <code>float1</code> <strong>求和</strong>成落地附加圈；只要和 &gt; 0，整发进入坠落态。生成时把弹抬到落点上空 <code>z=-7</code>，关掉墙弹和飞行 Trigger；首落匀速下坠，落地用 <code>Radius.Calculate()</code> 炸一圈，再决定弹跳、折射或销毁。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">Σfloat1 → fallExplosionRadius</div>
+    <div class="arrow">↓</div>
+    <div class="dia">和 &gt; 0？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="box end">普通弹道</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="box">IsFallSpell / FallRadius / SpellFallTag</div>
+        <div class="arrow">↓</div>
+        <div class="box">SpellInitialFallData：抬到 z=-7</div>
+        <div class="arrow">↓</div>
+        <div class="box">关墙弹体 · Trigger 清 0</div>
+        <div class="arrow">↓</div>
+        <div class="box">Normal_Fall 匀速下落</div>
+        <div class="arrow">↓</div>
+        <div class="box">z≈0 且 CurrentFallSpeed&gt;0</div>
+        <div class="arrow">↓</div>
+        <div class="box">落地圈伤</div>
+        <div class="arrow">↓</div>
+        <div class="dia">折射或 ReboundCount&gt;0？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="box ok">ReboundFallSpeed 弹起</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="box end">销毁</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>坐标系：<code>z=0</code> 是地面，<code>z</code> 越负越高。<code>CurrentFallSpeed &gt; 0</code> 表示往地面掉。</p>
+<p>文案（<code>TextConfig_Spell</code> id <code>7131191–7131193</code>）：</p>
+<div class="quote">法术将从天而降，触地时对周围<strong>float1</strong>米内目标造成伤害</div>
+<p>名称（<code>7031191–7031193</code>）：坠落 / Fall。三级名称相同，只有 <code>float1</code> 不同。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表（<code>assets_export/SpellConfig.json</code>）</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1 附加圈</th><th>float2</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>31191</td><td>1</td><td><strong>1</strong></td><td>1</td><td>12</td><td>true</td></tr>
+  <tr><td>31192</td><td>2</td><td><strong>1.5</strong></td><td>1</td><td>36</td><td>true</td></tr>
+  <tr><td>31193</td><td>3</td><td><strong>2.3</strong></td><td>1</td><td>108</td><td>false</td></tr>
+</table>
+<p>规律：售价每级 ×3。<code>float1</code> 不是整倍：两张 Lv1 = <strong>2.0</strong>，大于一张 Lv2 的 1.5；两张 Lv2 = <strong>3.0</strong>，大于一张 Lv3 的 2.3。<code>int1/2/3</code>、<code>float3</code> 全 0。无耗蓝倍率。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>float1</strong></td><td>落地附加圈（米），多张<strong>相加</strong></td><td>是</td><td>高</td></tr>
+  <tr><td>float2</td><td>配置三级都是 1</td><td>ECS 坠落路径 <strong>未读</strong></td><td>高</td></tr>
+  <tr><td>int1 / int2 / int3 / float3</td><td>配置为 0</td><td>ECS <strong>未读</strong></td><td>高</td></tr>
+</table>
+<p>叠加入口：<code>SpellShootData.GetSpellFallExplosionRadius</code>。</p>
+<pre class="code">return EnhanceList
+    .Select(e => e.GetFinalConfig())
+    .Where(e => e.abilityType == SpellAbilityType.Fall)
+    .Sum(e => e.float1);</pre>
+<p><code>spellIsFall</code> 不是单独旗标，而是派生：<code>fallExplosionRadius &gt; 0</code>。</p>
+<div class="note">一张 Lv1 就把整发改成坠落。这个函数<strong>不读</strong> <code>haveEffecforMissileSpell</code> / <code>haveEffecforSummonSpell</code>。自动填槽的 <code>Filter_SummonOnlyEnhance</code> 只看导弹标记；坠落的导弹标记是 true，所以自动填也会给召唤配。手动插同样会把圈写进快照，但队友实体不走 <code>SpellInitialFallData</code>。</div>
+<p>卡面半径：主法术 <code>radius != 0</code> 或附加圈 &gt; 0 时显示。龙息、超新星直接不显示半径行。实体落地圈以 <code>Radius.Calculate()</code> 为准。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<p>普通弹道（能进 <code>SpellMoveJob</code>、且没用 <code>DisableDefaultFallDamage</code>）走下面五步。陨石是唯一不靠 3119 也强制 <code>IsFallSpell</code> 的主动技。</p>
+
+<h3>3.1 发射时烘焙，只扫一次</h3>
+<ol>
+  <li><code>SpellInitialParameter.Builder</code> 调 <code>GetSpellFallExplosionRadius</code>，写入 <code>SIP.fallExplosionRadius</code>。</li>
+  <li>聚爆若 <code>radiuDecreaseRatio &lt; 1</code>，且表半径 &gt; 0 <strong>或</strong> 附加圈 &gt; 0，把 <code>(表半径 + 附加圈)</code> 折进伤害倍率。<code>radius=0</code> 的魔法弹只挂坠落、也能进这句。</li>
+  <li><code>ShootSpellUtils.SipToSSP</code>：<code>IsFallSpell = sip.spellIsFall</code>，<code>FallRadius = sip.fallExplosionRadius</code>。</li>
+</ol>
+<p>后面临时把一份 <code>radius</code> 副本的 <code>FallRadius</code> 清 0、去算公转半径，<strong>不动</strong> <code>ConfigComponentData.Radius</code>。</p>
+<p>陨石额外：<code>abilityType == Meteor</code> 时再把 <code>IsFallSpell</code> 写成 true。没挂 3119 时 <code>FallRadius</code> 仍是 0。</p>
+
+<h3>3.2 <code>SpellInitialFallData</code>：改出生点和速度</h3>
+<p><code>SipToSSP</code> 末尾：<code>IsFallSpell</code> 且<strong>不是召唤</strong>，用已经 <code>Calculate()</code> 过的最终速度（含加速器）调用：</p>
+<pre class="code">Gravity = max(43 * spellSpeed / 16, 12);
+OriginalSpellHorizontalSpeed = spellSpeed;
+CurrentFallSpeed = spellSpeed;
+SpawnPosition = targetPos + (-Direction) * 2 + (0, 0, -7);
+Speed *= distance(spawnXY, targetXY) / 7;</pre>
+<p>默认值：<code>Gravity=0</code>、<code>CurrentFallSpeed=0</code>、<code>FallingReboundForceRatio=1</code>。初始化之后：</p>
+<table>
+  <tr><th>字段</th><th>值</th></tr>
+  <tr><td>出生点</td><td>瞄准点沿 <code>-Direction</code> 退 2，再抬到 <code>z=-7</code></td></tr>
+  <tr><td><code>CurrentFallSpeed</code></td><td>最终飞行速度（首落匀速）</td></tr>
+  <tr><td><code>OriginalSpellHorizontalSpeed</code></td><td>同上，追赶分支后头改读这个</td></tr>
+  <tr><td><code>Gravity</code></td><td><code>max(43 × speed / 16, 12)</code>，<strong>首落不用</strong>，落地弹才用</td></tr>
+  <tr><td><code>Speed</code></td><td>再 ×（水平距离 / 7）。方向单位化时距离是 2，即 ×<code>2/7</code></td></tr>
+</table>
+<p>水平 2、竖直 7、竖直速度 = <code>spellSpeed</code>：落地时间 ≈ <code>7 / spellSpeed</code>，需要的水平速度正好是 <code>spellSpeed × 2/7</code>。</p>
+
+<h3>3.3 生成时改碰撞、打标签</h3>
+<p><code>SpellShootSystem.SpawnSpellEntity</code>：</p>
+<ol>
+  <li><code>IsFallSpell</code>：加 <code>SpellFallTag</code>。</li>
+  <li><code>ReboundCount &lt;= 0</code> <strong>或</strong> <code>IsFallSpell</code>：<code>DisableSpellReboundCollider</code>。坠落不再走墙弹。</li>
+  <li><code>IsFallSpell</code>：Trigger 的 <code>CollidesWith &amp;= 0</code>（只改 Trigger，不改 Collider）。飞行中 Trigger 不打人、也不因 Unknown 墙销毁。</li>
+  <li>半途传送：<code>IsFallSpell</code> 时整句不挂。</li>
+  <li>坠落弹不计入法术组后坐力（<code>GetGroupRecoilData</code> 直接滤掉 <code>fallExplosionRadius &gt; 0</code>）。</li>
+</ol>
+
+<h3>3.4 飞行：<code>Normal_Fall</code>，首落不加重力</h3>
+<p><code>SpellMoveJob</code> 末尾对大多数法术调 <code>Normal_Fall</code>，再 <code>Position.z += CurrentFallSpeed * dt</code>，并夹到 <code>z &lt;= 0</code>。火球非坠落走 <code>TrickMine_Fall</code>。龙息 / 符文锤 / 鱼叉 / 魔法盾 / 常驻黏连不进这个 Job。</p>
+<pre class="code">if (IsFallRebounded || HasParabola)
+    CurrentFallSpeed += Gravity * dt;
+if (z &gt;= -0.001 &amp;&amp; CurrentFallSpeed &gt; 0) {
+    fallGrounded = true;
+    Position = IgnoreZ(Position);
+    if (ReboundCount &gt; 0) ReboundFallSpeed(); // 不扣次
+    IsFallRebounded = true;
+}</pre>
+<ul>
+  <li><strong>第一次下落不加重力。</strong> <code>IsFallRebounded</code> 为假且没有抛物线组件时，<code>CurrentFallSpeed</code> 保持初值。</li>
+  <li>落地条件：<code>z ≈ 0</code> 且还在往下掉。当帧把位置拍到地面，打开 <code>SpellGroundedTag</code>。</li>
+  <li><code>Normal_Fall</code> 在 <code>ReboundCount &gt; 0</code> 时会先改一次竖直速度，<strong>不扣次数</strong>。真正扣次在落地伤害 Job。</li>
+  <li><code>ReboundFallSpeed()</code>：<code>CurrentFallSpeed = -√Gravity × FallingReboundForceRatio × 1.8</code>（负值 = 往上弹）。</li>
+  <li>朝向：<code>SpellLookDirectionJob</code> 把水平速度和 <code>CurrentFallSpeed</code> 合成后再算转角。</li>
+</ul>
+<p><code>SpellSystem.UpdateDuration</code>：坠落只加 <code>DurationTimer</code>，<strong>不</strong>因时长用尽销毁，也<strong>不</strong>进悬停。活到落地再决定死活。</p>
+
+<h3>3.5 落地：<code>SpellFallDamageSystem</code></h3>
+<p>查询：<code>SpellGroundedTag</code> + <code>SpellFallTag</code>。默认：</p>
+<ol>
+  <li>在地面播 <code>3119_Fall_{颜色}</code> 粒子（<code>DisableAutoCreateFallEffect</code> 可关）。</li>
+  <li>若未 <code>DisableDefaultFallDamage</code>：半径 = <code>config.Radius.Calculate()</code> = <code>(表半径 + FallRadius) × (1+AddRatio) × MulRatio + Extra</code>；<code>CostPenetrate = false</code>。然后 <code>TryRefractOrReboundWhenFall</code>：打到人且有折射 → 折向再弹；否则 <code>ReboundCount--</code> 再弹；两者都失败 → 销毁。</li>
+  <li>清掉 <code>SpellGroundedTag</code>。</li>
+</ol>
+<pre class="code">if (ReboundCount &lt;= 0) return false;
+ReboundCount--;
+ReboundFallSpeed();
+return true;</pre>
+<p>没有反弹时：落地一次就炸、就死。<code>ReboundCount = N</code> 时可以再弹 N 次，第 N+1 次落地销毁。文案「每次反弹 +1s」仍写在 <code>ReboundAddTime</code> 里，但这条墙撞加时分支坠落进不去。</p>
+<p>部分预制体 <code>DisableDefaultFallDamage=true</code>，改走自己的 Fall Job。通用管线到「打开 GroundedTag」为止。</p>
+
+<h2 id="s4">4. 和其它法术的关系</h2>
+<p>只写会改坠落行为的交互。齐射 / 多重 / 伤害强化等只改发射或数值，不改从天而降，不列。</p>
+
+<h3>4.1 反弹 3012</h3>
+<p>生成时墙弹体已关。<code>ReboundCount</code> 被落地复用，不再表示撞墙几次。</p>
+<table>
+  <tr><th></th><th>墙弹（非坠落）</th><th>落地弹（坠落）</th></tr>
+  <tr><td>开不开墙弹体</td><td><code>Count&gt;0</code> 才开</td><td>一律关</td></tr>
+  <tr><td>谁扣次</td><td><code>SpellMoveJob</code> 撞墙 Enter</td><td><code>TryReboundWhenFall</code></td></tr>
+  <tr><td>加时</td><td><code>Duration.Extra += ReboundAddTime</code></td><td><strong>不加</strong></td></tr>
+  <tr><td>弹起速度</td><td>Unity Physics 改水平速度</td><td><code>ReboundFallSpeed()</code> 只改竖直</td></tr>
+</table>
+<p>分裂子弹还会把 <code>FallingReboundForceRatio *= 0.7</code>，并预标 <code>IsFallRebounded</code>。详情见《反弹逆向分析.md》4.3。</p>
+
+<h3>4.2 分裂 3013</h3>
+<p><code>ToSplit</code> 整包复制快照，<strong>不改</strong> <code>IsFallSpell</code> / <code>FallRadius</code> / <code>ReboundCount</code>。然后坠落：<code>FallingReboundForceRatio *= 0.7</code>、预标已落地、立刻 <code>ReboundFallSpeed()</code>；非坠落才 <code>Speed *= 0.5</code>。</p>
+<table>
+  <tr><th></th><th>非坠落子弹</th><th>坠落子弹</th></tr>
+  <tr><td>速度</td><td><code>Speed *= 0.5</code></td><td><strong>不砍</strong> <code>Speed</code></td></tr>
+  <tr><td>弹力</td><td>—</td><td><code>FallingReboundForceRatio *= 0.7</code></td></tr>
+  <tr><td>重力</td><td>—</td><td>预标已落地，出生就加重力、先往上弹</td></tr>
+  <tr><td>表半径</td><td><code>Base *= 0.8</code></td><td>同样 ×0.8；<strong><code>FallRadius</code> 不缩</strong></td></tr>
+</table>
+<p>位置：坠落用母弹当前坐标，不沿方向再偏半径。详见《分裂逆向分析.md》3.2。</p>
+
+<h3>4.3 范围增强 3107</h3>
+<p><code>FallRadius</code> 和表半径进同一套 <code>(1+AddRatio)×MulRatio</code>。多张坠落先求和，再被范围增强放大。</p>
+<p><code>[坠落Lv1][范Lv1][魔法弹]</code>：<code>radius=0</code>，落地圈 = <code>1 × 1.3 = 1.3</code>。<code>[坠落][范][分裂][陨石]</code> 的子弹：表半径 ×0.8，附加圈仍按母弹满额吃范围增强。完整乘算见《范围增强逆向分析.md》4.1。</p>
+
+<h3>4.4 加速器 3106</h3>
+<p><code>SpellInitialFallData</code> 吃的是已经含加速器的 <code>speedAttribute.Calculate()</code>。加速器同时抬竖直初速、重力和水平速度。追赶类在坠落时多数改读 <code>OriginalSpellHorizontalSpeed</code>。详见《加速器逆向分析.md》4.5。</p>
+
+<h3>4.5 穿透 3006</h3>
+<p>飞行 Trigger 已清 0，普通坠落<strong>飞过单位不扣穿透</strong>。落地圈 <code>CostPenetrate = false</code>，炸完也不扣。穿透耗尽销毁这条，对默认坠落落地基本用不上。</p>
+
+<h3>4.6 折射 3121</h3>
+<p>单位命中折射被 <code>!IsFallSpell</code> 挡住。坠落改走落地那句 <code>TryRefractOrReboundWhenFall</code>：当帧圈到人且有次数 → 折向再弹；否则试落地弹；两样都没有 → 销毁。</p>
+
+<h3>4.7 悬停 3008</h3>
+<p><code>UpdateDuration</code> 对 <code>IsFallSpell</code> 短路：只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因时长销毁。<code>SpellHoverDamageJob</code> 带 <code>WithNone&lt;SpellFallTag&gt;</code>，坠落实体不进悬停第二段。秒数仍写进快照，通用坠落不用。</p>
+
+<h3>4.8 寻踪 3010 / 自动导航 3011 / 自我追踪 3114 / 公转 3009</h3>
+<p>追赶在坠落时改读 <code>OriginalSpellHorizontalSpeed</code>，把 <code>Direction</code> 往目标拧。水平轨迹会被追赶盖住；竖直仍由 <code>CurrentFallSpeed</code> 管。</p>
+<p>公转：<code>SpellInitialFallData</code> 仍把出生点抬到天上；生成时再把 XY 铺到环上，<strong>保留</strong> <code>z=-7</code>。公转半径烘焙时用的是清过 <code>FallRadius</code> 的副本，坠落圈不进环半径。</p>
+
+<h3>4.9 无视墙壁</h3>
+<p>坠落自己已经清掉 Trigger，AI 的 <code>SpellGroupWillIgnoreWall</code> 见到 3119 直接当无视墙。遗物 <code>IsIgnoreWall</code> / 公转还会去掉墙层，和坠落叠在一起只是更彻底，不改落地炸。</p>
+
+<h3>4.10 激光 1004 / 分解射线 1011</h3>
+<p>不走 <code>SpellMoveJob</code> 的 <code>Normal_Fall</code>。各自步进 Job 会读 <code>IsFallSpell</code> / <code>CurrentFallSpeed</code> 做落地线，不写完整射线算法。</p>
+
+<h3>4.11 半途传送 3130</h3>
+<p><code>IsFallSpell</code> 时不挂 <code>SpellHalfLifeTeleportData</code>。符文锤 / 激光 / 龙息 / 高压水枪本来也不挂。</p>
+
+<h3>4.12 冲刺 / 召唤 / 常驻施法</h3>
+<table>
+  <tr><th>对象</th><th>坠落怎么变</th></tr>
+  <tr><td>冲刺 <code>1016</code></td><td>非坠落 +15 <code>ReboundCount</code>；挂上坠落不再加</td></tr>
+  <tr><td>召唤（<code>haveEffecforSummonSpell=false</code>）</td><td>自动填仍可能配。快照会写 <code>IsFallSpell</code> / <code>FallRadius</code>，但<strong>跳过</strong> <code>SpellInitialFallData</code>，队友不从天上掉</td></tr>
+  <tr><td>破法者 <code>Summon4</code></td><td>非坠落 +15 反弹；落地改走自己的 Fall Job</td></tr>
+  <tr><td>龙息 / 符文锤 / 鱼叉 / 魔法盾 / 常驻黏连</td><td>不进 <code>SpellMoveJob</code>，没有这套 <code>Normal_Fall</code></td></tr>
+</table>
+
+<h3>4.13 固有坠落 / 会改初速的主动技</h3>
+<p>只写 3119 或通用管线在它们身上怎么变，不写专属算法。</p>
+<table>
+  <tr><th>对象</th><th>怎么变</th></tr>
+  <tr><td>陨石 <code>1013</code></td><td><code>SipToSSP</code> 硬编码 <code>IsFallSpell=true</code>。不挂 3119 时 <code>FallRadius=0</code>，落地圈只用表半径</td></tr>
+  <tr><td>火球 / 奥术新星 / 冲刺 / 悬停火把 / 预兆烟花</td><td>非坠落 +15 <code>ReboundCount</code>；挂上坠落<strong>不再加</strong></td></tr>
+  <tr><td>火球非坠落</td><td>走 <code>TrickMine_Fall</code>，不走 <code>Normal_Fall</code></td></tr>
+  <tr><td>蝴蝶</td><td>坠落时三速 ×0.35</td></tr>
+  <tr><td>黑洞</td><td>坠落时三速 ×6</td></tr>
+  <tr><td>巨型泡泡</td><td><code>CurrentFallSpeed += 2</code>，<code>Speed += |2 / tan(75°)|</code></td></tr>
+  <tr><td>霰弹</td><td>坠落时不走散射偏角</td></tr>
+  <tr><td>奥爆</td><td>生成时 <code>Speed=0</code>、时长改 0.6s</td></tr>
+  <tr><td>龙息 / 超新星 / 审判之刃 / 闪耀星矢 / 符文锤 / 高压水枪</td><td>有自己的 Fall Job；<code>DisableDefaultFallDamage</code> 或根本不进 <code>SpellMoveJob</code></td></tr>
+</table>
+
+<h2 id="s5">5. Mono 残留轨对照</h2>
+<p><code>SpellBase</code> 的 Enhance 开关<strong>没有</strong> <code>case Fall</code>。坠落态完全看 <code>SIP.spellIsFall</code>（同一份 <code>GetSpellFallExplosionRadius</code>）。</p>
+<p>落地：<code>Height</code> 从正落到 ≤0 时 <code>OnFallingGround</code> → 圈伤 → <code>TryFallingRefract</code> / <code>TryFallingRebound</code>（扣 <code>rebounceTime</code>）→ 失败则回收。首落同样不加重力，弹起后才用 <code>InFallingReboundingGravity</code>。</p>
+<table>
+  <tr><th></th><th>公式</th></tr>
+  <tr><td>ECS</td><td><code>(Base + FallRadius) × (1+AddRatio) × MulRatio + Extra</code></td></tr>
+  <tr><td>Mono <code>GetFallingGroundDamageRadius</code></td><td><code>spellCfg.radius + SIP.fallExplosionRadius × radiusRatio × finalRadiusRatio</code></td></tr>
+</table>
+<p>若 <code>spellCfg.radius</code> 还是表值、没有先乘过半径比，Mono 圈会偏小。玩家主路径以 ECS 为准。分裂：Mono 对非坠落才 <code>finalSpeedRatio *= 0.5</code>，坠落位置用当前坐标，和 ECS 一致。</p>
+
+<h2 id="s6">6. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellShootData.GetSpellFallExplosionRadius</code></td><td><code>float1</code> 求和</td></tr>
+  <tr><td><code>SpellInitialParameter.spellIsFall</code> / <code>Builder</code></td><td><code>fallExplosionRadius &gt; 0</code> 即坠落；写入 SIP</td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td><code>IsFallSpell</code>、<code>FallRadius</code>、陨石强制坠落、<code>SpellInitialFallData</code></td></tr>
+  <tr><td><code>SpellTools.SpellInitialFallData</code></td><td>重力、竖直初速、出生点 <code>z=-7</code>、水平速度缩放</td></tr>
+  <tr><td><code>SpellTools.TryReboundWhenFall</code> / <code>TryRefractOrReboundWhenFall</code></td><td>落地弹 / 落地折射</td></tr>
+  <tr><td><code>SpellShootSystem.SpawnSpellEntity</code></td><td><code>SpellFallTag</code>、关墙弹、Trigger 清 0、半途传送不挂</td></tr>
+  <tr><td><code>SpellMoveJob.Normal_Fall</code> / <code>ReboundFallSpeed</code></td><td>首落无重力；落地标 Grounded、弹起</td></tr>
+  <tr><td><code>SpellFallDamageSystem</code></td><td>默认落地圈伤、粒子、销毁</td></tr>
+  <tr><td><code>RadiusAttributeValue.Calculate</code></td><td><code>(Base+Fall)×(1+Add)×Mul+Extra</code></td></tr>
+  <tr><td><code>SpellSystem.UpdateDuration</code></td><td>坠落不加悬停、不因时长销毁</td></tr>
+  <tr><td><code>SpellHoverDamageJob</code></td><td><code>WithNone&lt;SpellFallTag&gt;</code></td></tr>
+  <tr><td><code>SpellTakeDamageResultSystem</code></td><td>单位命中折射被 <code>!IsFallSpell</code> 挡住</td></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code></td><td>坠落不砍 Speed，弹力 ×0.7</td></tr>
+  <tr><td><code>SpellSpawnParamsProcessor</code></td><td>蝴蝶 / 黑洞 / 泡泡等改初速；若干法术非坠落 +15 反弹</td></tr>
+  <tr><td><code>SpellLookDirectionJob</code></td><td>坠落朝向合成竖直速度</td></tr>
+  <tr><td><code>SpellGroupAttackDistanceCalculator</code></td><td>坠落当无视墙；攻击距离估成 0</td></tr>
+  <tr><td><code>SpellShootGroup.GetGroupRecoilData</code></td><td>坠落不计入后坐力</td></tr>
+  <tr><td><code>SpellBase.OnFallingGround</code> / <code>GetFallingGroundDamageRadius</code></td><td>Mono 落地</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>31191–31193</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703119*</code> / <code>713119*</code></td><td>名称与文案</td></tr>
+</table>
+
+<footer>由《坠落逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

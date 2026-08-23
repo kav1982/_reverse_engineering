@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雷霆晶石（Spell3101 / ThunderCrystal）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 380px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 220px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>雷霆晶石（Spell3101 / ThunderCrystal）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「雷霆晶石」（<code>abilityType = 3101</code>，配置 ID <code>31011–31013</code>）。重点是<strong>概率怎么变成外观色</strong>，以及<strong>销毁时 <code>CheckFallThunderDamage</code> 怎么落雷</strong>。</p>
+    <p>不展开激光晶石 / 鱼叉 / 彼岸刃 / 符文锤自己的 <code>ThunderStone</code> 周期落雷，只写它们是否复用同一包 <code>ThunderHit*</code>。不写雷霆导游旗、敌人雷弹。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 一致，销毁判定多一次「伤害比 &gt; 0」，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》，半径加算见《范围增强逆向分析.md》，子弹整包继承元素见《分裂逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">和其它法术的关系</a></li>
+    <li><a href="#s5">Mono 残留轨对照</a></li>
+    <li><a href="#s6">算例</a></li>
+    <li><a href="#s7">证据索引</a></li>
+    <li><a href="#s8">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>雷霆晶石</td></tr>
+  <tr><td>英文名</td><td>Thunder Crystal</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3101</code> / <code>SpellAbilityType.ThunderCrystal</code></td></tr>
+  <tr><td>配置 ID</td><td><code>31011</code>（Lv1）/ <code>31012</code>（Lv2）/ <code>31013</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>稀有（<code>dropType=2</code>），<code>needActivate=true</code></td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>18 / 54 / 162</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤<strong>左侧</strong>。发射时把半径和伤害比烘焙进 <code>SpellElementEffectComponentData</code>；<code>float3%</code> 只在<strong>染色</strong>时掷一次，成功就把 <code>ColorType</code> 改成 <code>Thunder</code>。实体挂 <code>SpellDestroyTag</code> 时，若外观仍是雷色，就在销毁点对圈内敌人打一记额外伤害。<code>Spell3101ThunderCrystalSystem</code> 只播特效和音效，不算伤。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">半径 Max · 伤害比相加 · 概率 Max</div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 Element.ThunderHitRadius / DamageRatio</div>
+    <div class="arrow">↓</div>
+    <div class="dia">float3% 改成雷色？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">ColorType 保持其它 / Player<br>销毁不落雷</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box ok">ColorType = Thunder</div>
+        <div class="arrow">↓</div>
+        <div class="box">实体销毁 SpellDestroyTag</div>
+        <div class="arrow">↓</div>
+        <div class="dia">排除激光 / 鱼叉 / 彼岸刃？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="arrow">↓</div>
+            <div class="box end">走各自旁路</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="arrow">↓</div>
+            <div class="box ok">圈内搜敌 · Damage.Calculate × 比</div>
+            <div class="arrow">↓</div>
+            <div class="box">特效 3101_Thunder · SE Hit</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="quote">法术结束时<strong>float3</strong>%的概率会对<strong>float1</strong>米影响半径内的敌人造成<strong>float2</strong>%的额外伤害</p>
+<p>名称（<code>7031011–7031013</code>）：雷霆晶石 / Thunder Crystal。三级名称相同，只有三个 <code>float</code> 不同。</p>
+<p class="quote">应用多个雷霆晶石时，雷霆概率取最高，伤害合并。<br>雷霆晶石带来的的外观变化会覆盖其他元素附着效果，但不影响最终效果。</p>
+<p>「法术结束时再掷 float3%」与实现不符，见 2.3。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1 半径(m)</th><th>float2 伤害%</th><th>float3 概率%</th><th>int1</th><th>int2</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>31011</td><td>1</td><td><strong>2.2</strong></td><td><strong>200</strong></td><td><strong>15</strong></td><td>40</td><td>2</td><td>18</td><td>true</td></tr>
+  <tr><td>31012</td><td>2</td><td><strong>2.4</strong></td><td><strong>270</strong></td><td><strong>20</strong></td><td>60</td><td>3</td><td>54</td><td>true</td></tr>
+  <tr><td>31013</td><td>3</td><td><strong>2.8</strong></td><td><strong>320</strong></td><td><strong>30</strong></td><td>80</td><td>4</td><td>162</td><td>false</td></tr>
+</table>
+<p>售价每级 ×3。三个 <code>float</code> 都不是「每级 ×2」。<code>int3</code> 为 0。无耗蓝倍率。比伤害强化（9/27/81）贵一档。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>float1</strong></td><td>落雷半径（米）；多张取 <strong>Max</strong>；写入后再乘范围加算 / 聚爆 / 缩范围</td><td>是</td><td>高</td></tr>
+  <tr><td><strong>float2</strong></td><td>额外伤害百分比；多张 <strong>相加</strong> <code>float2/100</code></td><td>是</td><td>高</td></tr>
+  <tr><td><strong>float3</strong></td><td>染色成 <code>Thunder</code> 的概率（文案写成「结束时概率」）；多张取 <strong>Max</strong></td><td>是（染色时）</td><td>高</td></tr>
+  <tr><td>int1 / int2</td><td>配置有值（40/60/80，2/3/4）</td><td>ECS / Mono 玩家路径 <strong>未读</strong></td><td>高</td></tr>
+  <tr><td>int3</td><td>配置为 0</td><td>未读</td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>对弹幕与召唤都标为生效</td><td><code>GetThunderElementData</code> <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p><code>int1</code> / <code>int2</code> 很像旧版「概率 / 段数」残留。当前叠加入口、染色、销毁落雷都不碰它们。</p>
+
+<h3>2.3 文案 vs 实现</h3>
+<p><code>GetThunderElementData</code> 算出的 <code>ThunderHitChance</code> <strong>没有</strong>写入 <code>SpellElementEffectComponentData</code>（组件里只有半径和伤害比）。销毁时也不再掷骰。</p>
+<p>真正的门槛是两段：</p>
+<ol>
+  <li><strong>发射时</strong> <code>SpellTools.GetSpellColor</code>：用 EnhanceList 里 <code>float3</code> 的 Max / 100 掷一次。成功则 <code>ColorType = Thunder</code>，并且<strong>先于</strong>其它晶石的随机色。</li>
+  <li><strong>销毁时</strong> <code>CheckFallThunderDamage</code>：只问 <code>ColorType == Thunder</code>。是则 100% 落雷；不是则半径和伤害比都在包里也<strong>不打</strong>。</li>
+</ol>
+<div class="note">文案「结束时 float3%」的实际含义是「发射时 float3% 染成雷色，染上了结束必落」。底部「外观覆盖不影响最终效果」指的是<strong>其它</strong>元素仍按数据包挂；雷霆自己的圈伤<strong>跟外观走</strong>。<code>7231011</code> 前半句是对的：概率 Max、伤害相加。</div>
+
+<h3>2.4 法术侧：组卡时合成一包（Max + 相加）</h3>
+<pre class="code">if (finalConfig.abilityType == SpellAbilityType.ThunderCrystal)
+{
+    chance  = max(chance,  float3 / 100);
+    radius  = max(radius,  float1);
+    damage += float2 / 100;
+}
+return (chance, radius, damage);</pre>
+<ul>
+  <li><strong>概率 / 半径</strong>：取最大，不累加。</li>
+  <li><strong>伤害比</strong>：相加。两张 Lv1 是 <strong>400%</strong>，不是 200%。</li>
+  <li>这个函数<strong>不读</strong> <code>haveEffecfor*</code>。只要解析器把卡挂进 <code>EnhanceList</code>，弹幕和召唤都会带上数据包。</li>
+</ul>
+<p><code>SipToSSP</code> 丢掉 Chance，只写后两个，并且半径再乘三层范围：</p>
+<pre class="code">ThunderHitRadius = sip.Radius
+    * (1 + extraSizeRatio)          // 范围增强加算 + 玩家/法杖
+    * finalSizeRatio                // 聚爆一类乘算（常见 ×0.5）
+    * DecreaseRadiuSpeed.radiusRatio; // 缩范围符文连乘
+ThunderHitDamageRatio = sip.DamageRatio;</pre>
+<p>之后飞行中不再重算。分裂复印的是这份已经乘完的半径。</p>
+<p>等级<strong>不能</strong>按「2×Lv1 = 1×Lv2」换算：</p>
+<pre class="code">2×Lv1：概率 15%，半径 2.2，伤害比 4.00
+1×Lv2：概率 20%，半径 2.4，伤害比 2.70
+3×Lv1：概率 15%，半径 2.2，伤害比 6.00
+1×Lv3：概率 30%，半径 2.8，伤害比 3.20</pre>
+<p>合成省槽，换「更稳的染色、稍大的圈」；叠低级在伤害比上往往更高。</p>
+
+<h3>2.5 谁吃得到这张卡</h3>
+<p><code>SpellGroupParser</code> 从左到右扫，只强化自己右边、同一段。主槽加不到后槽。</p>
+<pre class="code">[雷] [弹]                 弹带雷霆包
+[弹] [雷]                 弹带不到
+[雷] [弹] [弹]            两发都带
+[雷A] [弹] [雷B] [滚球]   弹吃 A；滚球吃 A+B</pre>
+<p>自动填槽：<code>SelfRepelSpells</code> 含 <code>ThunderCrystal</code>，<strong>同一根杖不会自动再塞第二张</strong>。手摆可以叠。测试相加必须手插。魔能升阶把 <code>31011</code> 抬成 <code>31012</code> / <code>31013</code>，叠加规则不变。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<p>普通弹道走下面四步。落雷<strong>不是</strong>命中时挂的 Debuff，也不是独立追踪弹。圈心是<strong>销毁瞬间的实体位置</strong>。</p>
+
+<h3>3.1 发射时烘焙，只扫一次</h3>
+<ol>
+  <li><code>SpellInitialParameter.Builder</code> 调 <code>GetThunderElementData</code>，写入 <code>SIP.ThunderElementData</code>。</li>
+  <li>同一轮末尾 <code>ProcessSpellColor</code> → <code>GetSpellColor</code>。</li>
+  <li><code>ShootSpellUtils.SipToSSP</code> 写 <code>ColorType</code>、<code>ThunderHitRadius</code>、<code>ThunderHitDamageRatio</code>。</li>
+</ol>
+<pre class="code">if (currentColor != Thunder) {
+    if (Random01 &lt; Max(float3) / 100) return Thunder;   // 先手覆盖
+}
+if (useRandomColorByWand) return currentColor;
+// 其它晶石 ToSpellColor() 去重后随机；雷晶石不在这张映射里
+return Player;</pre>
+<ul>
+  <li>雷色判定<strong>最先</strong>。成功就直接返回，不再和粘/毒/冰/火/虚空抽签。</li>
+  <li><code>ThunderCrystal</code> <strong>不在</strong> <code>ToSpellColor()</code> 里。染色失败、又没有其它晶石时，回落 <code>Player</code>。</li>
+  <li>当前颜色已经是 <code>Thunder</code>（彩虹 / 随机色杖先涂过）时，<strong>不再掷</strong> <code>float3</code>。若 <code>IsRandomColor</code> 为真，就保持雷色 → 这发 <strong>100%</strong> 会落雷。</li>
+  <li>彩虹 / 随机色杖的灌晶石发生在 <code>SipToSSP</code> <strong>之后</strong>，按<strong>最终</strong> <code>ColorType</code> 再 <code>ApplyElementSpell</code>：半径再 Max 一次表值（<strong>不再乘</strong>范围加算），伤害比再加一档对应等级。</li>
+</ul>
+
+<h3>3.2 销毁时：只认颜色</h3>
+<p><code>SpellDestroyEventJob</code> 在带 <code>SpellDestroyTag</code> 的法术实体上调用 <code>CheckFallThunderDamage</code>。名字带 Fall，实际是<strong>通用销毁</strong>，不是坠落专用。</p>
+<p>排除三种自己管落雷的法术：<code>LaserBeam</code>（1004）、<code>DaveHarpoons</code>（4024）、<code>BiAnLethalBlade</code>（4019）。</p>
+<pre class="code">if (ColorType != Thunder) return;
+GetEnemyEntityInRange(pos, ThunderHitRadius, containsBrittleness: true);
+Append Spell3101NewThunderHitData;          // 特效，没搜到敌人也播
+info.AbilityType = ThunderCrystal;
+info.damage = Damage.Calculate() * ThunderHitDamageRatio;
+foreach enemy: Append TakeDamageInfo;</pre>
+<ul>
+  <li>门闩只有 <code>ColorType</code>。<strong>不读</strong> <code>ThunderHitChance</code>，也不看伤害比是否 &gt; 0。</li>
+  <li>伤害：<code>Damage.Calculate()</code> × 伤害比。这是发射快照里的最终伤害（含伤害强化加算、法杖乘算），<strong>不是</strong>表 <code>damage</code> 原值。DPS 间隔伤不会再乘 <code>DamageInterval</code>。</li>
+  <li><code>CostPenetrate = false</code>。<code>CostRefraction</code> 走默认 <strong>true</strong>：销毁当帧实体若还在，圈内每个目标都可能尝试折射。</li>
+  <li><code>info</code> 带着原弹的整包 <code>ElementEffect</code>。<code>UnitPropertyJob</code> 在 <code>damage &gt; 0</code> 时会<strong>再挂</strong>粘/毒/冰/烧/虚空。圈里没被母弹打到的敌人，也可能被这记落雷上元素。</li>
+  <li>复制配置的 <code>AbilityType</code> 改成 <code>ThunderCrystal</code>，只影响这包伤害 info，不改实体本身。</li>
+</ul>
+<p><code>Spell3101ThunderCrystalSystem</code> 消费 buffer：粒子 <code>3101_Thunder</code>，尺寸 = <code>Scale.x / SpellConfig.dic[31011].float1</code>（用 Lv1 的 2.2 做基准），SE <code>Hit</code>。播完清空。</p>
+
+<h3>3.3 「法术结束」包含哪些销毁</h3>
+<p>凡是给实体挂上 <code>SpellDestroyTag</code> 且不是上面三个排除项，都会走 3.2。</p>
+<table>
+  <tr><th>情况</th><th>圈心</th></tr>
+  <tr><td>飞行到时 / 持续时间走完</td><td>当时位置</td></tr>
+  <tr><td>命中后销毁（穿透耗尽、打墙且不能穿）</td><td>命中 / 撞墙点</td></tr>
+  <tr><td>悬停第二段走完</td><td>悬停位置，不是起飞点</td></tr>
+  <tr><td>坠落落地后销毁</td><td>落地点（坠落附加圈是另一套伤）</td></tr>
+  <tr><td>召唤物实体销毁</td><td>死亡位置（配置允许挂到召唤上）</td></tr>
+</table>
+<p>穿透还没耗尽时实体还活着，<strong>不会</strong>提前落雷。激光 1004 被 Job 排除，槽位上的 3101 <strong>不会</strong>走这套销毁落雷。</p>
+
+<h2 id="s4">4. 和其它法术的关系</h2>
+<p>只写会改雷霆行为的交互。齐射 / 多重 / 伤害强化只改发射或 <code>Damage.Calculate()</code> 底数，不改门闩，不列。</p>
+
+<h3>4.1 其它元素晶石</h3>
+<p>两套独立数据：命中挂元素，销毁落雷。</p>
+<ul>
+  <li>染色：雷晶石 <code>float3%</code> <strong>先手覆盖</strong>外观。失败才在其它晶石色里抽。</li>
+  <li>效果：<code>UnitPropertyJob</code> 并列 if，不看 <code>ColorType</code>。弹是雷颜色，只要 <code>MucusDuration &gt; 0</code> 仍减速。</li>
+  <li>落雷：只看雷颜色。<code>[粘][雷][弹]</code> 没染成雷色时，命中仍粘，<strong>没有</strong>圈伤。</li>
+</ul>
+<p>这就是 <code>7231011</code>「外观覆盖、其它效果还在」——但雷霆圈伤本身被外观门住。</p>
+
+<h3>4.2 范围增强 3107 / 聚爆 / 缩范围</h3>
+<p>半径在 <code>SipToSSP</code> 一次性乘完。圈的视觉按 <code>ThunderHitRadius / 2.2</code> 缩放。</p>
+<p>伤害比<strong>不吃</strong>范围增强。聚爆把圈缩小，不自动提高落雷伤害。</p>
+
+<h3>4.3 分裂 3013</h3>
+<p><code>ToSplit</code> 整包复制，<strong>不改</strong> <code>ThunderHitRadius</code> / <code>ThunderHitDamageRatio</code> / <code>ColorType</code>。Chance 本来就不在 ECS Element 里。</p>
+<ul>
+  <li>染色只在母弹发射时掷一次。子弹不重掷。</li>
+  <li><code>Radius.Base *= 0.8</code> <strong>不管</strong>已经写进 Element 的落雷半径。</li>
+  <li>母弹销毁当帧：先落雷，随后出子弹。子弹带着同一份雷色，<strong>各自销毁时再落一次</strong>。</li>
+</ul>
+
+<h3>4.4 悬停 / 坠落 / 反弹 / 穿透</h3>
+<p>都不改雷霆包。它们只改变「实体何时、在哪销毁」：</p>
+<ul>
+  <li>悬停：飞行段结束还不销毁，落雷等到悬停走完。</li>
+  <li>反弹加时：把销毁（以及后面的悬停）往后推，圈心跟着最后位置走。</li>
+  <li>穿透耗尽：在单位身上销毁，圈心在目标附近；穿过去再撞墙才销毁，圈心在墙。</li>
+  <li>坠落：落地销毁走通用 Job，圈心在落点。坠落附加爆炸是另一包伤害。</li>
+</ul>
+
+<h3>4.5 彩虹丝带 / 随机色杖</h3>
+<p>先随机 <code>ColorType</code> 并标 <code>IsRandomColor</code>。<code>GetRandomColor</code> 约 10% 雷，<code>GetRandomColorIncludeVoid</code> 约 15% 雷；<code>GetRandomBaseColor</code> 只有冰/毒/粘，没有雷。</p>
+<table>
+  <tr><th>先涂的色</th><th>槽位有 3101</th><th>结果</th></tr>
+  <tr><td>已经是雷</td><td>有或无</td><td>不再掷 <code>float3</code>，保持雷色 → 销毁必落</td></tr>
+  <tr><td>不是雷</td><td>有</td><td>再掷 Max(float3)% 覆盖成雷</td></tr>
+  <tr><td>不是雷</td><td>无</td><td>保持杖色</td></tr>
+</table>
+<p>ECS 灌晶石看<strong>最终</strong>颜色：<code>ColorType.ToSpellId(1 或 2)</code> → <code>ApplyElementSpell</code>。雷色对应 <code>31011</code> / <code>31012</code>。槽位里已经有更高半径时，Max 吃不到这张 Lv1 的 2.2；伤害比仍会再加 200% / 270%。</p>
+<p>杖自己涂成雷、槽位没有 3101：仍会灌一张对应等级晶石，销毁会落雷。半径是表值，<strong>不乘</strong>范围加算。</p>
+
+<h3>4.6 闪电链 3007</h3>
+<p>链命中抄宿主整份 <code>SpellElementEffectComponentData</code>，用来挂元素，<strong>不</strong>在链上再跑 <code>CheckFallThunderDamage</code>。落雷仍等宿主实体销毁。</p>
+
+<h3>4.7 召唤</h3>
+<p>配置 <code>haveEffecforSummonSpell=true</code>，自动填槽可以插。召唤实体若走带 <code>SpellAspect</code> 的销毁 Job，死亡位置会落雷（仍要求雷色）。自动填槽自排斥，不会插第二张。</p>
+
+<h3>4.8 旁路：复用同一包数据，不走销毁 Job</h3>
+<table>
+  <tr><th>对象</th><th>是否复用 <code>ThunderHit*</code></th><th>触发</th></tr>
+  <tr><td>激光 1004</td><td>烘焙了，但销毁 Job <strong>排除</strong> <code>LaserBeam</code></td><td>这套圈伤基本不触发。有 Chance 且颜色不是 Player 时会强行涂雷（<code>Random.Range(0,1)==0</code> 对整数恒真），只改外观</td></tr>
+  <tr><td>激光晶石 4014</td><td>半径 / 伤害比用 Element；概率用整杖 <code>Max(float3)</code> 写入 <code>ThunderStoneRate</code></td><td>命中帧 <code>NextInt(100) &lt; Rate</code> 时 <code>GenerateThunderDamage</code>（<strong>不看</strong> <code>ColorType</code>）</td></tr>
+  <tr><td>鱼叉 4024 / 彼岸刃 4019</td><td>复用 <code>CheckFallThunderDamage</code></td><td>销毁 Job 排除它们，改在自己的捕捉 / 斩击 Job 里调</td></tr>
+  <tr><td>符文锤 4013</td><td>复用同一函数</td><td><strong>不在</strong>排除列表：落地和命中（0.5s CD）自己调一次，实体销毁时通用 Job 可能再来一次</td></tr>
+</table>
+<p><code>GenerateThunderDamage</code> 与 <code>CheckFallThunderDamage</code> 的差别：前者不检查颜色，伤害底数由调用方传入（激光晶石用当帧 DPS 间隔伤）。</p>
+
+<h2 id="s5">5. Mono 残留轨对照</h2>
+<p><code>SpellBase.ApplyEnhanceSpell</code> 同样：半径 Max、伤害比相加、<code>endTHunderHitChance = Max(float3/100)</code>。和 ECS 叠加规则一致。</p>
+<p>销毁走 <code>PoolRecycle</code> → <code>EndThunderAttackCheck()</code>：</p>
+<ul>
+  <li>默认 <code>thunderOnly=true</code>：要求 <code>ColorType == Thunder</code> <strong>且</strong> <code>endThunderHitPercent &gt; 0</code>。ECS 销毁路径不检查伤害比。</li>
+  <li>伤害 <code>Ceil(伤害比 × 表 damage 或指定值)</code>，圈半径再乘 Mono 的 <code>radiusRatio * finalRadiusRatio</code>。</li>
+  <li>预制体 <code>Prefabs/Spell/31011</code> 做圈，SE <code>spell3101Hit</code>。</li>
+</ul>
+<p>彩虹 / 随机色的 <code>extraEnhanceIds</code> 在 Mono 里会再跑一遍 <code>ApplyEnhanceSpell</code>（按<strong>当初随机到的色</strong>灌，不是 ECS 那种「按最终 ColorType」）。玩家主路径以 ECS 为准。</p>
+<p>伞盾 <code>UmbrellaShieldController</code> 自己扫 Enhance，规则与 Mono 相同。若干召唤 / 激光晶石 / 符文锤 Mono 仍用 <code>endTHunderHitChance</code> 在攻击时再掷一次——这是旁路，不是普通弹的销毁路径。</p>
+
+<h2 id="s6">6. 算例</h2>
+<p>普通弹，先不算彩虹 / 随机色杖 / 范围增强。表伤按最终 <code>Damage.Calculate() = 10</code>。</p>
+<table>
+  <tr><th>槽位</th><th>染色概率</th><th>若染上：半径 / 圈伤</th></tr>
+  <tr><td><code>[弹]</code></td><td>0</td><td>无</td></tr>
+  <tr><td><code>[雷Lv1] [弹]</code></td><td>15%</td><td>2.2 m / 20</td></tr>
+  <tr><td><code>[雷Lv2] [弹]</code></td><td>20%</td><td>2.4 m / 27</td></tr>
+  <tr><td><code>[雷Lv3] [弹]</code></td><td>30%</td><td>2.8 m / 32</td></tr>
+  <tr><td><code>[雷Lv1]×2 [弹]</code></td><td>15%</td><td>2.2 m / 40</td></tr>
+  <tr><td><code>[雷Lv1][雷Lv2] [弹]</code></td><td>20%</td><td>2.4 m / 47</td></tr>
+  <tr><td><code>[范Lv1][雷Lv1] [弹]</code></td><td>15%</td><td>2.2×1.3=<strong>2.86</strong> m / 20</td></tr>
+  <tr><td><code>[雷Lv1] [弹]</code> + 彩虹抽到雷</td><td>100%（已是雷色）</td><td>半径 Max(已乘范围的值, 2.2)，伤害比再 +200%</td></tr>
+  <tr><td><code>[粘][雷Lv1] [弹]</code> 没染成雷</td><td>外观黄或其它</td><td>命中仍粘，<strong>无</strong>圈伤</td></tr>
+  <tr><td><code>[粘][雷Lv1] [弹]</code> 染成雷</td><td>15%</td><td>外观雷；命中仍粘；销毁落雷</td></tr>
+</table>
+<p><code>[雷Lv1] [弹]</code> 命中且穿透耗尽：圈心在目标，圈内其它敌人也会吃 20 点（以及粘液等再挂一层）。</p>
+
+<h2 id="s7">7. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellShootData.GetThunderElementData</code></td><td>概率 Max、半径 Max、伤害比相加</td></tr>
+  <tr><td><code>SpellInitialParameter.Builder</code></td><td>写入 <code>SIP.ThunderElementData</code>；末尾 <code>GetSpellColor</code></td></tr>
+  <tr><td><code>SpellTools.GetSpellColor</code> / <code>ToSpellColor</code> / <code>ToSpellId</code></td><td>雷色先判定；雷晶石不进随机色池；雷色映射 <code>31010+level</code></td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td>快照半径（含范围三层）/ 伤害比；丢掉 Chance</td></tr>
+  <tr><td><code>ShootSpellUtils.ApplyElementSpell</code></td><td>彩虹 / 随机色再灌一张晶石</td></tr>
+  <tr><td><code>SpellDestroyEventJob</code></td><td>通用销毁调 <code>CheckFallThunderDamage</code>；排除 1004 / 4024 / 4019</td></tr>
+  <tr><td><code>SpellTools.CheckFallThunderDamage</code></td><td>只认雷色；搜敌；改 AbilityType；<code>Damage.Calculate×比</code></td></tr>
+  <tr><td><code>SpellTools.GenerateThunderDamage</code></td><td>旁路：不认颜色，底数由调用方给</td></tr>
+  <tr><td><code>Spell3101ThunderCrystalSystem</code></td><td>消费 <code>Spell3101NewThunderHitData</code>，粒子 + SE</td></tr>
+  <tr><td><code>SpellElementEffectComponentData</code></td><td>只有 Radius / DamageRatio，没有 Chance</td></tr>
+  <tr><td><code>UnitPropertyJob</code></td><td>落雷 info 在 <code>damage&gt;0</code> 时再挂整包元素</td></tr>
+  <tr><td><code>SpellTakeDamageResultSystem</code></td><td><code>CostRefraction</code> 默认 true 时可能折射</td></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code></td><td>元素 + ColorType 整包复制</td></tr>
+  <tr><td><code>SpellAutoFullTool.SelfRepelSpells</code></td><td>自动填槽自排斥</td></tr>
+  <tr><td><code>SpellSpawnParamsProcessor</code> <code>LaserBeam</code></td><td>有 Chance 且非 Player 色时强行涂雷</td></tr>
+  <tr><td><code>Wand.GetWandThunderEnhanceData</code></td><td>整杖 Max(float3) → 激光晶石 <code>ThunderStoneRate</code></td></tr>
+  <tr><td><code>SpellBase</code> <code>case ThunderCrystal</code> / <code>EndThunderAttackCheck</code></td><td>Mono 叠加与销毁</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>31011–31013</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703101*</code> / <code>713101*</code> / <code>7231011</code></td><td>名称、文案、叠加说明</td></tr>
+</table>
+
+<h2 id="s8">8. 待决 / 局限</h2>
+<ol>
+  <li><strong>召唤物销毁</strong>：配置允许挂到召唤；未逐只核对每种队友实体是否带 <code>SpellAspect</code> 并走进 <code>SpellDestroyEventJob</code>。</li>
+  <li><strong>折射时序</strong>：销毁当帧 <code>CostRefraction=true</code> 是否总能吃到还活着的实体，取决于系统顺序，未做帧级日志。</li>
+  <li><strong>int1 / int2</strong>：当前玩家路径未读。不排除编辑器、旧档或未反编译到的测试法术仍用。</li>
+  <li><strong>旁路落雷</strong>：激光晶石 / 鱼叉 / 彼岸刃 / 符文锤只确认复用入口，不展开各自 CD、落点、与坠落的叠加次数。</li>
+</ol>
+
+<footer>由《雷霆晶石逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

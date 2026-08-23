@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>毒液晶石（Spell3005 / VenomCrystal）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 380px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 220px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>毒液晶石（Spell3005 / VenomCrystal）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「毒液晶石」（<code>abilityType = 3005</code>，配置 ID <code>30051–30053</code>）。重点是<strong>法术侧怎么合成时长和层数</strong>，以及<strong>命中后 <code>SetVenom</code> 怎么叠层、怎么跳字</strong>。</p>
+    <p>不展开敌人毒雾 / 毒卵、药水免疫、地上毒液怪。地面毒痕只作为「颜色决定铺不铺地」来写，不穷尽各法术的半径公式。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 一致，上毒门槛用时长而不是层数，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》，子弹整包继承元素见《分裂逆向分析.md》，同管线晶石见《粘液晶石逆向分析.md》《雷霆晶石逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">和其它法术的关系</a></li>
+    <li><a href="#s5">Mono 残留轨对照</a></li>
+    <li><a href="#s6">算例</a></li>
+    <li><a href="#s7">证据索引</a></li>
+    <li><a href="#s8">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>毒液晶石</td></tr>
+  <tr><td>英文名</td><td>Venom Crystal</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3005</code> / <code>SpellAbilityType.VenomCrystal</code></td></tr>
+  <tr><td>配置 ID</td><td><code>30051</code>（Lv1）/ <code>30052</code>（Lv2）/ <code>30053</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>11 / 33 / 99</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤<strong>左侧</strong>的元素附着符文。发射时把时长和层数烘焙进 <code>SpellElementEffectComponentData</code>；命中且伤害 &gt; 0、层数 &gt; 0 时调用 <code>SetVenom</code>：层数<strong>相加</strong>，时长只在「新值更长」时刷新。之后由 <code>UnitEnvironmentSystem</code> 每秒跳一次等于当前层数的固定伤害。没有独立 <code>Spell3005*System</code>。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">时长 Max · 层数相加</div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 Element.VenomDuration / ApplyCount</div>
+    <div class="arrow">↓</div>
+    <div class="dia">命中且 damage&gt;0 且层数&gt;0？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">整包元素都不挂</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="dia">免疫 / 无敌？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="arrow">↓</div>
+            <div class="box end">不挂</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="arrow">↓</div>
+            <div class="box ok">SetVenom：层数累加</div>
+            <div class="arrow">↓</div>
+            <div class="box">时长：新+0.5 &gt; 剩余才刷新</div>
+            <div class="arrow">↓</div>
+            <div class="box">染绿 · 0.5s 后首次跳字 · 每秒层数伤</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="quote">法术命中单位后使其叠加<strong>int2</strong>层中毒并在<strong>float1</strong>秒内每秒受到中毒层数的伤害</p>
+<p>名称（<code>7030051–7030053</code>）：毒液晶石 / Venom Crystal。三级名称相同，只有 <code>float1</code> / <code>int1</code> / <code>int2</code> 不同。</p>
+<p class="quote">地面上的毒液痕迹会对友方造成伤害。<br>当存在多种元素附着强化时，外观上会随机选择一种颜色，但命中目标时仍然产生所有元素附着强化的效果。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1 持续秒</th><th>int2 层数</th><th>int1</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>30051</td><td>1</td><td><strong>3</strong></td><td><strong>1</strong></td><td>80</td><td>11</td><td>true</td></tr>
+  <tr><td>30052</td><td>2</td><td><strong>4</strong></td><td><strong>2</strong></td><td>180</td><td>33</td><td>true</td></tr>
+  <tr><td>30053</td><td>3</td><td><strong>5</strong></td><td><strong>4</strong></td><td>380</td><td>99</td><td>false</td></tr>
+</table>
+<p>售价每级 ×3。<code>int2</code> 按 1→2→4。<code>float2</code> / <code>float3</code> / <code>int3</code> 全 0。无耗蓝倍率。比伤害强化（9/27/81）贵一点，比粘液（6/18/54）贵一档。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>float1</strong></td><td>中毒持续（秒）；多张取 <strong>Max</strong></td><td>是</td><td>高</td></tr>
+  <tr><td><strong>int2</strong></td><td>每次命中加上的层数；多张 <strong>相加</strong></td><td>是</td><td>高</td></tr>
+  <tr><td><strong>int1</strong></td><td>配置有值（80 / 180 / 380）</td><td>ECS / <code>SpellBase</code> <strong>未读</strong>。伞盾写进一个之后没人用的字段</td><td>高</td></tr>
+  <tr><td>float2 / float3 / int3</td><td>配置为 0</td><td>未读</td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>对弹幕与召唤都标为生效</td><td><code>GetVenomElementData</code> <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p><code>int1</code> 很像旧版「每层伤害」残留。当前跳字伤害等于<strong>当前层数本身</strong>（1 层跳 1，4 层跳 4），不读 <code>int1</code>。文案也只提 <code>int2</code> 和 <code>float1</code>。</p>
+
+<h3>2.3 文案 vs 实现</h3>
+<p>「命中叠 int2 层、float1 秒内每秒受到层数伤害」和主路径对得上。实现上多两处文案没写的细节：</p>
+<ol>
+  <li>写入目标的计时器是 <code>float1 + 0.5</code>。首次跳字在上毒后 <strong>0.5 秒</strong>，之后每 1 秒一次。3 秒卡实际跳 <strong>3</strong> 下（0.5 / 1.5 / 2.5），到点清层不再跳。所以「float1 秒内每秒」成立，靠的是这 +0.5。</li>
+  <li>再上毒：层数继续加；时长只在 <code>新时长+0.5 &gt; 当前剩余</code> 时刷新。较短的卡砍不短已经更长的毒。</li>
+</ol>
+<div class="note">精英 / Boss <strong>不</strong>乘 <code>frozenTimeRatio</code>（粘液、冰冻会乘）。毒的时长和跳字对 Boss 是满额。</div>
+
+<h3>2.4 法术侧：组卡时合成一包（Max + 相加）</h3>
+<pre class="code">if (finalConfig.abilityType == SpellAbilityType.VenomCrystal)
+{
+    duration = max(duration, float1);
+    stacks  += int2;
+}
+return (duration, stacks);</pre>
+<ul>
+  <li><strong>时长</strong>：取最大，不累加。</li>
+  <li><strong>层数</strong>：相加。两张 Lv1 是 <strong>2 层、3 秒</strong>，不是 1 层、6 秒。</li>
+  <li>这个函数<strong>不读</strong> <code>haveEffecfor*</code>、也不读 <code>int1</code>。</li>
+</ul>
+<p><code>SipToSSP</code> 原样写时长，层数再乘收割者遗物系数 <code>VenomEffectRatio</code>（默认 1）。生成实体时低帧优化还会 <code>VenomApplyCount *= SpellEfficiency</code>。分裂子弹生成时再乘一次。</p>
+<p>等级<strong>不能</strong>按「2×Lv1 = 1×Lv2」换算：</p>
+<pre class="code">2×Lv1：时长 3，层数 2
+1×Lv2：时长 4，层数 2
+3×Lv1：时长 3，层数 3
+1×Lv3：时长 5，层数 4</pre>
+<p>合成省槽，换「更长、单卡更多层」。叠三张 Lv1 层数还不如一张 Lv3，但一张 Lv3 更长。</p>
+
+<h3>2.5 谁吃得到这张卡</h3>
+<p><code>SpellGroupParser</code> 从左到右扫，只强化自己右边、同一段。主槽加不到后槽。</p>
+<pre class="code">[毒] [弹]                 弹带毒包
+[弹] [毒]                 弹带不到
+[毒] [弹] [弹]            两发都带
+[毒A] [弹] [毒B] [滚球]   弹吃 A；滚球吃 A+B</pre>
+<p>自动填槽：<code>SelfRepelSpells</code> 含 <code>VenomCrystal</code>，<strong>同一根杖不会自动再塞第二张</strong>。手摆可以叠。测试相加必须手插。魔能升阶把 <code>30051</code> 抬成 <code>30052</code> / <code>30053</code>，叠加规则不变。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<p>普通弹道走下面三步。毒<strong>不是</strong>命中当场结算的一包伤害，是挂在目标身上的跳字。</p>
+
+<h3>3.1 发射时烘焙，只扫一次</h3>
+<ol>
+  <li><code>SpellInitialParameter.Builder</code> 调 <code>GetVenomElementData</code>，写入 <code>SIP.VenomElementData</code>。</li>
+  <li><code>ShootSpellUtils.SipToSSP</code> 写 <code>VenomDuration</code> / <code>VenomApplyCount</code>。</li>
+  <li><code>GetSpellColor</code>：<code>VenomCrystal</code> <strong>在</strong> <code>ToSpellColor()</code> 里，映射 <code>Venom</code>。和粘/冰/火/虚空一起抽外观。雷晶石 <code>float3%</code> 先手覆盖。</li>
+</ol>
+<p>飞行中不再重算。</p>
+
+<h3>3.2 命中：门槛是层数，不是外观</h3>
+<p><code>UnitPropertyJob</code>：</p>
+<ul>
+  <li><code>immuneDamage</code> 或 <strong><code>damage &lt;= 0</code></strong>：只结算击退，<strong>整包元素都不挂</strong>。</li>
+  <li>法术实体为空：不挂。</li>
+  <li>条件是 <code>VenomApplyCount &gt; 0</code>，不是看 <code>ColorType</code>，也不是看 <code>VenomDuration</code>。</li>
+</ul>
+<pre class="code">if (IsImmuneVenom || IsInvincible) return;
+if (timer == 0) { 染绿; injureTimer = 0.5; }
+if (timer &lt; duration + 0.5) timer = duration + 0.5;
+stacks += applyCount;</pre>
+<table>
+  <tr><th></th><th>法术侧（组卡）</th><th>目标侧（命中）</th></tr>
+  <tr><td>时长</td><td>多张取 Max</td><td><code>新+0.5 &gt; 剩余</code> 才刷新</td></tr>
+  <tr><td>层数</td><td>多张相加</td><td><strong>继续加</strong>，不覆盖、不封顶</td></tr>
+</table>
+<p>免疫（<code>IsImmuneVenom</code> / 配置 <code>immuneVenom</code>）或无敌直接 return。<code>PurifyAbnormalState</code> 清掉时长和层数。玩家默认能中毒。胃痛药水、部分遗物会 <code>ImmuneVenomRegister</code>。</p>
+
+<h3>3.3 跳字：每秒等于当前层数</h3>
+<p><code>UnitEnvironmentSystem</code>（Mono 对称在 <code>UnitProperty</code>）：</p>
+<ol>
+  <li>计时器每帧减。到 0：<code>ClearVenomState</code>（层数清 0），还原颜色。</li>
+  <li><code>affect_VenomInjureTimer</code> 累加。时长 &gt; 0 且间隔 ≥ 1 秒：跳一次。</li>
+  <li>伤害 <code>damage = affect_VenomCurrentStack</code>，<code>AttackerType.Venom</code>，<code>damageRecordId = 3005</code>。这包 info <strong>没有</strong>法术实体，不会再走一遍元素门，不会自己叠毒。</li>
+  <li>有表现则播 <code>Prefabs/EF/EF_Poisoning</code>。</li>
+</ol>
+<p>首次：上毒时若原来没毒，间隔计时器置 0.5，再攒 0.5 秒满 1。之后每次清零再攒 1 秒。</p>
+<p>层数是浮点累加，跳字用当前值。低帧把 <code>VenomApplyCount</code> 乘成 0.7 这类小数时，两次命中可能是 1.4 层，跳 1.4。</p>
+
+<h2 id="s4">4. 和其它法术的关系</h2>
+<p>只写会改毒行为的交互。齐射 / 多重 / 伤害强化只改发射或弹体伤害，不改跳字公式，不列。</p>
+
+<h3>4.1 其它元素晶石 / 雷霆外观</h3>
+<p>命中并列挂，不看颜色。弹是火颜色，只要 <code>VenomApplyCount &gt; 0</code> 仍上毒。</p>
+<p>雷晶石先手改外观，<strong>不挡</strong>上毒。雷霆销毁落雷若 <code>damage &gt; 0</code>，会带着原弹 Element 再 <code>SetVenom</code> 一次——圈里没被母弹打到的人也可能中毒。</p>
+
+<h3>4.2 地面毒痕（跟颜色，不跟晶石包）</h3>
+<p><code>ColorType == Venom</code> 才会 <code>CreateVenomRequest</code>。带了毒晶石但随机成了粘液色：命中仍上毒，<strong>不铺地</strong>。</p>
+<table>
+  <tr><th></th><th>晶石命中</th><th>踩到地上毒液</th></tr>
+  <tr><td>条件</td><td><code>VenomApplyCount &gt; 0</code> 且伤害 &gt; 0</td><td><code>ColorType==Venom</code> 留下的 <code>Venom_Dots</code>；非飞行、非免疫地面</td></tr>
+  <tr><td>层数</td><td>法术包里的相加层数</td><td>固定 <strong>+2</strong></td></tr>
+  <tr><td>时长</td><td>float1（写入 +0.5）</td><td>固定 <strong>2</strong> 秒（写入 2.5）</td></tr>
+  <tr><td>友伤</td><td>打谁谁中</td><td><strong>友方也吃</strong>（文案 7230051）</td></tr>
+  <tr><td>与晶石共存</td><td>—</td><td>已有毒时进场不加；<strong>每次跳字</strong>若还站在毒上会再 <code>SetVenom(2, 2)</code></td></tr>
+</table>
+<p>多数 <code>CreateVenomRequest</code> 的地面持续写死 <code>2f</code>，<strong>不读</strong>晶石 <code>float1</code>。半径公式各法术不同，这里不穷尽。</p>
+
+<h3>4.3 分裂 3013</h3>
+<p><code>ToSplit</code> 整包复制 <code>VenomDuration</code> / <code>VenomApplyCount</code>。子弹生成时再 <code>VenomApplyCount *= SpellEfficiency</code>。低帧会把层数打薄，时长不改。</p>
+
+<h3>4.4 悬停 / 坠落 / 爆炸圈 / 穿透</h3>
+<p>只要打出 <code>damage &gt; 0</code> 的 <code>TakeDamageInfo</code>，就走同一条元素门。圈的大小是范围增强的事；毒只问「这发实体上的层数是否 &gt; 0」。</p>
+<p>穿透耗尽当场销毁：已经打出的那下仍上毒。打空飞到时：没打到人就不上。</p>
+
+<h3>4.5 彩虹丝带 / 随机色杖</h3>
+<p>先定 <code>ColorType</code>，再 <code>ApplyElementSpell(ToSpellId(1 或 2))</code>。抽到毒会再灌一张 <code>30051</code>（或高级色的 <code>30052</code>）：时长再 Max，层数再加 <code>int2</code>。</p>
+<p>已经插了毒晶石、彩虹又抽到绿：层数再 +1（或 +2）。抽到别的色：毒数据不动，另加那种元素。</p>
+<p>收割者遗物只乘槽位烘焙的那份层数，发生在 <code>SipToSSP</code>；彩虹灌晶在这之后，<strong>不再</strong>乘收割者。</p>
+
+<h3>4.6 闪电链 / 生命线 / 召唤</h3>
+<table>
+  <tr><th>对象</th><th>怎么带毒</th></tr>
+  <tr><td>闪电链 ECS</td><td>从宿主抄整份 Element，命中仍 <code>SetVenom</code></td></tr>
+  <tr><td>闪电链 / 鱼叉链 Mono</td><td>抄 <code>spellVenomTime</code> / <code>spellVenomOnceCount</code></td></tr>
+  <tr><td>召唤物攻击 / 撞击</td><td>生成时带上召唤法术的 Element</td></tr>
+  <tr><td>只拷 <code>ColorType</code>、不拷 Element</td><td><strong>会丢跳字</strong></td></tr>
+</table>
+<p>鱼叉毒头遗物 <code>VenomApplyCount += relic.int1</code>，和晶石层数是同一字段。激光晶石 4014：<code>VenomApplyCount *= LaserCrystalPowerRatio</code>，只改层数。</p>
+
+<h3>4.7 公转 / 寻踪 / 反弹</h3>
+<p>不改毒数据包。</p>
+
+<h2 id="s5">5. Mono 残留轨对照</h2>
+<p><code>SpellBase.ApplyEnhanceSpell</code> 同样：<code>spellVenomTime = Max(float1)</code>，<code>spellVenomOnceCount += int2</code>。和 ECS 叠加规则一致。<strong>也不读</strong> <code>int1</code>。</p>
+<p>命中：<code>spellVenomTime &gt; 0</code> 时调同一个 <code>SetVenom</code>。ECS 门槛是 <strong>层数 &gt; 0</strong>。正常卡两条件同时成立；层数为 0、时长 &gt; 0 的残包，Mono 会挂 0 层毒（只刷新时长），ECS 不挂。</p>
+<p>彩虹 / 随机色的 <code>extraEnhanceIds</code> 在 Mono 里再跑一遍 <code>ApplyEnhanceSpell</code>。玩家主路径以 ECS 为准。</p>
+<p>伞盾除了同样的时长 / 层数，还把 <code>int1</code> 累加进 <code>spellVenomBonusStackCount</code>。全工程没有读这个字段的代码，等于没生效。</p>
+<p>跳字特效：<code>Prefabs/EF/EF_Poisoning</code>。地面铺毒走 <code>VenomController.CreateVenom</code>，持续常用 <code>spellVenomTime * 2</code>（和 ECS 地面写死 2 秒不是同一套）。</p>
+
+<h2 id="s6">6. 算例</h2>
+<p>普通小怪，先不算彩虹 / 随机色杖 / 收割者 / 低帧。跳字次数：3 秒跳 3 下，4 秒跳 4 下，5 秒跳 5 下。</p>
+<table>
+  <tr><th>槽位</th><th>命中后（层 / 秒）</th><th>全程跳字合计（不站毒地）</th></tr>
+  <tr><td><code>[弹]</code></td><td>无</td><td>0</td></tr>
+  <tr><td><code>[毒Lv1] [弹]</code></td><td>1 层 / 3 秒</td><td>1×3 = <strong>3</strong></td></tr>
+  <tr><td><code>[毒Lv2] [弹]</code></td><td>2 层 / 4 秒</td><td>2×4 = <strong>8</strong></td></tr>
+  <tr><td><code>[毒Lv3] [弹]</code></td><td>4 层 / 5 秒</td><td>4×5 = <strong>20</strong></td></tr>
+  <tr><td><code>[毒Lv1]×2 [弹]</code></td><td>2 层 / 3 秒</td><td>2×3 = <strong>6</strong></td></tr>
+  <tr><td><code>[毒Lv1][毒Lv2] [弹]</code></td><td>3 层 / 4 秒</td><td>3×4 = <strong>12</strong></td></tr>
+  <tr><td>先 Lv3 再被 Lv1 打中</td><td>5 层；剩余时长仍按较长的那头</td><td>视剩余秒数</td></tr>
+  <tr><td><code>[毒Lv1] [弹]</code> + 彩虹抽到绿</td><td>2 层 / 3 秒</td><td>6</td></tr>
+  <tr><td><code>[粘][毒] [弹]</code></td><td>外观黄或绿各 50%（再被雷晶石概率改色）；命中同时上粘液和毒</td><td>毒按上表</td></tr>
+</table>
+<p>同一发穿透打两个敌人：各加一份层数，互不分享。同一敌人被两发各带 1 层的弹打中：2 层，时长按较长的那发刷新。</p>
+
+<h2 id="s7">7. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellShootData.GetVenomElementData</code></td><td>时长 Max、层数相加</td></tr>
+  <tr><td><code>SpellInitialParameter.Builder</code></td><td>写入 <code>SIP.VenomElementData</code>；收割者乘 <code>VenomEffectRatio</code></td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td>快照 Duration / ApplyCount</td></tr>
+  <tr><td><code>ShootSpellUtils.ApplyElementSpell</code></td><td>彩虹 / 随机色再灌一张晶石</td></tr>
+  <tr><td><code>SpellShootSystem.SpawnSpellEntity</code></td><td><code>VenomApplyCount *= SpellEfficiency</code></td></tr>
+  <tr><td><code>UnitPropertyJob</code></td><td><code>damage&lt;=0</code> 整包跳过；门槛 <code>VenomApplyCount&gt;0</code></td></tr>
+  <tr><td><code>UnitProperty_Dots.SetVenom</code></td><td>免疫/无敌、+0.5 时长、层数累加、染色</td></tr>
+  <tr><td><code>UnitEnvironmentSystem</code></td><td>倒计时、每秒跳层数伤、地面再叠 2/2</td></tr>
+  <tr><td><code>SpellTools.GetSpellColor</code> / <code>ToSpellColor</code></td><td>毒色进随机池；雷晶石先判定</td></tr>
+  <tr><td><code>SpellSystem</code> 等</td><td><code>ColorType==Venom</code> 才 <code>CreateVenomRequest</code></td></tr>
+  <tr><td><code>VenomSystem.CreateVenom</code></td><td>地面毒液实体</td></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code></td><td>元素整包复制</td></tr>
+  <tr><td><code>Spell3007Job</code></td><td>闪电链抄宿主 Element</td></tr>
+  <tr><td><code>SpellAutoFullTool.SelfRepelSpells</code></td><td>自动填槽自排斥</td></tr>
+  <tr><td><code>SpellBase</code> <code>case VenomCrystal</code></td><td>Mono 叠加；门槛用时长</td></tr>
+  <tr><td><code>UmbrellaShieldController</code></td><td>多写未使用的 <code>int1</code></td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>30051–30053</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703005*</code> / <code>713005*</code> / <code>7230051</code></td><td>名称、文案、地面友伤 + 共享外观</td></tr>
+</table>
+
+<h2 id="s8">8. 待决 / 局限</h2>
+<ol>
+  <li><strong>int1</strong>：当前玩家 ECS / <code>SpellBase</code> 未读。伞盾写入后无读者。不排除编辑器或未反编译到的测试法术仍用。</li>
+  <li><strong>各法术铺地半径 / 持续</strong>：多数 ECS 写死 2 秒；Mono 常用 <code>spellVenomTime * 2</code>。未逐技能列公式。</li>
+  <li><strong>玩家 / Boss 配置</strong>：默认能中毒、不乘 <code>frozenTimeRatio</code> 已由代码证实；未穷尽每张 <code>UnitConfig.immuneVenom</code>。</li>
+  <li><strong>收割者 / 低帧 / 激光晶石倍率</strong>：确认会乘层数；遗物逐条数值不展开。</li>
+</ol>
+
+<footer>由《毒液晶石逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

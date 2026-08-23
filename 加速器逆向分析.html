@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>加速器（Spell3106 / EnhanceSpeedValue）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 420px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 188px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>加速器（Spell3106 / EnhanceSpeedValue）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「加速器」（<code>abilityType = 3106</code>，配置 ID <code>31061–31063</code>）。重点是<strong>飞行速度怎么加算</strong>，以及<strong>会改这份速度怎么被读的其它法术</strong>。</p>
+    <p>不展开遗物/诅咒逐条来源，也不穷尽每个 <code>abilityType</code> 的 Job。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 一致，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，加算容器见《伤害强化逆向分析.md》，子弹速度再 ×0.5 见《分裂逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">和其它法术的关系</a></li>
+    <li><a href="#s5">Mono 残留轨对照</a></li>
+    <li><a href="#s6">证据索引</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>加速器</td></tr>
+  <tr><td>英文名</td><td>Accelerator</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3106</code> / <code>SpellAbilityType.EnhanceSpeedValue</code></td></tr>
+  <tr><td>配置 ID</td><td><code>31061</code>（Lv1）/ <code>31062</code>（Lv2）/ <code>31063</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>7 / 21 / 63</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤<strong>左侧</strong>的纯数值符文；把 <code>float1</code> 写进飞行速度的<strong>加算池</strong>（<code>AddBase</code>）。发射时只扫一次，烘焙成 <code>SIP.bounsSpeed</code> → 快照 <code>Speed.AddBase</code> → <code>AttributeValue.Calculate()</code> 得到实体 <code>Movement.Speed</code>。没有独立 ECS 系统。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">AddBase(float1)</div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 SIP.bounsSpeed</div>
+    <div class="arrow">↓</div>
+    <div class="box">SipToSSP：Speed.AddBase += bounsSpeed</div>
+    <div class="arrow">↓</div>
+    <div class="box ok">Calculate = (Base+AddBase)×(1+AddRatio)×MulRatio</div>
+    <div class="arrow">↓</div>
+    <div class="box">Movement.Speed</div>
+    <div class="arrow">↓</div>
+    <div class="box">SpellMoveJob / 激光 / 坠落 / 召唤 各自读</div>
+  </div>
+</div>
+
+<p class="quote">法术飞行速度+<strong>float1</strong></p>
+<p>名称（<code>7031061–7031063</code>）：加速器 / Accelerator。三级名称相同，只有 <code>float1</code> 不同。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1 加算速度</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>31061</td><td>1</td><td><strong>3</strong></td><td>7</td><td>true</td></tr>
+  <tr><td>31062</td><td>2</td><td><strong>6</strong></td><td>21</td><td>true</td></tr>
+  <tr><td>31063</td><td>3</td><td><strong>12</strong></td><td>63</td><td>false</td></tr>
+</table>
+<p><code>float1</code> 每级 ×2；售价每级 ×3。其余 <code>int/float</code> 全 0，不用。无耗蓝倍率。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>float1</strong></td><td>飞行速度加算（多张<strong>相加</strong>）</td><td>是</td><td>高</td></tr>
+  <tr><td>int1 / int2 / int3 / float2 / float3</td><td>配置为 0</td><td>ECS <strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>对弹幕与召唤都标为生效；<code>GetSpellFlySpeed</code> 不读这两个字段</td><td>过滤只出现在自动填槽</td><td>高</td></tr>
+</table>
+
+<p>叠加入口：<code>SpellShootData.GetSpellFlySpeed</code>。</p>
+<pre class="code">case SpellAbilityType.AroundMouse:
+case SpellAbilityType.EnhanceSpeedValue:
+    ratioValue.AddBase(finalConfig.float1);
+    break;
+case SpellAbilityType.SpeedToDuration:
+    ratioValue.MulRatio(finalConfig.float1 / 100f);
+    break;</pre>
+
+<div class="note">两张 Lv1 是 <strong>+6</strong>，不是 +3 再各自乘一遍。等级只改加数：1×Lv2 = 2×Lv1 = +6；1×Lv3 = 4×Lv1 = +12。合成的意义是省槽。</div>
+<p><code>AroundMouse</code> 是寻踪（<code>3010</code>），不是公转。寻踪的 <code>float1</code> 和加速器进同一条 <code>AddBase</code>。主观缓时走 <code>MulRatio</code>。这个函数<strong>不读</strong> <code>haveEffecforSummonSpell</code>：自动填槽会往召唤上插；手动插同样写入快照。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<p>加速器没有自己的 Job。它只改「发射时算出来的那个速度数」，之后谁读 <code>Movement.Speed</code>（或快照里的 <code>SpeedAttribute</code>），谁就变快。</p>
+<p>最终公式：<code>Speed = (config.speed + AddBase) × (1 + AddRatio) × MulRatio</code>。加速器只写 <code>AddBase</code>。当前配置下它自己不改 <code>AddRatio</code> / <code>MulRatio</code>。</p>
+
+<h3>3.1 发射时烘焙，只扫一次</h3>
+<p><code>SpellInitialParameter.Builder.ProcessShootDataEffect</code> 调 <code>GetSpellFlySpeed</code>，把三个通道拆开写入 SIP：</p>
+<table>
+  <tr><th>RatioValue</th><th>写入 SIP</th><th>加速器贡献</th></tr>
+  <tr><td><code>CurrentAddBase</code></td><td><code>bounsSpeed +=</code></td><td><code>Σ float1</code></td></tr>
+  <tr><td><code>CurrentAddRatioStartZero</code></td><td><code>extraSpeedRatio +=</code></td><td><strong>0</strong></td></tr>
+  <tr><td><code>CurrentMulRatio</code></td><td><code>finalSpeedRatio *=</code></td><td><strong>1</strong>（除非同侧有主观缓时）</td></tr>
+</table>
+<pre class="code">RatioValue spellFlySpeed = shootData.GetSpellFlySpeed();
+data.extraSpeedRatio += spellFlySpeed.CurrentAddRatioStartZero;
+data.finalSpeedRatio *= spellFlySpeed.CurrentMulRatio;
+data.bounsSpeed += spellFlySpeed.CurrentAddBase;</pre>
+<p>同字段还会被<strong>反向施法</strong>加上：<code>reverseDirection</code> 为真时 <code>bounsSpeed += reverseCastBonusSpeed</code>（<code>3125</code> 的 <code>float1</code>）。这不是加速器的规则，但进的是同一个 <code>AddBase</code>。</p>
+<p>实际发射<strong>不走</strong> <code>GetSpellMoveSpeed_FinalPlayerValue</code>。那个扩展函数会再乘诅咒「降低法术飞行速度」，只给攻击距离估算用。</p>
+
+<h3>3.2 快照：算出一个数，写进实体</h3>
+<p><code>ShootSpellUtils.SipToSSP</code>：</p>
+<pre class="code">attributeValue.Base = configCopy.speed;
+attributeValue.AddBase = ((sip.finalMovementType != Rotation) ? 0 : extraSpeed) + sip.bounsSpeed;
+attributeValue.AddRatio = sip.extraSpeedRatio;
+attributeValue.MulRatio = sip.finalSpeedRatio;
+Speed = speedAttribute.Calculate();</pre>
+<p><code>AttributeValue.Calculate()</code>：<code>(Base + AddBase) * (1 + AddRatio) * MulRatio + Extra</code>。</p>
+<p>只有运动类型是公转（<code>Rotation</code>）时，才把公转自己的 <code>extraSpeed</code> 并进 <code>AddBase</code>。加速器的 <code>bounsSpeed</code> <strong>无论什么运动类型都会加</strong>。</p>
+<p>同一份 <code>speedAttribute</code> 还会存进 <code>ssp.SpeedAttribute</code>。生成时若实体有 <code>SpellSpeedRatioValueData</code>（召唤），就把这份结构拷过去，供注册时重算。</p>
+<p>普通弹之后飞行中改的是实体上的 <code>Movement.Speed</code>。快照里仍是发射时的满额（分裂复印后再 ×0.5）。</p>
+
+<h3>3.3 飞行时怎么读</h3>
+<p><code>SpellMoveJob</code> 多数分支是 <code>velocity.Linear = Direction * Speed</code>（或 lerp 到这个目标）。加速器不改方向、不改持续时间、不改碰撞。</p>
+<p>以魔法弹（<code>10011</code>，<code>speed=16</code>）为例：</p>
+<table>
+  <tr><th>左侧</th><th>AddBase</th><th>Movement.Speed</th></tr>
+  <tr><td>无加速器</td><td>0</td><td><strong>16</strong></td></tr>
+  <tr><td>一张 Lv1</td><td>3</td><td><strong>19</strong></td></tr>
+  <tr><td>两张 Lv1 / 一张 Lv2</td><td>6</td><td><strong>22</strong></td></tr>
+  <tr><td>一张 Lv3</td><td>12</td><td><strong>28</strong></td></tr>
+</table>
+<p>持续仍是 0.5 秒。飞得更快，同一寿命里走得更远。</p>
+
+<h2 id="s4">4. 和其它法术的关系</h2>
+<p>只写会改这份速度怎么叠、怎么被读的交互。伤害强化 / 范围增强 / 穿透只改别的通道，不列。</p>
+
+<h3>4.1 寻踪 3010</h3>
+<p><code>GetSpellFlySpeed</code> 里寻踪（<code>AroundMouse</code>）和加速器走<strong>同一句</strong> <code>AddBase(float1)</code>。</p>
+<p>寻踪三级 <code>float1</code> 是 1 / 2 / 4（文案也是「法术飞行速度+float1」）。<code>[加速器 Lv1][寻踪 Lv1][魔法弹]</code> 的加算是 <strong>3+1=4</strong>，速度 20，不是两套互斥。</p>
+<p>寻踪还改运动类型为 <code>ChaseMouse</code>，并写 <code>ChaseMouseLerpSpeed</code>。加速器不改这些。追赶分支里 <code>Speed</code> 既当线速度，也常当 lerp 系数的一部分，所以加算会让「拧向鼠标」也更快。</p>
+
+<h3>4.2 主观缓时 3128</h3>
+<p><code>SpeedToDuration</code>。配置 <code>31281</code>：<code>float1=50</code>（速度 ×50%），<code>float2=0.5</code>（每降 1 点速度 +0.5 秒）。</p>
+<p>两件事，都读已经加过加速器的速度：</p>
+<ol>
+  <li><code>GetSpellFlySpeed</code>：<code>MulRatio(float1/100)</code> → SIP <code>finalSpeedRatio *= 0.5</code>。最终速度是 <code>(config.speed + AddBase) × 0.5</code>。</li>
+  <li>换持续：先用 <code>Result / speedRatio</code> 把乘算拆回去，得到「乘之前」的速度（<strong>含加速器加算</strong>），再 <code>finalSpeed × (1 - decreaseRatio) × float2</code>。</li>
+</ol>
+<table>
+  <tr><th></th><th>无加速器</th><th>有加速器 Lv1</th></tr>
+  <tr><td>飞行速度</td><td><code>16 × 0.5 = 8</code></td><td><code>(16+3) × 0.5 = 9.5</code></td></tr>
+  <tr><td>换来的持续</td><td><code>16 × 0.5 × 0.5 = 4s</code></td><td><code>19 × 0.5 × 0.5 = 4.75s</code></td></tr>
+</table>
+<p>加速器让「被换成时间的那部分速度」也变大。文案「每降低 1 点 +0.5 秒」按乘之前的速度算，不是按乘完的 8 / 9.5 算。</p>
+
+<h3>4.3 公转 3009 / 自由公转 3117</h3>
+<p>公转<strong>不进</strong> <code>GetSpellFlySpeed</code>。它的速度来自 <code>GetSpellRotationInfo</code> 的 <code>float2</code>（<code>extraSpeed</code>）：Lv1=<strong>0</strong>，Lv2=5，Lv3=10。</p>
+<p><code>SipToSSP</code> 只在 <code>finalMovementType == Rotation</code> 时把这份 <code>extraSpeed</code> 加进 <code>Speed.AddBase</code>，和 <code>bounsSpeed</code> 相加。自由公转只改半径随机，不写 <code>extraSpeed</code>。</p>
+<ul>
+  <li>普通直线弹 + 公转：运动类型变成公转之后，Lv2/Lv3 的 <code>float2</code> 才会叠到速度上；加速器的 <code>bounsSpeed</code> 始终在。</li>
+  <li><code>[加速器 Lv1][公转 Lv2][魔法弹]</code>：<code>AddBase = 5 + 3 = 8</code>，速度 24。</li>
+  <li>公转 Lv1 自己不加速度（<code>float2=0</code>），加速器仍然 +3。</li>
+</ul>
+<p>公转还会拆掉墙层（见《反弹逆向分析》4.2）。那是碰撞，不是速度。</p>
+
+<h3>4.4 分裂 3013</h3>
+<p><code>ToSplit</code> 整包复制快照，然后非坠落：<code>Speed *= 0.5</code>。乘的是已经 <code>Calculate()</code> 过的最终速度，不是「只砍基础、保留加算」。</p>
+<table>
+  <tr><th>母弹</th><th>子弹拿到的</th></tr>
+  <tr><td>魔法弹 16 + 加速器 +3 → 19</td><td><strong>9.5</strong></td></tr>
+  <tr><td>无加速器 → 16</td><td><strong>8</strong></td></tr>
+</table>
+<p>坠落分裂不砍 <code>Speed</code>，改砍落地弹力。计时器随快照重开。详见《分裂逆向分析》3.2 / 6.1。</p>
+
+<h3>4.5 坠落 3119</h3>
+<p><code>SipToSSP</code> 末尾：非召唤且 <code>IsFallSpell</code> 时，用<strong>已经含加速器</strong>的 <code>speedAttribute.Calculate()</code> 调 <code>SpellInitialFallData</code>：</p>
+<ol>
+  <li><code>Gravity = max(43 × speed / 16, 12)</code></li>
+  <li><code>OriginalSpellHorizontalSpeed = CurrentFallSpeed = speed</code></li>
+  <li>水平 <code>Speed *= 落点距离 / 7</code></li>
+</ol>
+<p>加速器会同时抬竖直初速、重力和水平速度。追赶类分支在坠落时多数改读 <code>OriginalSpellHorizontalSpeed</code>，不读被距离缩放后的 <code>Speed</code>。</p>
+<p>分裂子弹：<code>IsFallSpell</code> 时<strong>不</strong> <code>Speed *= 0.5</code>，只把 <code>FallingReboundForceRatio *= 0.7</code> 并标已落地反弹。</p>
+
+<h3>4.6 激光 1004 / 分解射线 1011</h3>
+<p>不走 <code>SpellMoveJob</code> 飞。初始化时把 <code>Movement.Speed</code> 抄走，再把实体速度清 0：</p>
+<ul>
+  <li>激光：<code>SpellSpeed = Speed</code>，<code>remainMaxDistance = Speed</code>，步进 <code>SpellSpeed × 0.05</code>，然后 <code>Speed = 0</code>。加速器拉长射线预算，步长也变大。</li>
+  <li>分解射线：<code>rayData.SpellSpeed = Speed</code>，然后 <code>Speed = 0</code>。</li>
+</ul>
+<p>这里不展开折线 / 折射。激光晶石（<code>4014</code>）另把长度写成 <code>7 + Speed</code>，同样吃这份烘焙值。</p>
+
+<h3>4.7 召唤</h3>
+<p>配置 <code>haveEffecforSummonSpell=true</code>，自动填槽会插。<code>GetSpellFlySpeed</code> 不读这个旗标；手动插同样烘焙 <code>bounsSpeed</code>。</p>
+<p>生成时 <code>SpeedAttribute</code> 写到 <code>SpellSpeedRatioValueData</code>。<code>TeammateRegisterSystem</code> <strong>不用</strong>弹幕那套 <code>config.speed</code>，而是：</p>
+<pre class="code">Speed = (unitCfg.moveSpeed + Speed.AddBase) × (1 + AddRatio) × MulRatio × TeammateSpeedRatio</pre>
+<p>加速器的 <code>float1</code> 仍在 <code>AddBase</code> 里，加在召唤物自身移速上。<code>GetSummonMoveSpeedRatio</code> 只读寄生蠕虫的 <code>float3</code>，<strong>不是</strong>加速器。</p>
+<p><code>TeammateSpeedRatio</code> 在快照里写成 <code>1 + summonExtraAttackSpeedRatio</code>（攻速通道），和加速器无关。</p>
+<p>自动填槽：<code>SpellAutoFullTool.SpellAvoidEnhances</code> 规定秘法爆炸（<code>1008</code>）<strong>不要</strong>配加速器。这只影响推荐填槽，不阻止手动插。</p>
+
+<h3>4.8 齐射 3001 / 多重 3002</h3>
+<p>不改速度公式。每发各自走一遍 <code>SipToSSP</code>，拿到的是同一份 <code>bounsSpeed</code> / <code>Calculate()</code>。齐射改发射次数与间隔，多重改扇形条数与夹角，都不碰 <code>Speed.AddBase</code>。</p>
+
+<h2 id="s5">5. Mono 残留轨对照</h2>
+<p><code>SpellBase.ApplyEnhanceSpell</code>：<code>bonusSpeed += float1</code>。和 ECS 一样是加算。</p>
+<p>玩家主路径先把 SIP 的 <code>bounsSpeed</code> / <code>finalSpeedRatio</code> 写进 <code>bonusSpeed</code> / <code>finalSpeedRatio</code>，最后 <code>spellCfg.speed = (spellCfg.speed + bonusSpeed) × speedRatio × finalSpeedRatio</code>，和 <code>AttributeValue.Calculate()</code> 同构。</p>
+<p>公转为真时 Mono 还会再加一份 <code>RotationMovementInfo.extraSpeed</code>，对应 ECS 在 <code>SipToSSP</code> 里并进 <code>AddBase</code>。<code>extraEnhanceIds</code>（<code>shootFromSpellGroupV2</code>）会再跑一遍 <code>ApplyEnhanceSpell</code>。玩家 ECS 主路径以快照为准。</p>
+
+<h2 id="s6">6. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellShootData.GetSpellFlySpeed</code></td><td>加速器 / 寻踪 <code>AddBase</code>；主观缓时 <code>MulRatio</code></td></tr>
+  <tr><td><code>SpellShootData.GetSpeedToDurationData</code></td><td>主观缓时的乘算比与换时比</td></tr>
+  <tr><td><code>SpellShootData.GetSpellRotationInfo</code></td><td>公转 <code>extraSpeed</code>（<code>float2</code>）</td></tr>
+  <tr><td><code>SpellInitialParameter.Builder</code></td><td><code>bounsSpeed</code> / <code>finalSpeedRatio</code>；换持续加时</td></tr>
+  <tr><td><code>GeneralTool.GetSpellSpeedToBonusDuration</code></td><td><code>(乘前速度) × (1-乘算比) × float2</code></td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td><code>Speed.AddBase</code>、<code>Calculate()</code>、坠落入口</td></tr>
+  <tr><td><code>AttributeValue.Calculate</code></td><td><code>(Base+AddBase)×(1+AddRatio)×MulRatio</code></td></tr>
+  <tr><td><code>SpellMoveJob</code></td><td>普通弹 <code>Direction × Speed</code></td></tr>
+  <tr><td><code>SpellTools.SpellInitialFallData</code></td><td>坠落用最终速度写重力 / 竖直初速 / 水平缩放</td></tr>
+  <tr><td><code>SpellSpawnParamsStorage.ToSplit</code></td><td>非坠落 <code>Speed *= 0.5</code></td></tr>
+  <tr><td><code>Spell1004LaserJob</code></td><td>激光把 <code>Speed</code> 当长度预算</td></tr>
+  <tr><td><code>Spell1011DisintegrationRayJob</code></td><td>分解射线抄走 <code>Speed</code> 后清 0</td></tr>
+  <tr><td><code>SpellShootSystem.SpawnSpellEntity</code></td><td>召唤写入 <code>SpellSpeedRatioValueData</code></td></tr>
+  <tr><td><code>TeammateRegisterSystem</code></td><td>召唤移速：<code>unit.moveSpeed + AddBase</code></td></tr>
+  <tr><td><code>SpellAutoFullTool.SpellAvoidEnhances</code></td><td>秘法爆炸自动填槽避开加速器</td></tr>
+  <tr><td><code>SpellBase</code> <code>case EnhanceSpeedValue</code></td><td>Mono 加算</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>31061–31063</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703106*</code> / <code>713106*</code></td><td>名称与文案</td></tr>
+</table>
+
+<footer>由《加速器逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>
