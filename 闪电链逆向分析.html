@@ -1,251 +1,589 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>闪电链 Spell3007 · 要点</title>
+<title>闪电链（Spell3007 / LightningChain）逆向分析</title>
 <style>
-  :root{
-    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
-    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
-    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);
-    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
-  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
-  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
-  header h1{margin:0 0 4px;font-size:20px}
-  header p{margin:0;color:var(--dim);font-size:12.5px}
-  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
-  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
-  h2:first-child{margin-top:0}
-  p,ul{margin:0 0 10px}
-  ul{padding-left:18px}
-  li{margin:3px 0}
-  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
-    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
-  th{background:#1e2733;color:var(--dim);font-size:12px}
-  tr:last-child td{border-bottom:none}
-  .num{text-align:right;font-family:var(--mono)}
-  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
-    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
-    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
-  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
-  @media(max-width:640px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-  .card h3{margin:0 0 6px;font-size:13px}
-  .card.ecs h3{color:var(--accent)}
-  .card.mono h3{color:var(--warn)}
-  .card ul{margin:0;color:var(--dim);font-size:12.5px}
-  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
-  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
-    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
-  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
-  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
-  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 420px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 200px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  .bad { background: #f8ecec; border-color: #b06060; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
 </style>
 </head>
 <body>
-<header>
-  <h1>闪电链 · Spell3007</h1>
-  <p>Enhance 符文 · ID 30071–30073 · 链接上一发法术，路径伤害 · ECS 主轨 / Mono 旧轨</p>
+<div class="wrap">
+<header class="hero">
+  <h1>闪电链（Spell3007 / LightningChain）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家法术增强符文「闪电链」（<code>abilityType = 3007</code>，配置 ID <code>30071–30073</code>）。不含鱼叉链（<code>Spell1030</code>）与精英怪闪电链。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》。本文与 <code>闪电链逆向分析.md</code> 同步。</p>
+  </div>
 </header>
-<main>
 
-<h2>1. 是什么</h2>
-<p>插在主动法术前。施法时在<strong>当前法术</strong>与<strong>上一发仍存活法术</strong>（<code>_lastSpellEntity</code>）间拉链，打路径上的单位。</p>
-<p>文案：链接上一个施放的法术并对路径造成 <code>int1</code> 点伤害。</p>
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值结构</a></li>
+    <li><a href="#s3">运行时架构（双轨）</a></li>
+    <li><a href="#s4">生成逻辑（ECS 主路径）</a></li>
+    <li><a href="#s5">帧逻辑（Spell3007Job）</a></li>
+    <li><a href="#s6">视觉表现</a></li>
+    <li><a href="#s7">数据结构速查</a></li>
+    <li><a href="#s8">与构筑相关的行为摘要</a></li>
+    <li><a href="#s9">证据索引</a></li>
+    <li><a href="#s10">待决 / 局限</a></li>
+  </ol>
+</nav>
 
-<h2>2. 数值</h2>
+<h2 id="s1">1. 身份与定位</h2>
 <table>
-  <tr><th>ID</th><th class="num">Lv</th><th class="num">int1 伤害</th><th class="num">float1</th></tr>
-  <tr><td>30071</td><td class="num">1</td><td class="num"><b>12</b></td><td class="num">0.2</td></tr>
-  <tr><td>30072</td><td class="num">2</td><td class="num"><b>24</b></td><td class="num">0.2</td></tr>
-  <tr><td>30073</td><td class="num">3</td><td class="num"><b>48</b></td><td class="num">0.2</td></tr>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>闪电链</td></tr>
+  <tr><td>英文名</td><td>Chain of Lightning</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3007</code> / <code>SpellAbilityType.LightningChain</code></td></tr>
+  <tr><td>配置 ID</td><td><code>30071</code>（Lv1）/ <code>30072</code>（Lv2）/ <code>30073</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，<code>mpCost=0</code>，自身 <code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>6 / 18 / 54</td></tr>
 </table>
-<ul>
-  <li><code>int1</code>：伤害基数（唯一有效配置字段）</li>
-  <li><code>float1=0.2</code>：<strong>代码未读</strong>，疑似残留</li>
-</ul>
+
+<p><strong>机制一句话</strong>：插在主动法术前的 Enhance；当带闪电链伤害的法术被施放时，在<strong>当前法术实体</strong>与<strong>上一发仍存活的法术实体</strong>之间拉一条链，对路径上单位造成伤害。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">各闪电链 int1 经 stopTarget 求和</div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 LightningChainDamage</div>
+    <div class="arrow">↓</div>
+    <div class="dia">Damage&gt;0 且允许生成？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">不拉链</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="dia">上一发仍存活？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="arrow">↓</div>
+            <div class="box end">只更新锚点</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="arrow">↓</div>
+            <div class="box ok">生成链：Source=当前 · Target=上一发</div>
+            <div class="arrow">↓</div>
+            <div class="box">分裂弹 ×0.35 · Penetrate=1+穿透</div>
+            <div class="arrow">↓</div>
+            <div class="box">玩家阵营：锚点=当前</div>
+            <div class="arrow">↓</div>
+            <div class="box">Spell3007Job 每帧</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7130071–7130073</code>）：</p>
+<div class="quote">链接上一个施放的法术并对路径上的物体造成 <strong>int1</strong> 点伤害</div>
+
+<h2 id="s2">2. 数值结构</h2>
+<h3>2.1 配置表原始值</h3>
 <table>
-  <tr><th>运行时常量</th><th>值</th></tr>
-  <tr><td>检测间隔</td><td><code>0.06s</code></td></tr>
-  <tr><td>同目标冷却</td><td><code>0.1s</code></td></tr>
-  <tr><td>SphereCast 半宽</td><td><code>0.4</code>（硬编码，非 float1）</td></tr>
-  <tr><td>分裂弹伤害</td><td><code>×0.35</code></td></tr>
-  <tr><td>可伤敌人数</td><td><code>1 + 穿透符文 int1</code></td></tr>
+  <tr><th>ID</th><th>Level</th><th>float1</th><th>int1（路径伤害基数）</th><th>其余 float/int</th></tr>
+  <tr><td>30071</td><td>1</td><td>0.2</td><td><strong>12</strong></td><td>全 0</td></tr>
+  <tr><td>30072</td><td>2</td><td>0.2</td><td><strong>24</strong></td><td>全 0</td></tr>
+  <tr><td>30073</td><td>3</td><td>0.2</td><td><strong>48</strong></td><td>全 0</td></tr>
+</table>
+<p>规律：<code>int1</code> 每级 ×2；<code>float1</code> 三级恒为 <code>0.2</code>。</p>
+
+<h3>2.2 通用槽位语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>置信度</th><th>证据</th></tr>
+  <tr><td><strong>int1</strong></td><td>路径伤害基数；进 <code>GetLightningChainDamage_FinalPlayerValue</code>，并用于 UI 描述替换</td><td>高</td><td><code>CanShootSpellUtils</code>；<code>SpellConfig.GetDes</code>；文案占位 <code>int1</code></td></tr>
+  <tr><td><strong>float1</strong></td><td>配置存在但<strong>当前 ECS/伤害结算均未读取</strong>；运行时碰撞半宽硬编码为 <code>0.4</code></td><td>低（疑似残留）</td><td>Job 写死 <code>width = 0.4f</code>；描述与伤害公式均不用 <code>float1</code></td></tr>
+  <tr><td>float2/3、int2/3</td><td>未使用</td><td>高</td><td>配置恒 0，无引用</td></tr>
+</table>
+<div class="note">既有《法术能力类型字段语义表》曾将 float1 标为「碰撞宽/半径?」。对照 <code>Spell3007Job</code> 后应修正为：<strong>配置残留，运行时未接入</strong>。</div>
+
+<h3>2.3 运行时常量（写死在代码，非配置）</h3>
+<table>
+  <tr><th>常量</th><th>值</th><th>位置</th></tr>
+  <tr><td>伤害检测间隔</td><td><code>0.06</code> s</td><td><code>Spell3007Job</code>：<code>DamageTimer</code></td></tr>
+  <tr><td>同目标伤害冷却</td><td><code>0.1</code> s</td><td><code>Spell3007DamageCoolDownBuffer.CoolDownTimer</code></td></tr>
+  <tr><td>SphereCast 半宽</td><td><code>0.4</code></td><td><code>Spell3007Job</code>：<code>width = 0.4f</code></td></tr>
+  <tr><td>分裂弹伤害系数</td><td><code>0.35</code></td><td><code>SpellShootSystem.TrySpawnLightningChain</code></td></tr>
+  <tr><td>低帧优化阈值</td><td>桌面 <code>30</code> / 移动 <code>15</code> FPS</td><td>同上（<code>DynamicOptimizeData</code>）</td></tr>
+  <tr><td>基础可命中敌人数</td><td><code>1 + BonusPenetrate</code></td><td><code>PenetrateCount</code>；<code>BonusPenetrate = sip.PenetrateCount</code></td></tr>
 </table>
 
-<div class="box">LightningChainDamage = Ceil( Σ GetDamage(e.int1) )
-· 多张求和 · 只吃该张左侧强化（stopTarget）· 再套全局倍率</div>
+<h3>2.4 最终伤害公式</h3>
+<p>入口：<code>CanShootSpellUtils.GetLightningChainDamage_FinalPlayerValue</code></p>
+<pre class="code">对 EnhanceList 中每一个 LightningChain 配置 e：
+  partial = GetDamage_FinalPlayerValue(e.int1, EnhanceList配置数组, stopTarget=e, wand).Result
+  （即：只吃 e 之前的伤害加算/乘算强化 + 玩家 ExtraDamageRatio + 法杖 passiveDamageRatio + damageCorrection/100）
 
-<div class="code">
-  <div class="bar"><b>CanShootSpellUtils.cs</b><span>伤害求和</span></div>
-<pre>public static int GetLightningChainDamage_FinalPlayerValue(SpellShootData shootData, Wand wand)
+LightningChainDamage = Ceil( Σ partial )</pre>
+<pre class="code">public static int GetLightningChainDamage_FinalPlayerValue(SpellShootData shootData, Wand wand)
 {
-    SpellConfig[] array = shootData.EnhanceList.Select(e => e.GetFinalConfig()).ToArray();
+    SpellConfig[] array = shootData.EnhanceList.Select((SlotData e) =&gt; e.GetFinalConfig()).ToArray();
     float num = 0f;
-    foreach (var item in array.Where(e => e.abilityType == SpellAbilityType.LightningChain))
+    foreach (SpellConfig item in array.Where((SpellConfig e) =&gt; e.abilityType == SpellAbilityType.LightningChain))
+    {
         num += GetDamage_FinalPlayerValue(item.int1, array, item, wand).Result;
+    }
     return Mathf.CeilToInt(num);
 }</pre>
-</div>
+<p><code>GetDamage</code> 遇到 <code>stopTarget</code>（当前这张闪电链自身）即停止，因此：</p>
+<ul>
+  <li><strong>闪电链左侧</strong>的增强攻击/火晶石/过载/折射/节能等会影响其伤害；</li>
+  <li><strong>闪电链右侧</strong>的同段强化不计入该张闪电链；</li>
+  <li>多张闪电链各自结算后<strong>求和</strong>。</li>
+</ul>
+<p>写入施法参数：<code>SpellInitialParameter.ProcessShootDataEffect</code> → <code>sip.lightningChainDamage</code> → <code>SpellConfigComponentData.LightningChainDamage</code>。</p>
+<p>UI 展示：<code>SpellConfig.GetDes</code> 对闪电链把描述里的 <code>int1</code> 替换为 <code>Ceil(int1 * damageRatio)</code>（带绿/红染色），与运行时完整公式不完全同一套，属展示层简化。</p>
 
-<div class="code">
-  <div class="bar"><b>CanShootSpellUtils.cs</b><span>stopTarget 截断</span></div>
-<pre>public static RatioValue GetDamage(float baseDamage, IEnumerable&lt;SpellConfig&gt; enhances, SpellConfig stopTarget)
+<h2 id="s3">3. 运行时架构（双轨）</h2>
+<p>游戏同时残留 <strong>MonoBehaviour 旧轨</strong> 与 <strong>DOTS/ECS 主轨</strong>。当前施法主路径走 ECS。</p>
+<pre class="code">法杖槽位解析 → SpellShootData.EnhanceList 含 LightningChain
+        ↓
+SpellInitialParameter：结算 lightningChainDamage / PenetrateCount
+        ↓
+ShootSpellUtils：写入 SpellSpawnParams.ConfigComponentData.LightningChainDamage
+                 BonusPenetrate = sip.PenetrateCount
+        ↓
+SpellShootSystem 生成主动法术 Entity
+  ├─ 若 LightningChainDamage &gt; 0 且允许生成：
+  │     TrySpawnLightningChain：
+  │       Source = 当前法术，Target = _lastSpellEntity（上一发）
+  │       Damage / PenetrateCount 写入 Spell3007LightningChainEffect
+  │       玩家阵营则更新 _lastSpellEntity = 当前
+  └─ 特殊武器可通过 Spell3007CreateRequest 缓冲走 SpawnLightningChainForRequest
+        ↓
+Spell3007LightningChainAttackSystem（EnhanceSpellSystemGroup）
+  └─ Spell3007Job：跟点、SphereCast、冷却、穿透计数、销毁</pre>
+
+<p><strong>视觉双轨对照</strong>（详见第 6 节）：</p>
+<table>
+  <tr><th>路径</th><th>视觉手段</th><th>伤害手段</th></tr>
+  <tr><td>ECS 主轨</td><td>子实体 <code>Spell3007Chain{Color}</code> + <code>LocalTransform</code>/<code>PostTransformMatrix</code> 拉伸</td><td><code>Spell3007Job</code> SphereCast</td></tr>
+  <tr><td>Mono 旧轨</td><td>双 <code>LineRenderer</code>（<code>lr_Laser</code> / <code>lr_Shadow</code>）逐帧 <code>SetPosition</code></td><td><code>Physics.Raycast</code> 一击即毁</td></tr>
+</table>
+
+<h3>3.1 关键类型 / 文件</h3>
+<table>
+  <tr><th>文件</th><th>角色</th></tr>
+  <tr><td><code>Spell3007LightningChainEffect</code></td><td>ECS 组件：Source/Target/Damage/PenetrateCount/DamageTimer</td></tr>
+  <tr><td><code>Spell3007DamageCoolDownBuffer</code></td><td>每条链上的「已碰敌人 + 冷却」缓冲</td></tr>
+  <tr><td><code>Spell3007CreateRequest</code></td><td>外部请求生成链（如彼岸刀）</td></tr>
+  <tr><td><code>BreakLightningChain</code></td><td>空 tag；源/目标皆挂上时 Job 销毁链</td></tr>
+  <tr><td><code>Spell3007LightningChainAuthoring</code></td><td>Baker：烘焙 Effect + CoolDownBuffer</td></tr>
+  <tr><td><code>Spell3007LightningChainAttackSystem</code></td><td>调度 Job</td></tr>
+  <tr><td><code>Spell3007Job</code></td><td>跟点 + 伤害主逻辑</td></tr>
+  <tr><td><code>SpellShootSystem</code></td><td><code>_lastSpellEntity</code>、生成链、低帧优化</td></tr>
+  <tr><td><code>CanShootSpellUtils</code></td><td>伤害结算</td></tr>
+  <tr><td><code>Spell3007LightningChain</code> + <code>Spell3007ChainSystem</code></td><td><strong>旧 Mono 路径</strong>（LineRenderer + 分裂弹等）</td></tr>
+</table>
+
+<h2 id="s4">4. 生成逻辑（ECS 主路径）</h2>
+<h3>4.1 触发条件（<code>SpellShootSystem</code>）</h3>
+<p>同时满足才 <code>TrySpawnLightningChain</code>：</p>
+<ol>
+  <li><code>LightningChainDamage &gt; 0</code></li>
+  <li><code>IgnoreSpawnLightningChain == false</code></li>
+  <li>主动法术 <code>AbilityType</code> <strong>不是</strong>：<code>BiAnLethalBlade</code> / <code>Umbrella</code> / <code>RuneHammer</code> / <code>LaserBeam</code>（这些走别的链生成或禁用）</li>
+</ol>
+<pre class="code">if (spawnParams.ConfigComponentData.LightningChainDamage &gt; 0f
+    &amp;&amp; !spawnParams.IgnoreSpawnLightningChain
+    &amp;&amp; spawnParams.ConfigComponentData.AbilityType != SpellAbilityType.BiAnLethalBlade
+    &amp;&amp; spawnParams.ConfigComponentData.AbilityType != SpellAbilityType.Umbrella
+    &amp;&amp; spawnParams.ConfigComponentData.AbilityType != SpellAbilityType.RuneHammer
+    &amp;&amp; spawnParams.ConfigComponentData.AbilityType != SpellAbilityType.LaserBeam)
 {
-    RatioValue ratioValue = new RatioValue(baseDamage);
-    foreach (SpellConfig enhance in enhances)
+    TrySpawnLightningChain(ref state, spawnParams, spellSingleton, entity);
+    if (DTool.IsSameCamp(spawnParams.ConfigComponentData.ShooterType, UnitType.Player))
     {
-        if (enhance != stopTarget)
-        {
-            switch (enhance.abilityType) {
-            case EnhanceAttackRatio: case FireCrystal: case OverDrive:
-                ratioValue.AddRatio(enhance.float1 / 100f); break;
-            case Refraction: ratioValue.MulRatio(enhance.float2 / 100f); break;
-            case PowerSavingMode: ratioValue.MulRatio(enhance.float3 / 100f); break;
-            }
-            continue;
-        }
-        return ratioValue; // 碰到闪电链自身即停
+        _lastSpellEntity = entity;
     }
-    return ratioValue;
 }</pre>
-</div>
+<p>玩家阵营成功走完生成分支后：<code>_lastSpellEntity = 当前法术</code>。系统 <code>OnCreate</code> 会把 <code>_lastSpellEntity</code> 置空——换场景/重建后第一发只更新锚点、不拉链。</p>
 
-<h2>3. 主流程（ECS）</h2>
-<div class="box">EnhanceList → SIP.lightningChainDamage
-→ 生成主动时 Damage&gt;0：与 _lastSpellEntity 建链
-   PenetrateCount = 1 + 穿透；更新锚点
-→ Spell3007Job：跟点 + SphereCast</div>
+<h3>4.2 <code>TrySpawnLightningChain</code> 要点</h3>
+<ol>
+  <li>需要 <code>_lastSpellEntity</code> 仍存在且带 <code>SpellConfigComponentData</code>，否则直接 return。</li>
+  <li>实例化预制体键：<code>"Spell_3007"</code>（逻辑根）+ 颜色子实体 <code>"Spell3007Chain{Color}"</code>（视觉），子实体 <code>Parent</code> 到链根，并加入 <code>LinkedEntityGroup</code>。</li>
+  <li>伤害：普通用 <code>LightningChainDamage</code>；分裂弹 <code>×0.35</code>；低帧优化可能跳过或再乘补偿系数。</li>
+  <li>写入 Effect：<code>Source=当前</code>，<code>Target=上一发</code>，<code>PenetrateCount=1+BonusPenetrate</code>。</li>
+</ol>
+
+<h3>4.3 <code>Spell3007CreateRequest</code> 旁路</h3>
+<p>缓冲字段：<code>Source / Damage / Penetrate / ColorName / MarkAsFired</code>。<code>SpawnLightningChainForRequest</code> 用 <code>1 + req.Penetrate</code> 作穿透，并按 <code>MarkAsFired</code> 更新 <code>_lastSpellEntity</code>。彼岸刀等武器通过此缓冲造链。</p>
+
+<h3>4.4 旧 Mono 路径（对照）</h3>
 <ul>
-  <li>排除自动建链：彼岸刀 / 伞 / 符文锤 / 激光</li>
-  <li>穿透 = 能打几个敌人后销毁，<strong>不是</strong>穿墙</li>
+  <li>伤害取 <strong>两发平均值</strong> <code>(s1+s2)/2</code>（与 ECS「只用当前发 Damage」不同）</li>
+  <li>对象池路径：<code>Prefabs/Spell/30071</code> → <code>Spell3007LightningChain</code></li>
+  <li><code>Update</code> 里 <code>Physics.Raycast</code> 命中后结算一次，然后回收——<strong>单次命中即毁</strong></li>
+  <li>分裂弹经 <code>SpellBase.CreateSplitSpellLightningChain</code> 仍可能走此轨</li>
 </ul>
 
-<div class="code">
-  <div class="bar"><b>SpellShootSystem.cs</b><span>触发 + 更新锚点</span></div>
-<pre>if (LightningChainDamage &gt; 0f &amp;&amp; !IgnoreSpawnLightningChain
-    &amp;&amp; AbilityType != BiAnLethalBlade / Umbrella / RuneHammer / LaserBeam)
-{
-    TrySpawnLightningChain(...);
-    if (IsPlayerCamp) _lastSpellEntity = entity;
-}</pre>
-</div>
+<h2 id="s5">5. 帧逻辑（<code>Spell3007Job</code>，ECS）</h2>
+<p>每个带 <code>Spell3007LightningChainEffect</code> 的实体每帧：</p>
+<ol>
+  <li><strong>端点失效</strong>（Source/Target 不存在或坐标 NaN）→ 销毁链。</li>
+  <li><strong>双端均有</strong> <code>BreakLightningChain</code> → 销毁链。</li>
+  <li><strong>视觉跟点</strong>：链中点定位、朝向 <code>atan2</code>、<code>PostTransformMatrix</code> 按两端距离在 X 轴缩放（<strong>不用 LineRenderer</strong>）。</li>
+  <li><code>DamageTimer += dt</code>；未超过 <code>0.06</code> 则本帧不检测。</li>
+  <li>到期后：<code>SphereCast</code>（起=Source，终=Target，宽=<code>0.4</code>，阵营 <code>Teammate</code>）。</li>
+  <li>命中单位：冷却 <code>0.1s</code>；<code>PenetrateCount--</code>，<code>&lt;=0</code> 销毁。</li>
+  <li>伤害包 <code>AbilityType</code> 强制为 <code>LightningChain</code>；元素/配置取自 <strong>Source</strong>。</li>
+</ol>
 
-<div class="code">
-  <div class="bar"><b>SpellShootSystem.TrySpawnLightningChain</b><span>实例化 + Effect</span></div>
-<pre>Entity root = Instantiate(Prefabs["Spell_3007"]);
-Entity vis  = Instantiate(Prefabs[$"Spell3007Chain{Color}"]); // Parent 到 root
-float dmg = IsSplitSpell ? LightningChainDamage * 0.35f : LightningChainDamage;
-SetComponent(root, new Spell3007LightningChainEffect {
-    SourceEntity = spell,              // 当前
-    TargetEntity = _lastSpellEntity,   // 上一发
-    Damage = dmg,
-    PenetrateCount = 1 + BonusPenetrate
-});</pre>
-</div>
-
-<div class="code">
-  <div class="bar"><b>Spell3007Job.cs</b><span>跟点 / 检测 / 穿透</span></div>
-<pre>// 视觉：中点 + atan2 朝向 + scale.x = 两端距离
-chainTrans.Position = midpoint + layerCorrect;
-chainTrans.Rotation = Euler(0, 0, atan2(dir.y, dir.x));
-freeScale.Value = Scale(distance, 1, 1);
-
-DamageTimer += dt;
-if (DamageTimer &lt;= 0.06f) return;
-DamageTimer -= 0.06f;
-GetAttackableEntitiesInSphereCast(start, end, width: 0.4f, Teammate, ...);
-
-// 单位命中：冷却 0.1s，PenetrateCount--，≤0 销毁
-CoolDownTimer = 0.1f;
-info.AbilityType = LightningChain;
-PenetrateCount--;
-if (PenetrateCount &lt;= 0) DestroyEntity(chainSpell);</pre>
-</div>
-
-<h2>4. 双轨对比</h2>
-<div class="grid">
-  <div class="card ecs">
-    <h3>ECS 主轨（复刻以此为准）</h3>
-    <ul>
-      <li>视觉：彩色预制体拉伸</li>
-      <li>SphereCast，周期 0.06s</li>
-      <li>持续到穿透耗尽 / 端点没了</li>
-    </ul>
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">每帧：Spell3007Job</div>
+    <div class="arrow">↓</div>
+    <div class="dia">Source/Target 存在？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box bad">销毁链</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="dia">双端都有 Break？</div>
+      </div>
+    </div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box bad">销毁链</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box">中点定位 · X轴拉伸</div>
+        <div class="arrow">↓</div>
+        <div class="box">DamageTimer += dt</div>
+        <div class="arrow">↓</div>
+        <div class="dia">Timer 超过 0.06s？</div>
+        <div class="branch">
+          <div class="arm">
+            <div class="lbl">否</div>
+            <div class="arrow">↓</div>
+            <div class="box end">本帧不检测</div>
+          </div>
+          <div class="arm">
+            <div class="lbl">是</div>
+            <div class="arrow">↓</div>
+            <div class="box">SphereCast 半宽 0.4</div>
+            <div class="arrow">↓</div>
+            <div class="dia">命中且冷却已到？</div>
+            <div class="branch">
+              <div class="arm">
+                <div class="lbl">否</div>
+                <div class="arrow">↓</div>
+                <div class="box end">等下一拍</div>
+              </div>
+              <div class="arm">
+                <div class="lbl">是</div>
+                <div class="arrow">↓</div>
+                <div class="box ok">结算伤害 · CD=0.1s</div>
+                <div class="arrow">↓</div>
+                <div class="box">PenetrateCount--</div>
+                <div class="arrow">↓</div>
+                <div class="dia">Count 用尽？</div>
+                <div class="branch">
+                  <div class="arm">
+                    <div class="lbl">是</div>
+                    <div class="arrow">↓</div>
+                    <div class="box bad">销毁链</div>
+                  </div>
+                  <div class="arm">
+                    <div class="lbl">否</div>
+                    <div class="arrow">↓</div>
+                    <div class="box end">等下一拍</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="card mono">
-    <h3>Mono 旧轨（分裂弹等）</h3>
-    <ul>
-      <li>LineRenderer ×2（Laser + Shadow）</li>
-      <li>Raycast，命中即回收</li>
-      <li>伤害 (s1+s2)/2</li>
-    </ul>
-  </div>
 </div>
 
-<div class="code">
-  <div class="bar"><b>Spell3007ChainSystem.cs</b><span>Mono 建链</span></div>
-<pre>float chainDamage = (s1.lightningChainDamage + s2.lightningChainDamage) / 2f;
-ObjPoolMgr.Inst.GetGO("Prefabs/Spell/30071")
-    .GetComponent&lt;Spell3007LightningChain&gt;()
-    .Iniatialize(unitPpt, s1.transform, s2.transform, chainDamage, wand, s1, s2);</pre>
-</div>
+<h3>5.1 穿透语义（易误解）</h3>
+<p>此处 <code>PenetrateCount</code> <strong>不是</strong>弹道穿墙次数，而是：<strong>这条链在销毁前最多能对多少个「单位目标」完成一次伤害结算</strong>。基础为 1；同段穿透符文（<code>SpellAbilityType.Penetrate</code> 的 <code>int1</code> 累加）经 <code>BonusPenetrate</code> 追加。</p>
 
-<h2>5. LineRenderer（仅 Mono）</h2>
+<h3>5.2 元素与表现继承</h3>
+<p>ECS 路径：伤害 info 携带 Source 的 <code>SpellElementEffectComponentData</code> / <code>SpellConfigComponentData</code>。<br>
+旧 Mono 路径：从 <code>targetSpell</code> 拷贝冰冻/粘液/毒/燃烧/虚空、暴击率、拉扯晶石、<strong>LineRenderer 线宽与材质</strong>等。</p>
+
+<h2 id="s6">6. 视觉表现：LineRenderer（Mono）与 ECS 缩放链</h2>
+<p>闪电链有两套视觉实现，<strong>不要混为一谈</strong>。</p>
+
+<h3>6.1 总览</h3>
+<table>
+  <tr><th></th><th>Mono 旧轨 <code>Spell3007LightningChain</code></th><th>ECS 主轨 <code>Spell3007Job</code></th></tr>
+  <tr><td>组件</td><td>两个 <code>LineRenderer</code>：<code>lr_Laser</code>、<code>lr_Shadow</code></td><td>无 LineRenderer；子实体 <code>Spell3007Chain{Color}</code></td></tr>
+  <tr><td>端点更新</td><td>每帧 <code>SetPosition(0/1, …)</code></td><td>中点 <code>LocalTransform</code> + X 轴 <code>PostTransformMatrix</code> 缩放为两端距离</td></tr>
+  <tr><td>线宽</td><td><code>startWidth = Pow(伤害倍率, 1/3) * spellVolumeRatio</code></td><td>由预制体自身厚度决定（Job 不改宽度）</td></tr>
+  <tr><td>颜色/元素</td><td>按 <code>SpellColorType</code> 换 <code>lr_Laser.material</code></td><td>生成时选对应颜色预制体键</td></tr>
+  <tr><td>透明度</td><td><code>OnEnable</code> 用设置里的 <code>FinalSpellTransparent</code> 改 <code>colorGradient</code></td><td>预制体/材质侧</td></tr>
+  <tr><td>层级校正</td><td>Laser：<code>Tool2D.GetLayerPoint</code> + <code>z+0.05</code>；Shadow：<code>IgnoreZPoint(..., 1.05)</code></td><td><code>DTool.GetLayerPosition</code> 加到中点</td></tr>
+  <tr><td>命中后视觉</td><td>对象池 <code>Prefabs/Spell/30071/30071_Hit_{colorType}</code></td><td>全局粒子缓冲 <code>3007_Hit_{Color}</code></td></tr>
+</table>
+
+<h3>6.2 Mono：双 LineRenderer 职责</h3>
 <ul>
-  <li><code>lr_Laser</code>：主光束，换元素材质，受法术透明度</li>
-  <li><code>lr_Shadow</code>：阴影线，同步端点/线宽，不换材质</li>
-  <li>ECS 不用 LR——Burst 改用 Transform 缩放</li>
+  <li><code>lr_Laser</code>：主闪电光束。换材质表达元素色；参与玩家「法术透明度」设置。</li>
+  <li><code>lr_Shadow</code>：投影/阴影线。与 Laser 同步端点与线宽，但 Z/层级处理不同（压到阴影层），材质不随元素切换。</li>
+</ul>
+<p>这是项目里激光类法术的常见模式（高压射线 <code>Spell1019</code>、蛇行 <code>Spell1010</code> 等也是 BodyLine + ShadowLine）。</p>
+
+<h3>6.3 初始化：透明度、材质、线宽</h3>
+<p><code>Iniatialize</code> 中：绑定两端 Transform 与伤害；从 <code>targetSpell</code> 继承元素/暴击/体积；按 <code>ColorType</code> 换 <code>lr_Laser.material</code>；线宽：</p>
+<pre class="code">lr_Laser.startWidth = Mathf.Pow(f, 0.3333f) * targetSpell.spellVolumeRatio;
+lr_Shadow.startWidth = Mathf.Pow(f, 0.3333f) * targetSpell.spellVolumeRatio;</pre>
+<p>其中 <code>f = damageRatio * finalDamageRatio</code>。立方根缩放让伤害倍率变化时线宽不会线性暴涨。只设了 <code>startWidth</code>，未改 <code>endWidth</code>。</p>
+
+<h3>6.4 每帧：端点跟随 + Raycast 打断</h3>
+<table>
+  <tr><th>调用</th><th>作用</th></tr>
+  <tr><td><code>Tool2D.GetLayerPoint</code></td><td>把世界坐标校正到游戏 2D 逻辑层，避免深度穿插</td></tr>
+  <tr><td><code>z + 0.05</code></td><td>Laser 略抬起，压在场景之上</td></tr>
+  <tr><td><code>IgnoreZPoint(tsf, 1.05f)</code></td><td>Shadow 固定到阴影 Z（<code>1.05</code>），形成贴地投影感</td></tr>
+</table>
+<ul>
+  <li>Raycast 方向为 spell1→spell2，距离上限 <code>100</code>；额外判断命中点不超出两端距离。</li>
+  <li><strong>命中即回收</strong>，与 ECS 链「持续存在直到穿透耗尽/端点消失」不同。</li>
+  <li>任一端 <code>activeSelf==false</code> 或彼岸刀进入 <code>Follow</code> 状态也会直接回收。</li>
 </ul>
 
-<div class="code">
-  <div class="bar"><b>Spell3007LightningChain.cs</b><span>字段 / 透明 / 线宽 / 端点</span></div>
-<pre>public LineRenderer lr_Laser;
-public LineRenderer lr_Shadow;
+<h3>6.5 ECS：为何不用 LineRenderer</h3>
+<pre class="code">position = midpoint(Source, Target) + layerCorrect
+rotation = Euler(0, 0, atan2(dir.y, dir.x))
+scale.x  = distance(Source, Target)   // PostTransformMatrix</pre>
+<p>子实体键名 <code>Spell3007Chain{Color}</code> 在生成时按颜色 Instantiate，相当于把「换 LineRenderer 材质」换成「换彩色预制体」。Burst Job 无法方便地驱动托管 <code>LineRenderer</code>，因此主路径改用纯 Transform 缩放。</p>
 
-// OnEnable：全局法术透明度
-lr_Laser.colorGradient  = ...GetGradientWithTransparent(..., FinalSpellTransparent);
-lr_Shadow.colorGradient = ...;
+<h2 id="s7">7. 数据结构速查</h2>
+<pre class="code">// 配置侧（SpellConfig）
+// abilityType=3007, int1=伤害基数, float1=0.2（未使用）
 
-// 线宽（立方根，避免倍率线性撑爆）
-float f = damageRatio * finalDamageRatio;
-lr_Laser.startWidth  = Mathf.Pow(f, 0.3333f) * spellVolumeRatio;
-lr_Shadow.startWidth = Mathf.Pow(f, 0.3333f) * spellVolumeRatio;
+struct Spell3007LightningChainEffect : IComponentData {
+    Entity SourceEntity;   // 当前法术（新）
+    Entity TargetEntity;   // 上一发法术（旧）
+    float  Damage;
+    int    PenetrateCount;
+    float  DamageTimer;
+}
 
-// Update：端点跟随
-lr_Laser.SetPosition(0, GetLayerPoint(spell1) + z*0.05f);
-lr_Laser.SetPosition(1, GetLayerPoint(spell2) + z*0.05f);
-lr_Shadow.SetPosition(0, IgnoreZPoint(spell1, 1.05f));
-lr_Shadow.SetPosition(1, IgnoreZPoint(spell2, 1.05f));
+struct Spell3007DamageCoolDownBuffer : IBufferElementData {
+    Entity EnemyEntity;
+    float  CoolDownTimer;  // 归零可再伤，命中后置 0.1
+}
 
-// Raycast 命中 → TakeDamage → RecycleGO（一击即毁）</pre>
+struct Spell3007CreateRequest : IBufferElementData {
+    Entity Source;
+    int Penetrate;
+    FixedString32Bytes ColorName;
+    float Damage;
+    bool MarkAsFired;
+}
+
+struct BreakLightningChain : IComponentData { } // tag</pre>
+
+<h2 id="s8">8. 与构筑相关的行为摘要</h2>
+<table>
+  <tr><th>行为</th><th>结果</th></tr>
+  <tr><td>仅一张闪电链 + 主动法术</td><td>主动法术带 <code>LightningChainDamage</code>；第二发起与上一发连线</td></tr>
+  <tr><td>多张闪电链在同一主动前</td><td><code>int1</code> 各自经强化后<strong>求和</strong></td></tr>
+  <tr><td>闪电链左侧放伤害%强化</td><td>提高链伤害（<code>stopTarget</code> 截断规则）</td></tr>
+  <tr><td>同段加穿透</td><td>提高链可伤害的敌人数（<code>1+Σ穿透int1</code>）</td></tr>
+  <tr><td>分裂弹</td><td>ECS：链伤害 ×0.35；Mono：平均伤害 + LineRenderer 链</td></tr>
+  <tr><td>彼岸刀/伞/符文锤/激光束</td><td>默认自动建链被排除；刀类走 CreateRequest</td></tr>
+  <tr><td>低帧优化</td><td>可能跳过生成，或抬高单次 Damage 补偿</td></tr>
+</table>
+
+<h2 id="s9">9. 证据索引</h2>
+<table>
+  <tr><th>结论</th><th>文件</th></tr>
+  <tr><td>配置数值</td><td><code>assets_export/SpellConfig.json</code>（30071–30073）</td></tr>
+  <tr><td>描述文案</td><td><code>assets_export/TextConfig_Spell.json</code>（703007x / 713007x）</td></tr>
+  <tr><td>伤害求和公式</td><td><code>CanShootSpellUtils.GetLightningChainDamage_FinalPlayerValue</code></td></tr>
+  <tr><td>通用伤害 Ratio</td><td><code>CanShootSpellUtils.GetDamage</code> / <code>GetDamage_FinalPlayerValue</code></td></tr>
+  <tr><td>SIP 写入</td><td><code>SpellInitialParameter.Builder.ProcessShootDataEffect</code></td></tr>
+  <tr><td>SpawnParams 映射</td><td><code>ShootSpellUtils</code>（<code>LightningChainDamage</code>、<code>BonusPenetrate</code>）</td></tr>
+  <tr><td>生成与上一发锚点</td><td><code>SpellShootSystem.TrySpawnLightningChain</code> / <code>SpawnLightningChainForRequest</code></td></tr>
+  <tr><td>帧伤害与 ECS 视觉缩放</td><td><code>Spell3007Job.Execute</code></td></tr>
+  <tr><td>System 分组</td><td><code>Spell3007LightningChainAttackSystem</code> → <code>EnhanceSpellSystemGroup</code></td></tr>
+  <tr><td>Mono 建链</td><td><code>Spell3007ChainSystem</code></td></tr>
+  <tr><td>LineRenderer 双线/材质/线宽/端点</td><td><code>Spell3007LightningChain</code>（<code>lr_Laser</code> / <code>lr_Shadow</code>）</td></tr>
+  <tr><td>UI int1 染色</td><td><code>SpellConfig.GetDes</code>（<code>abilityType == LightningChain</code>）</td></tr>
+</table>
+
+<h2 id="s10">10. 待决 / 局限</h2>
+<ol>
+  <li><code>float1=0.2</code>：全链路未读；是否历史碰撞宽或策划废弃字段，静态分析无法证实。建议以「未使用」对待，勿写入复刻逻辑。</li>
+  <li><strong>Mono 与 ECS 并存</strong>：复刻应以 ECS（<code>SpellShootSystem</code> + <code>Spell3007Job</code>）为准；旧轨伤害取平均、LineRenderer + 单次 Raycast 即毁。</li>
+  <li><strong>SphereCast 与墙体</strong>：Job 未在链上做「撞墙截断」；旧 Mono 的 Raycast 会在墙/单位处打断。</li>
+  <li><strong>ECS 链预制体网格</strong>：<code>Spell3007Chain{Color}</code> 的具体 Mesh/Shader 在资源侧，未导出 Prefab 细节；本文只还原了 Transform 驱动方式。</li>
+  <li>本文不覆盖 <code>Spell1030</code> 鱼叉传导链、遗物 <code>LightningHarpoon</code>、精英 <code>Elite13_LightningChain</code>。</li>
+</ol>
+
+<footer>与 <code>闪电链逆向分析.md</code> 同步。离线可开，流程图不依赖外网。</footer>
 </div>
-
-<h2>6. 构筑要点</h2>
-<table>
-  <tr><th>做法</th><th>效果</th></tr>
-  <tr><td>闪电链放主动左侧</td><td>该主动带链伤害</td></tr>
-  <tr><td>多张叠加</td><td>伤害求和</td></tr>
-  <tr><td>链更左侧放伤害%</td><td>抬高链伤</td></tr>
-  <tr><td>加穿透</td><td>多打几个敌人</td></tr>
-  <tr><td>第二发才出链</td><td>第一发只当锚点</td></tr>
-</table>
-
-<h2>7. 关键文件</h2>
-<table>
-  <tr><td>伤害</td><td><code>CanShootSpellUtils</code></td></tr>
-  <tr><td>生成</td><td><code>SpellShootSystem.TrySpawnLightningChain</code></td></tr>
-  <tr><td>帧逻辑</td><td><code>Spell3007Job</code></td></tr>
-  <tr><td>Mono 线</td><td><code>Spell3007LightningChain</code> / <code>ChainSystem</code></td></tr>
-</table>
-
-</main>
-<footer>精简版 + 关键代码 · 详见 闪电链逆向分析.md</footer>
 </body>
 </html>

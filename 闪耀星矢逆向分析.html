@@ -39,7 +39,18 @@
   .card h3{margin:0 0 6px;font-size:13px}
   .card.ecs h3{color:var(--accent)}
   .card.mono h3{color:var(--warn)}
+  .ok{color:var(--accent2)}
   .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 10px;margin:10px 0 14px;overflow-x:auto}
+  .flow-col{display:flex;flex-direction:column;align-items:center;min-width:260px}
+  .fnode,.fdia{max-width:400px;text-align:center;padding:.5em .85em;border:1.5px solid #c084fc;background:#1a1524;border-radius:8px;font-size:13px}
+  .fdia{background:#2a2214;border-color:var(--warn);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);padding:1.25em 2em;min-width:188px}
+  .farrow{color:var(--accent);font-size:1.15rem;line-height:1.2;margin:.12em 0}
+  .fbranch{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:.25em}
+  .farm{display:flex;flex-direction:column;align-items:center}
+  .flbl{font-size:11px;color:var(--dim)}
+  .fend{background:#1a1f26;border-color:#5a6674;color:var(--dim)}
+  .fok{background:#12241e;border-color:#2a6b58;color:var(--accent2)}
   .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
   .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
     background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
@@ -58,6 +69,38 @@
 <h2>1. 是什么</h2>
 <p>按住蓄力的法术飞弹。蓄力期间暴击率随时间上涨；松手时若暴击率 ≥ <code>float3%</code>，最终伤害 × <code>float2%</code>。视觉按暴击率分 4 档，紫光为满档。</p>
 <p>文案：蓄力施法，每秒暴击 +<code>float1</code>%；暴击超过 <code>float3</code>% 时最终伤害 ×<code>float2</code>%。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="fnode">按下射击：生成 Entity</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">记 baseCritical · 关碰撞</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">ChargeTimer += dt</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">crit = base + Timer×0.25</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">升档 Shine / 体积</div>
+    <div class="farrow">↓</div>
+    <div class="fdia">仍按住？</div>
+    <div class="fbranch">
+      <div class="farm">
+        <div class="flbl">是</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fend">继续蓄</div>
+      </div>
+      <div class="farm">
+        <div class="flbl">否</div>
+        <div class="farrow">↓</div>
+        <div class="fnode">关 ChargingTag</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fok">恢复碰撞 · 结算倍率</div>
+        <div class="farrow">↓</div>
+        <div class="fnode">飞出 / 命中</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <h2>2. 数值</h2>
 <table>
@@ -84,6 +127,42 @@
   <tr><td>ECS 后坐力</td><td><code>2 × stage × 法杖倍率</code></td></tr>
   <tr><td>满倍率蓄力（无基础暴击）</td><td>Lv1 <code>1.32s</code> / Lv2 <code>2.64s</code> / Lv3 <code>4s</code></td></tr>
 </table>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="fnode">ChargingTag 关闭</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">crit = baseCritical + Timer×0.25</div>
+    <div class="farrow">↓</div>
+    <div class="fdia">crit ≥ Float3/100？</div>
+    <div class="fbranch">
+      <div class="farm">
+        <div class="flbl">是</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fok">MulRatio ×= Float2/100</div>
+      </div>
+      <div class="farm">
+        <div class="flbl">否</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fend">不套专属倍率</div>
+      </div>
+    </div>
+    <div class="farrow">↓</div>
+    <div class="fdia">溢出转伤且 crit≥1？</div>
+    <div class="fbranch">
+      <div class="farm">
+        <div class="flbl">是</div>
+        <div class="farrow">↓</div>
+        <div class="fnode">再 × crit 或 crit/base</div>
+      </div>
+      <div class="farm">
+        <div class="flbl">否</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fend">飞出</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="box">crit = baseCritical + ChargeTimer × 0.25   // ECS
 若 crit ≥ Float3/100：
@@ -175,7 +254,28 @@ if (crit > 0.33f) {
 return 1;</pre>
 </div>
 
-<h2>6. 构筑要点</h2>
+<h2>6. 对各 Buff：有无特殊处理</h2>
+<p>蓄力期不走寿命 / 悬停；碰撞 <code>None</code>，星矢自身不伤人。齐射 / 多重不改蓄力公式，不列。</p>
+<table>
+  <tr><th>对象</th><th>处理</th><th>要点</th></tr>
+  <tr><td>精准施法 3105</td><td class="ok">特殊</td><td>抬 <code>baseCritical</code></td></tr>
+  <tr><td>分裂 3013</td><td class="ok">特殊</td><td>不继承已蓄 <code>ChargeTimer</code>；ECS 用开火快照再结算一次</td></tr>
+  <tr><td>坠落 3119</td><td class="ok">特殊</td><td>蓄力跟落点；落地粒子走 <code>Spell1026FallEffectSystem</code></td></tr>
+  <tr><td>悬停 3008</td><td class="ok">特殊</td><td>蓄力期寿命冻结，松手后才飞再悬停</td></tr>
+  <tr><td>公转 / 蓄力星</td><td class="ok">特殊</td><td>松手绑 <code>AroundTarget</code></td></tr>
+  <tr><td>闪电链 3007</td><td>通用</td><td>不在排除表；链 SphereCast 蓄力中也能打</td></tr>
+  <tr><td>伤害强化 3102</td><td>通用</td><td>先 AddRatio，松手再叠 Float2 MulRatio</td></tr>
+  <tr><td>范围增强 3107</td><td>通用</td><td>表 radius=0；落地粒子才读 Calculate()</td></tr>
+  <tr><td>加速器 3106</td><td>通用</td><td>只改松手后速度</td></tr>
+  <tr><td>反弹 3012</td><td>通用</td><td>蓄力期撞不到墙</td></tr>
+  <tr><td>自动导航 3011</td><td>通用</td><td>松手后才追</td></tr>
+  <tr><td>粘液 / 毒液 / 雷霆晶石</td><td>通用</td><td>命中才挂；蓄力期等于没挂</td></tr>
+  <tr><td>强制冷却 4006</td><td>通用</td><td>整杖 CD，不改 ChargeTimer</td></tr>
+  <tr><td>奥术屏障 4012</td><td>不列</td><td>不是这张卡的强化</td></tr>
+</table>
+<p class="note">后槽不打开 <code>ChargingTag</code>，等于不能蓄，只吃开火底数是否够 float3。详情见 md 第 8 节。</p>
+
+<h2>7. 构筑要点</h2>
 <table>
   <tr><th>做法</th><th>效果</th></tr>
   <tr><td>蓄更久</td><td>暴击涨 → 易触发倍率 / 更高档</td></tr>
@@ -186,7 +286,7 @@ return 1;</pre>
   <tr><td>改 int1</td><td>当前无效果</td></tr>
 </table>
 
-<h2>7. 关键文件</h2>
+<h2>8. 关键文件</h2>
 <table>
   <tr><td>蓄力视觉/松手</td><td><code>Spell1026ShiningStarChargingSystem</code></td></tr>
   <tr><td>倍率结算</td><td><code>Spell1026ShiningStarEndChargingSystem</code></td></tr>

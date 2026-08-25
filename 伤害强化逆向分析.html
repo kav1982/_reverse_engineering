@@ -50,6 +50,16 @@
   .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
   .chip.dim{color:var(--dim)}
   .arrow{color:var(--dim);font-size:12px}
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 10px;margin:10px 0 14px;overflow-x:auto}
+  .flow-col{display:flex;flex-direction:column;align-items:center;min-width:260px}
+  .fnode,.fdia{max-width:400px;text-align:center;padding:.5em .85em;border:1.5px solid #4ea1ff;background:#141c28;border-radius:8px;font-size:13px}
+  .fdia{background:#2a2214;border-color:var(--warn);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);padding:1.25em 2em;min-width:188px}
+  .farrow{color:var(--accent);font-size:1.15rem;line-height:1.2;margin:.12em 0}
+  .fbranch{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:.25em}
+  .farm{display:flex;flex-direction:column;align-items:center}
+  .flbl{font-size:11px;color:var(--dim)}
+  .fend{background:#1a1f26;border-color:#5a6674;color:var(--dim)}
+  .fok{background:#12241e;border-color:#2a6b58;color:var(--accent2)}
   .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
   .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
     background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
@@ -72,6 +82,38 @@
   <li>没有 <code>Spell3102*System</code> / Authoring</li>
   <li>弹幕、召唤都吃（<code>haveEffecfor*</code> 恒 true；<code>GetDamage</code> 其实不读这两个字段）</li>
 </ul>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="fnode">扣蓝开火：扫 EnhanceList</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">AddRatio(float1 / 100)</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">炽焰晶石 / 过载 同池再加</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">玩家 ExtraDamageRatio · 低耗高伤</div>
+    <div class="farrow">↓</div>
+    <div class="fdia">有折射 / 节能？</div>
+    <div class="fbranch">
+      <div class="farm">
+        <div class="flbl">是</div>
+        <div class="farrow">↓</div>
+        <div class="fnode">MulRatio 连乘</div>
+      </div>
+      <div class="farm">
+        <div class="flbl">否</div>
+        <div class="farrow">↓</div>
+        <div class="fnode fend">MulRatio = 1</div>
+      </div>
+    </div>
+    <div class="farrow">↓</div>
+    <div class="fnode">法杖 passive × damageCorrection</div>
+    <div class="farrow">↓</div>
+    <div class="fnode fok">写入 Damage.AddRatio / MulRatio</div>
+    <div class="farrow">↓</div>
+    <div class="fnode">各 Job 读 Calculate()</div>
+  </div>
+</div>
 
 <h2>2. 数值</h2>
 <table>
