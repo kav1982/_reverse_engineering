@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时长强化（Spell3103 / EnhanceDurationValue）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .box-pre {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1.1em;
+    margin: .6em 0 1.1em;
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88rem;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 360px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 168px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>时长强化（Spell3103 / EnhanceDurationValue）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家法术增强符文「时长强化」（<code>abilityType = 3103</code>，配置 ID <code>31031–31033</code>）。重点是<strong>秒数怎么加算</strong>、<strong>和其它持续来源怎么分层</strong>，以及<strong>哪些法术真正读 <code>Duration</code></strong>。</p>
+    <p>不展开遗物/诅咒逐条来源，也不复述悬停第二段全文。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 对公转加时的乘算位置不同，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》，两段计时见《悬停逆向分析.md》，子弹满额重开见《分裂逆向分析.md》，主观缓时换秒见《加速器逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值结构</a></li>
+    <li><a href="#s3">叠加如何计算（核心）</a></li>
+    <li><a href="#s4">谁吃得到这张卡</a></li>
+    <li><a href="#s5">谁真正读到这份 Duration</a></li>
+    <li><a href="#s6">与其它持续来源的关系</a></li>
+    <li><a href="#s7">数值算例</a></li>
+    <li><a href="#s8">与构筑相关的行为摘要</a></li>
+    <li><a href="#s9">Mono 残留轨对照</a></li>
+    <li><a href="#s10">证据索引</a></li>
+    <li><a href="#s11">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>时长强化</td></tr>
+  <tr><td>英文名</td><td>Duration Boost</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3103</code> / <code>SpellAbilityType.EnhanceDurationValue</code></td></tr>
+  <tr><td>配置 ID</td><td><code>31031</code>（Lv1）/ <code>31032</code>（Lv2）/ <code>31033</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，<code>mpCost=0</code>，自身 <code>damage=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=false</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>8 / 24 / 72</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤法术<strong>左侧</strong>的纯数值符文；把 <code>float1</code> <strong>秒</strong>写进持续的<strong>加算池</strong>（<code>AddBase</code>），多张、跨等级都是秒数相加。它不加悬停第二段，也不改元素 DoT / 闪电链自己的计时。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">扣蓝开火：扫 EnhanceList</div>
+    <div class="arrow">↓</div>
+    <div class="box">AddBase(float1 秒)</div>
+    <div class="arrow">↓</div>
+    <div class="box">寻踪 float2 / 自由公转 float3 同层再加</div>
+    <div class="arrow">↓</div>
+    <div class="box">主观缓时另加 extraDuration</div>
+    <div class="arrow">↓</div>
+    <div class="dia">有节能？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">MulRatio(float2/100)</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box">MulRatio=1</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="box">写入 Duration.AddBase / MulRatio</div>
+    <div class="arrow">↓</div>
+    <div class="dia">运动是公转？</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">Extra += 公转 float1</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">Extra=0</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="box">Calculate = (Base+AddBase)×MulRatio+Extra</div>
+    <div class="arrow">↓</div>
+    <div class="box ok">UpdateDuration / 专属 Job</div>
+  </div>
+</div>
+<p class="note">时长强化是绝对值加秒，不是百分比。节能乘的是「表持续 + 加算」整段；公转 Extra 在乘算之后，节能不乘它（ECS）。</p>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7131031–7131033</code>）：</p>
+<p class="quote">法术持续时间+<strong>float1</strong>秒</p>
+<p>名称（<code>7031031–7031033</code>）：时长强化 / Duration Boost。三级名称相同，只有 <code>float1</code> 不同。</p>
+
+<h2 id="s2">2. 数值结构</h2>
+<h3>2.1 配置表原始值（<code>assets_export/SpellConfig.json</code>）</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1（加算秒）</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>31031</td><td>1</td><td><strong>2</strong></td><td>8</td><td>true</td></tr>
+  <tr><td>31032</td><td>2</td><td><strong>3.5</strong></td><td>24</td><td>true</td></tr>
+  <tr><td>31033</td><td>3</td><td><strong>6</strong></td><td>72</td><td>false</td></tr>
+</table>
+<p>规律：售价每级 ×3。<code>float1</code> <strong>不是</strong>每级 ×2（和伤害强化 / 范围增强不同）。<code>float2/3</code>、<code>int1/2/3</code> 全 0。无耗蓝倍率。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>置信度</th><th>证据</th></tr>
+  <tr><td><strong>float1</strong></td><td>加算秒数；运行时 <code>RatioValue.AddBase(float1)</code></td><td>高</td><td><code>SpellShootData.GetSpellDuration</code>；文案占位 <code>float1</code></td></tr>
+  <tr><td>float2/3、int1/2/3</td><td>未使用</td><td>高</td><td>配置恒 0，无引用</td></tr>
+  <tr><td><code>haveEffecforMissileSpell</code></td><td>自动填槽：不是「只给召唤」</td><td>高</td><td><code>SpellAutoFullTool.Filter_SummonOnlyEnhance</code></td></tr>
+  <tr><td><code>haveEffecforSummonSpell</code></td><td>表上是 <code>false</code></td><td>高</td><td><code>GetSpellDuration</code> <strong>不读</strong>这两个字段</td></tr>
+</table>
+<p>时长强化没有独立 <code>Spell3103*System</code> / Authoring。它不是 ECS 行为组件，只是被 <code>GetSpellDuration</code> 读 <code>abilityType</code> 后改一个加数。</p>
+
+<h3>2.3 等级不能互替</h3>
+<p>伤害强化 / 范围增强是线性等价（<code>1×Lv2 = 2×Lv1</code>）。时长强化<strong>不是</strong>：</p>
+<div class="box-pre">1×Lv2  = +3.5s    2×Lv1 = +4s
+1×Lv3  = +6s      3×Lv1 = +6s     （只有这一档碰巧相等）
+2×Lv2  = +7s      Lv1+Lv2 = +5.5s</div>
+<p>合成省槽，但不提高单点效率。<code>3×Lv1</code> 和 <code>1×Lv3</code> 数值相同、槽位差 2。自动填槽<strong>不自排斥</strong>（<code>SelfRepelSpells</code> 只有元素晶石），手摆和自动都可以叠多张。</p>
+
+<h2 id="s3">3. 叠加如何计算（核心）</h2>
+<h3>3.1 结论</h3>
+<p><strong>多张时长强化之间是秒数相加，不是连乘，也不是百分比。</strong></p>
+<p>文案写「法术持续时间 +2 秒」。两张 Lv1 的结果是 <code>+4 秒</code>，不是 <code>×2 ×2</code>，也不是「再加 2%」。</p>
+<p>写入代码的步骤只有一步：<code>addBase += float1</code>。</p>
+<div class="box-pre">加算秒数 = Σ(每张时长强化的 float1)
+最终飞行段 ≈ (表 duration + 加算秒数 + 其它 AddBase) × 节能乘算 + Extra</div>
+
+<h3>3.2 通用比率容器</h3>
+<p><code>RatioValue</code> 把「绝对值相加」和「百分比连乘」拆开。<code>AddBase</code> 加的是秒；<code>MulRatio</code> 连乘。</p>
+<p>ECS 侧 <code>AttributeValue.Calculate()</code>：</p>
+<div class="box-pre">(Base + AddBase) × (1 + AddRatio) × MulRatio + Extra</div>
+<p>持续这条 <code>AddRatio</code> 通常是 0。映射时 <code>Duration.AddBase = sip.extraDuration</code>，<code>MulRatio = sip.finalDurationRatio</code>，<code>Extra</code> 仅在运动类型是公转时写入公转 <code>float1</code>。<code>DurationTimer</code> 初始为 0。</p>
+
+<h3>3.3 <code>GetSpellDuration</code>：谁进加算池</h3>
+<p><code>SpellShootData.GetSpellDuration</code> 从主动法术表 <code>duration</code> 起算，扫 <code>EnhanceList</code>：</p>
+<table>
+  <tr><th>abilityType</th><th>写入</th><th>代表</th></tr>
+  <tr><td><code>EnhanceDurationValue</code></td><td><code>AddBase(float1)</code></td><td>时长强化，单位是秒，<strong>不除 100</strong></td></tr>
+  <tr><td><code>AroundMouse</code></td><td><code>AddBase(float2)</code></td><td>寻踪 +1 / +2 / +4 秒</td></tr>
+  <tr><td><code>RandomRotationRadiu</code></td><td><code>AddBase(float3)</code></td><td>自由公转 +3 秒</td></tr>
+  <tr><td><code>PowerSavingMode</code></td><td><code>MulRatio(float2/100)</code></td><td>节能 ×75% / 75% / 80%</td></tr>
+</table>
+<p><code>switch</code> 里没有「已处理过同类型就跳过」。同 <code>abilityType</code> 出现几次就加几次。</p>
+<p><strong>不在这个函数里的</strong>：悬停、公转（<code>AroundOwner</code>）、主观缓时、反弹加时。它们走别的字段，见第 6 节。</p>
+<p><code>GetSpellDuration_FinalPlayerValue</code> 直接返回 <code>GetSpellDuration()</code>，<strong>没有</strong>再加玩家遗物 / 法杖持续。卡面预览和施法锁用的也是这一层（不含公转 Extra、不含主观缓时）。</p>
+
+<h3>3.4 多张叠加公式</h3>
+<p>对一张主动/召唤法术，设其配置持续为 <code>B</code> 秒：</p>
+<div class="box-pre">AddBase = Σ float1_i
+仅时长强化、无节能时的飞行段 = B + AddBase</div>
+<p>展开（<code>B = 0.5</code>，魔法弹 Lv1）：</p>
+<div class="box-pre">1 张 Lv1：0.5 + 2            = 2.5
+2 张 Lv1：0.5 + 2 + 2        = 4.5
+1 张 Lv2：0.5 + 3.5          = 4.0
+1 张 Lv1 + 1 张 Lv2：0.5 + 5.5 = 6.0
+1 张 Lv3：0.5 + 6            = 6.5
+3 张 Lv1：0.5 + 6            = 6.5</div>
+<p><strong>没有衰减、没有上限、没有「只取最高级」。</strong></p>
+
+<h3>3.5 常见误解</h3>
+<table>
+  <tr><th>误解</th><th>实际</th></tr>
+  <tr><td>两张 +2 秒连乘成更长</td><td>加算成 +4 秒</td></tr>
+  <tr><td>文案是百分比（+2%）</td><td>绝对值秒</td></tr>
+  <tr><td>高级覆盖低级，只算最大那张</td><td>全部求和</td></tr>
+  <tr><td><code>1×Lv2 = 2×Lv1</code></td><td>3.5 ≠ 4；只有 <code>3×Lv1 = 1×Lv3 = +6</code></td></tr>
+  <tr><td>右侧那张也会强化左侧法术</td><td>只强化<strong>自己右边</strong>的主动/召唤（同段）</td></tr>
+  <tr><td>同时加长悬停</td><td>只加 <code>Duration</code>；悬停走另一段</td></tr>
+  <tr><td>合成后单点变得更赚</td><td>数值不线性；合成只是用 1 格换更高 <code>float1</code></td></tr>
+</table>
+
+<h2 id="s4">4. 谁吃得到这张卡</h2>
+<h3>4.1 解析：同段左侧全部累积</h3>
+<p><code>SpellGroupParser</code> 从左到右扫槽位。遇到 Enhance 就推进累积列表 <code>list2</code>，<strong>不会在消耗后清空</strong>；遇到 Missile / Summon（或触发器）时，把<strong>当前累积快照</strong>挂到该法术的 <code>EnhanceList</code> 上。主槽和后槽分别 <code>Parse</code>，互不串。</p>
+<div class="box-pre">[时] [弹] [滚球]
+  → 魔法弹 EnhanceList = [时]
+  → 滚球   EnhanceList = [时]
+
+[弹] [时] [滚球]
+  → 魔法弹吃不到
+  → 滚球吃 +2s
+
+[时A] [弹] [时B] [滚球]
+  → 弹只吃 A
+  → 滚球吃 A+B</div>
+<p>摆放顺序决定的是「这张卡从哪一张主动法术开始生效」，不是「只强化下一张」。</p>
+
+<h3>4.2 <code>haveEffecforSummonSpell=false</code> 拦不住手动</h3>
+<p>全工程只有配置拷贝写这个字段，<code>GetSpellDuration</code> 不读。手动插在召唤左侧，召唤实体仍会带上 <code>Duration.AddBase</code>。部分召唤会拿它改寿命（见 5.5）。</p>
+<p>自动填槽：<code>haveEffecforMissileSpell=true</code>，<code>Filter_SummonOnlyEnhance</code> 不会把它滤成「只给召唤」。不在 <code>IgnoreSpells</code>、不在 <code>SelfRepelSpells</code>、不在 <code>SpellAvoidEnhances</code>。奥爆 / 陨石 / 激光都不会被自动填避开这张卡。</p>
+
+<h3>4.3 魔能升阶抬的是这张卡的 <code>float1</code></h3>
+<p><code>EnhanceList</code> 取 <code>GetFinalConfig()</code>。<code>SpellLevelEnhance</code>（魔能升阶）把 <code>31031</code> 抬成 <code>31032</code> / <code>31033</code>（不超过该 <code>abilityType</code> 最高级）。叠加规则不变，变的是送进 <code>AddBase</code> 的秒数。</p>
+
+<h2 id="s5">5. 谁真正读到这份 Duration</h2>
+<p>它不自己计时。运行时飞行段是：</p>
+<div class="box-pre">Duration.Calculate()
+  = (表 duration + extraDuration) × finalDurationRatio + Extra
+  = (B + Σ时长 + Σ寻踪float2 + Σ自由公转float3 + 主观缓时换秒)
+    × Π(节能 float2/100)
+    + [公转 Extra，仅运动类型是 Rotation]
+    + [运行时再加的 Extra：反弹加时等]</div>
+<p>谁拿 <code>Duration.Calculate()</code> 当寿命、谁拿 <code>Duration.AddBase</code> 当加数、谁完全不读，结果差很多。</p>
+
+<h3>5.1 按机制族</h3>
+<table>
+  <tr><th>机制族</th><th>吃不吃</th><th>怎么吃</th><th>边界</th></tr>
+  <tr><td>通用导弹（魔法弹等）</td><td><strong>吃</strong></td><td><code>UpdateDuration</code>：<code>DurationTimer</code> 走到 <code>Calculate()</code> 再销毁 / 进悬停</td><td>命中且穿透耗尽会直接销毁，走不到寿命结束</td></tr>
+  <tr><td>悬停第二段</td><td><strong>不吃</strong></td><td><code>HoverDuration</code> 只加悬停自己的 <code>float1</code></td><td>两段分开；总存活 = 飞行 + 悬停</td></tr>
+  <tr><td>坠落 <code>IsFallSpell</code></td><td><strong>写入但不销毁</strong></td><td>只加 <code>DurationTimer</code>，不因时长用尽销毁</td><td>通用坠落活到落地；秒数仍在快照里</td></tr>
+  <tr><td>激光 / 符文锤 / 激光束 / 彼岸刃 / 保护伞 / 戴夫鱼叉</td><td><strong>通用路径不吃</strong></td><td><code>UpdateDuration</code> 短路，只加 <code>DurationTimer</code></td><td>激光寿命是 <code>0.2 + HoverDuration</code>，<strong>不读</strong> <code>Calculate()</code></td></tr>
+  <tr><td>高压水枪 <code>1019</code></td><td>吃 Extra / 折算</td><td>专属初始化：<code>Duration.Extra += HoverDuration</code>，然后清悬停</td><td>继续喷，不是停在原地</td></tr>
+  <tr><td>分解射线 / 龙息 / 冲刺</td><td><strong>吃施法锁</strong></td><td><code>GetMaxKeepCastSpellDuration</code> 用 <code>GetSpellDuration().Result</code></td><td>冲刺再加 Σ悬停；有坠落则整句不进</td></tr>
+  <tr><td>黑洞等 <code>isDPS</code></td><td><strong>吃</strong></td><td>实体还在，DPS 间隔继续转</td><td>黑洞 Lv1 表持续 5s，+2 变成 7s</td></tr>
+  <tr><td>奥爆 <code>1008</code></td><td><strong>写入，行为怪</strong></td><td>表 <code>duration=0</code>；Job 把 <code>DurationTimer</code> 夹到 1 做缩放</td><td><code>Calculate()&gt;1</code> 时通用寿命能否走完，需实机确认</td></tr>
+  <tr><td>召唤</td><td><strong>部分吃 AddBase</strong></td><td>不读 <code>Calculate()</code> 当通用寿命；个别用 <code>AddBase</code> / <code>MulRatio</code></td><td>表标了召唤无效，运行时不读这个旗标</td></tr>
+  <tr><td>元素 DoT / 冰冻</td><td><strong>不吃</strong></td><td>各晶石自己的 <code>float1</code> / <code>int</code></td><td>燃烧、毒、粘液、冰冻都不走 <code>GetSpellDuration</code></td></tr>
+  <tr><td>闪电链</td><td><strong>不吃</strong></td><td>链没有寿命计时器</td><td>存在时间由两端实体决定</td></tr>
+  <tr><td>分裂子弹</td><td><strong>吃，满额重开</strong></td><td>快照整包复制；<code>DurationTimer=0</code></td><td>不是母弹剩余量</td></tr>
+</table>
+
+<h3>5.2 通用导弹：飞行段就是这份秒</h3>
+<p><code>SpellSystem.UpdateDuration</code>（非坠落、非激光族）：</p>
+<div class="box-pre">飞行中     DurationTimer &lt; Calculate()     正常移动、正常命中
+刚结束     时长用尽                         Speed=0，进入悬停
+悬停中     HoverTimer &lt; HoverDuration      锁位置
+悬停结束   HoverTimer 走完                  销毁 / 缩小 / 分裂 / 结束触发</div>
+<p>没有悬停时，飞行结束当帧销毁。魔法弹 Lv1（<code>B=0.5</code>），打空让它活到寿命结束：</p>
+<table>
+  <tr><th>槽位</th><th>飞行</th><th>悬停</th><th>总存活</th></tr>
+  <tr><td><code>[弹]</code></td><td>0.5</td><td>0</td><td>0.5</td></tr>
+  <tr><td><code>[时Lv1] [弹]</code></td><td><strong>2.5</strong></td><td>0</td><td>2.5</td></tr>
+  <tr><td><code>[时Lv2] [弹]</code></td><td><strong>4.0</strong></td><td>0</td><td>4.0</td></tr>
+  <tr><td><code>[时Lv3] [弹]</code></td><td><strong>6.5</strong></td><td>0</td><td>6.5</td></tr>
+  <tr><td><code>[时Lv1]×2 [弹]</code></td><td><strong>4.5</strong></td><td>0</td><td>4.5</td></tr>
+  <tr><td><code>[悬Lv1] [弹]</code></td><td>0.5</td><td><strong>2</strong></td><td>2.5</td></tr>
+  <tr><td><code>[时Lv1] [悬Lv1] [弹]</code></td><td><strong>2.5</strong></td><td><strong>2</strong></td><td>4.5</td></tr>
+</table>
+<p>同一张「+2 秒」：时长强化加在飞行，悬停加在第二段。总存活碰巧都是 2.5，但飞行距离只有时长强化会拉长（<code>speed × Duration</code>）。</p>
+<p>半途传送看 <code>Duration / 2</code>，发生在飞行段。时长强化会把传送点往后推。</p>
+<p>正在充能（<code>ChargingTag</code>）时，<code>UpdateDuration</code> 整段不跑。闪耀星矢蓄力期寿命冻结，松手后才扣这份 Duration。</p>
+
+<h3>5.3 常驻施法锁</h3>
+<p><code>SpellGroupShootDurationCalculator.GetMaxKeepCastSpellDuration</code>：</p>
+<table>
+  <tr><th>法术</th><th>按住时长</th></tr>
+  <tr><td>分解射线 / 高压水枪 / 龙息</td><td><code>GetSpellDuration().Result</code>（含时长、寻踪、自由公转、节能；<strong>不含</strong>公转 Extra、主观缓时）</td></tr>
+  <tr><td>冲刺</td><td>上面这份 <strong>再加</strong> Σ悬停</td></tr>
+  <tr><td>槽位里有坠落</td><td>整句不进</td></tr>
+  <tr><td>其它法术</td><td>0（不锁按住）</td></tr>
+</table>
+<p>龙息 Lv1 表持续 3s，一张时长 Lv1 → 施法锁 5s。激光<strong>不在</strong>这张表里：它不是 keep-cast，寿命也不读 Duration。</p>
+
+<h3>5.4 表 <code>duration=0</code></h3>
+<p>激光、奥爆术配置持续都是 0。<code>AddBase</code> 仍会写入。</p>
+<ul>
+  <li><strong>激光</strong>：专属 Job 的 <code>totalTime = 0.2 + HoverDuration</code>。时长强化<strong>不加</strong>这条寿命；要延长激光，得插悬停。</li>
+  <li><strong>奥爆</strong>：走通用 <code>UpdateDuration</code>。无时长时 <code>Calculate()=0</code>，当帧结束（或进悬停）。插了时长后 <code>Calculate()</code> 变成 2 / 3.5 / 6；同时 <code>Spell1008Job</code> 每帧把 <code>DurationTimer</code> 夹到 <code>[0, 1]</code> 做缩放动画。这两套对 <code>DurationTimer</code> 的用法冲突，<strong>是否卡在场上需实机确认</strong>。</li>
+</ul>
+<p>自动填槽不会因为 <code>duration=0</code> 避开这张卡。</p>
+
+<h3>5.5 召唤</h3>
+<p>配置写了不对召唤生效，运行时不读这个旗标。手动插在召唤左侧：</p>
+<ul>
+  <li>队友实体生成时带上同一份 <code>Duration.AddBase</code> / <code>MulRatio</code> / <code>Extra</code></li>
+  <li><strong>克总之手</strong>（<code>2003</code>）：触手 <code>LifeDuration = ((Level+1)×10 + Duration.AddBase) × Duration.MulRatio</code>。Lv1 基础 20s，+2 → 22s，再乘节能</li>
+  <li><strong>寄生虫</strong>（<code>3015</code>）：蠕虫 <code>exitTimer = 6 + Duration.AddBase</code>（<strong>不乘</strong> <code>MulRatio</code>）</li>
+  <li><strong>自爆虫</strong>：<code>LifeTime = (6 + AddBase) × MulRatio</code>（有进阶技能则底数改 10）</li>
+  <li><strong>啵啵子弹</strong>（<code>2001</code>）：只把 <code>Duration.Extra + Duration.AddBase</code> 当 bonus</li>
+  <li><strong>Teammate1</strong> 自己射出的弹：<code>(duration + bonusDuration) × finalDurationRatio</code></li>
+</ul>
+<p>大多数召唤体的「在场多久」看各自的队友寿命 / 数量上限，<strong>不是</strong>通用 <code>UpdateDuration</code>。不要默认「插一张时长，所有召唤都 +2 秒」。</p>
+
+<h3>5.6 元素 DoT、冰冻、闪电链</h3>
+<p>这些计时器在发射时已经写成 Element 字段，<strong>不读</strong> <code>GetSpellDuration</code>：</p>
+<table>
+  <tr><th>来源</th><th>自己的持续字段</th></tr>
+  <tr><td>毒液晶石</td><td><code>GetVenomElementData</code> 的 <code>float1</code>（取 max）</td></tr>
+  <tr><td>炽焰晶石</td><td><code>GetFireElementData</code> 的 <code>float2</code></td></tr>
+  <tr><td>粘液晶石</td><td>自己的持续 / 移速比</td></tr>
+  <tr><td>寒霜晶石</td><td><code>FrozenDuration</code></td></tr>
+  <tr><td>闪电链</td><td>无寿命；两端实体没了链就没了</td></tr>
+</table>
+<p><code>[时][毒][弹]</code>：子弹飞得更久，毒的持续仍是毒晶石自己的秒数。子弹活得久只是「有更多机会把毒涂上去」，不是把毒时长拉长。</p>
+
+<h3>5.7 分裂：满额重开</h3>
+<p><code>ToSplit</code> 整包复制快照，<strong>不改</strong> <code>Duration.AddBase / MulRatio / Extra</code>。新实体 <code>DurationTimer = 0</code>。</p>
+<p>母弹已经飞了多久，子弹不看。拿到的是开火当时的完整秒数，再飞完整段。见《分裂逆向分析.md》3.2。</p>
+
+<h2 id="s6">6. 与其它持续来源的关系</h2>
+<h3>6.1 同加算池</h3>
+<table>
+  <tr><th>符文</th><th>abilityType</th><th>写入值</th><th>典型值</th></tr>
+  <tr><td>时长强化</td><td>3103 EnhanceDurationValue</td><td><code>float1</code> 秒</td><td>2 / 3.5 / 6</td></tr>
+  <tr><td>寻踪</td><td>3010 AroundMouse</td><td><code>float2</code> 秒</td><td>1 / 2 / 4</td></tr>
+  <tr><td>自由公转</td><td>3117 RandomRotationRadiu</td><td><code>float3</code> 秒</td><td>3（仅 Lv1）</td></tr>
+</table>
+<p><code>[时Lv1][寻踪Lv1][弹]</code>：<code>AddBase = 2+1 = 3</code>，飞行 3.5s。不是两套互斥。</p>
+
+<h3>6.2 乘算层：节能模式</h3>
+<p>节能（<code>3104</code>）文案：「法术持续时间 ×<strong>float2</strong>%」。配置 <code>float2 = 75 / 75 / 80</code>。</p>
+<p><code>MulRatio(float2/100)</code> 连乘。节能乘的是 <code>(Base + AddBase)</code>，<strong>包括时长强化</strong>。ECS 的 <code>Extra</code>（公转加时、反弹加时）在乘算之后，<strong>不被节能缩小</strong>。</p>
+<div class="box-pre">[时Lv1][节能Lv1][弹] = (0.5+2) × 0.75 = 1.875s</div>
+<p>不是 <code>0.5×0.75 + 2 = 2.375</code>。先加再乘。</p>
+
+<h3>6.3 公转 Extra（另一层，且看运动类型）</h3>
+<p>公转（<code>3009</code>）<strong>不进</strong> <code>GetSpellDuration</code>。它的加时来自 <code>GetSpellRotationInfo</code> 的 <code>float1</code>（4 / 7 / 11），只在 <code>finalMovementType == Rotation</code> 时写入 <code>Duration.Extra</code>。</p>
+<p>运动类型从右往左只取第一个。公转被寻踪 / 导航挡住时，这份 Extra <strong>不会</strong>加上；寻踪自己的 <code>float2</code> 仍在 AddBase 里。</p>
+<div class="box-pre">ECS：Calculate = (B + 时长 + …) × 节能 + 公转Extra
+[时Lv1][公转Lv1][弹] = (0.5+2) × 1 + 4 = 6.5s
+[时Lv1][节能Lv1][公转Lv1][弹] = 1.875 + 4 = 5.875s</div>
+<p>卡面 <code>GetSpellDuration()</code> <strong>不含</strong>这笔 Extra，预览会比实飞短一截。</p>
+
+<h3>6.4 主观缓时 3128</h3>
+<p>不在 <code>GetSpellDuration</code> 里。<code>ProcessShootDataEffect</code> 在取完 <code>CurrentAddBase</code> 之后，按降速换秒，再写进同一个 <code>extraDuration</code>（AddBase）。魔法弹 16 速、一张主观缓时：换来 <strong>+4s</strong>。节能会乘上这笔。卡面 <code>GetSpellDuration()</code> <strong>不含</strong>它。细节见《加速器逆向分析.md》4.2。</p>
+
+<h3>6.5 悬停、反弹</h3>
+<table>
+  <tr><th>来源</th><th>写到哪</th><th>和时长强化</th></tr>
+  <tr><td>悬停 3008</td><td><code>HoverDuration</code></td><td>两段分开加；不进 <code>GetSpellDuration</code></td></tr>
+  <tr><td>反弹 3012</td><td>运行时 <code>Duration.Extra += ReboundAddTime</code></td><td>飞行更久；加在 Extra，节能不乘</td></tr>
+  <tr><td>高压水枪 / 非坠落诡雷</td><td><code>Duration.Extra += HoverDuration</code>，然后 <code>HoverDuration=0</code></td><td>悬停秒数并进寿命，时长强化仍在 AddBase</td></tr>
+</table>
+
+<h3>6.6 分层不要混用</h3>
+<table>
+  <tr><th>入口</th><th>含什么</th></tr>
+  <tr><td><code>GetSpellDuration</code></td><td>表 duration + 时长 + 寻踪 float2 + 自由公转 float3，再乘节能</td></tr>
+  <tr><td><code>GetSpellDuration_FinalPlayerValue</code></td><td>同上，不再加遗物</td></tr>
+  <tr><td>SIP <code>extraDuration</code></td><td>上面的 <code>CurrentAddBase</code> <strong>再加</strong>主观缓时</td></tr>
+  <tr><td>ECS <code>Duration.Calculate()</code></td><td><code>(Base+extraDuration)×节能 + 公转Extra + 运行时 Extra</code></td></tr>
+  <tr><td>卡面 / 施法锁</td><td>只用 <code>GetSpellDuration().Result</code></td></tr>
+</table>
+
+<h2 id="s7">7. 数值算例</h2>
+<p>基准：魔法弹 Lv1，<code>B = 0.5</code>，速度 16。先不算玩家和法杖。打空。</p>
+
+<h3>7.1 只叠时长强化</h3>
+<table>
+  <tr><th>槽位（左 → 右）</th><th>AddBase</th><th>飞行</th><th>距离（速×时）</th></tr>
+  <tr><td><code>[弹]</code></td><td>0</td><td>0.5</td><td>8</td></tr>
+  <tr><td><code>[时Lv1] [弹]</code></td><td>+2</td><td>2.5</td><td>40</td></tr>
+  <tr><td><code>[时Lv1]×2 [弹]</code></td><td>+4</td><td>4.5</td><td>72</td></tr>
+  <tr><td><code>[时Lv2] [弹]</code></td><td>+3.5</td><td>4.0</td><td>64</td></tr>
+  <tr><td><code>[时Lv3] [弹]</code></td><td>+6</td><td>6.5</td><td>104</td></tr>
+  <tr><td><code>[时Lv1]×3 [弹]</code></td><td>+6</td><td>6.5</td><td>104</td></tr>
+</table>
+<p>两张 Lv1 <strong>不是</strong> <code>0.5 × 3 × 3</code>。<code>1×Lv2</code> 比 <code>2×Lv1</code> 短 0.5 秒。</p>
+
+<h3>7.2 摆放顺序</h3>
+<table>
+  <tr><th>槽位</th><th>魔法弹</th><th>滚球</th></tr>
+  <tr><td><code>[时] [弹] [球]</code></td><td>+2</td><td>+2</td></tr>
+  <tr><td><code>[弹] [时] [球]</code></td><td>0</td><td>+2</td></tr>
+  <tr><td><code>[时A] [弹] [时B] [球]</code></td><td>只吃 A</td><td>吃 A+B</td></tr>
+  <tr><td><code>[弹] [球] [时]</code></td><td>0</td><td>0（强化在右侧，作废）</td></tr>
+</table>
+<p>主槽的强化加不到后槽。</p>
+
+<h3>7.3 与其它持续层混放</h3>
+<table>
+  <tr><th>组合（均在法术左侧）</th><th>计算</th><th>飞行</th></tr>
+  <tr><td>时Lv1 + 寻踪Lv1（+1s）</td><td><code>0.5+2+1</code></td><td>3.5</td></tr>
+  <tr><td>时Lv1 + 节能Lv1（×75%）</td><td><code>(0.5+2)×0.75</code></td><td>1.875</td></tr>
+  <tr><td>时Lv1 + 悬停Lv1</td><td>飞行 2.5，悬停 2</td><td>总存活 4.5</td></tr>
+  <tr><td>时Lv1 + 公转Lv1（Extra +4）</td><td><code>(0.5+2)+4</code></td><td>6.5</td></tr>
+  <tr><td>时Lv1 + 节能Lv1 + 公转Lv1</td><td><code>1.875+4</code></td><td>5.875</td></tr>
+  <tr><td>时Lv1 + 主观缓时（弹速 16 → +4s）</td><td><code>0.5+2+4</code></td><td>6.5</td></tr>
+</table>
+<p>把时长理解成「先乘 2 再乘节能」是错的——时长是加秒，节能是乘整段。</p>
+
+<h3>7.4 槽位 vs 合成</h3>
+<table>
+  <tr><th>目标加算</th><th>最小槽位方案</th><th>金币（仅卡面售价）</th></tr>
+  <tr><td>+2s</td><td>1×Lv1</td><td>8</td></tr>
+  <tr><td>+3.5s</td><td>1×Lv2（1 槽）；2×Lv1 是 +4s</td><td>24 或 16</td></tr>
+  <tr><td>+6s</td><td>1×Lv3 或 3×Lv1</td><td>72 或 24</td></tr>
+</table>
+<p>要 +6s：三张 Lv1 更便宜，但占 3 槽。槽位紧时合成。</p>
+
+<h2 id="s8">8. 与构筑相关的行为摘要</h2>
+<table>
+  <tr><th>行为</th><th>结果</th></tr>
+  <tr><td>多张时长强化在同一主动左侧</td><td><code>float1</code> 全部加算</td></tr>
+  <tr><td>1×Lv2 / 2×Lv1</td><td><strong>不相同</strong>（3.5 vs 4）</td></tr>
+  <tr><td>1×Lv3 / 3×Lv1</td><td>数值相同（+6s）</td></tr>
+  <tr><td>与寻踪、自由公转并放</td><td>继续加算</td></tr>
+  <tr><td>与节能并放</td><td>先加总再乘 <code>float2%</code></td></tr>
+  <tr><td>与公转并放</td><td>公转走 Extra（仅 Rotation），节能不乘 Extra</td></tr>
+  <tr><td>与悬停并放</td><td>只加飞行段</td></tr>
+  <tr><td>与主观缓时并放</td><td>换来的秒再进 AddBase，节能会乘</td></tr>
+  <tr><td>放在主动法术右侧</td><td>该法术吃不到；其后的法术吃得到</td></tr>
+  <tr><td>主槽强化 / 后槽法术</td><td>不加（分段 Parse）</td></tr>
+  <tr><td>插在激光左侧</td><td>写入快照，激光寿命仍是 <code>0.2+悬停</code></td></tr>
+  <tr><td>插在召唤左侧</td><td>旗标拦不住；只有部分召唤读 <code>AddBase</code></td></tr>
+  <tr><td>魔能升阶抬级</td><td>该张卡的 <code>float1</code> 按新等级算</td></tr>
+  <tr><td>分裂子弹</td><td>满额重开，计时器归零</td></tr>
+</table>
+
+<h2 id="s9">9. Mono 残留轨对照</h2>
+<p><code>SpellBase</code> 仍可能被旧路径走到：</p>
+<div class="box-pre">bonusDuration += extraDuration          // 时长 + 寻踪 + 自由公转 + 主观缓时
+finalDurationRatio *= 节能
+若 Rotation：bonusDuration += 公转 float1
+spellCfg.duration = (duration + bonusDuration) × finalDurationRatio</div>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono</th></tr>
+  <tr><td>时长 / 寻踪 / 自由公转</td><td><code>AddBase</code></td><td><code>bonusDuration</code></td></tr>
+  <tr><td>节能</td><td><code>MulRatio</code>，不乘 Extra</td><td>乘整段 <code>(duration+bonusDuration)</code></td></tr>
+  <tr><td>公转加时</td><td><code>Duration.Extra</code>，<strong>节能不乘</strong></td><td>先加进 <code>bonusDuration</code>，<strong>节能会乘</strong></td></tr>
+  <tr><td>计时</td><td><code>DurationTimer</code> vs <code>Calculate()</code></td><td><code>DurationTimer</code> vs <code>spellCfg.duration</code></td></tr>
+</table>
+<p>讨论玩家构筑时以 <strong>ECS</strong> 为准。<code>[时][节能][公转]</code> 在 Mono 里公转那 4 秒也会被 ×75%，ECS 不会。</p>
+
+<h2 id="s10">10. 证据索引</h2>
+<table>
+  <tr><th>结论</th><th>文件</th></tr>
+  <tr><td>配置数值 2 / 3.5 / 6</td><td><code>assets_export/SpellConfig.json</code>（31031–31033）</td></tr>
+  <tr><td>描述文案</td><td><code>assets_export/TextConfig_Spell.json</code>（703103x / 713103x）</td></tr>
+  <tr><td>加算写入</td><td><code>SpellShootData.GetSpellDuration</code></td></tr>
+  <tr><td>预览不再加遗物</td><td><code>SpellShootDataExtend.GetSpellDuration_FinalPlayerValue</code></td></tr>
+  <tr><td>比率容器</td><td><code>RatioValue.AddBase</code> / <code>MulRatio</code> / <code>ResultDouble</code></td></tr>
+  <tr><td>ECS 映射</td><td><code>ShootSpellUtils</code>：<code>Duration.AddBase = extraDuration</code>，<code>Extra</code> 仅 Rotation</td></tr>
+  <tr><td>ECS 计算公式</td><td><code>AttributeValue.Calculate</code></td></tr>
+  <tr><td>解析累积、不清空</td><td><code>SpellGroupParser</code></td></tr>
+  <tr><td>主槽/后槽分段</td><td><code>Wand</code>：<code>Parse(normalSlots)</code> / <code>Parse(postSlots)</code></td></tr>
+  <tr><td>SIP 拆分</td><td><code>SpellInitialParameter</code>：<code>extraDuration</code> / <code>finalDurationRatio</code>；主观缓时后加</td></tr>
+  <tr><td>通用寿命</td><td><code>SpellSystem.UpdateDuration</code></td></tr>
+  <tr><td>施法锁</td><td><code>SpellGroupShootDurationCalculator.GetMaxKeepCastSpellDuration</code></td></tr>
+  <tr><td>激光寿命</td><td><code>Spell1004LaserJob</code>：<code>totalTime = 0.2 + HoverDuration</code></td></tr>
+  <tr><td>克总之手寿命</td><td><code>Spell2003SummonSystem</code>：<code>LifeDuration</code></td></tr>
+  <tr><td>蠕虫寿命</td><td><code>Spell3015WormSystem</code>：<code>exitTimer = 6 + AddBase</code></td></tr>
+  <tr><td>公转 Extra</td><td><code>SpellShootData.GetSpellRotationInfo</code>（<code>AroundOwner.float1</code>）</td></tr>
+  <tr><td>Mono 实伤</td><td><code>SpellBase</code>：<code>(duration + bonusDuration) * finalDurationRatio</code></td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.EnhanceDurationValue = 3103</code></td></tr>
+</table>
+
+<h2 id="s11">11. 待决 / 局限</h2>
+<ol>
+  <li><strong>奥爆 + 时长</strong>：<code>Spell1008Job</code> 把 <code>DurationTimer</code> 夹到 1，和 <code>Calculate()&gt;1</code> 冲突。卡死 / 提前结束 / 只影响缩放，需实机确认。</li>
+  <li><strong>召唤逐只寿命</strong>：只点名了克总之手、寄生虫、自爆虫、啵啵子弹。其它召唤是否读 <code>AddBase</code> 未逐只拆完。</li>
+  <li><strong>卡面 vs 实飞</strong>：预览不含公转 Extra、不含主观缓时。以实体 <code>Calculate()</code> 为准。</li>
+  <li><strong><code>haveEffecforSummonSpell</code></strong>：对时长强化恒为 false，且运行时不读；若日后出现「只对召唤生效的持续加算」，不能想当然复用本符文的结论。</li>
+  <li><strong>动态再加 Extra</strong>：反弹、半途传送、次元旅行者、巨型泡泡等会在 Job 里改 <code>Duration.Extra</code>。那是该法术自己的加时，与槽位时长强化相加，不是时长强化内部的连乘。</li>
+</ol>
+
+<footer>与 <code>时长强化逆向分析.md</code> 同步。离线可开，不依赖 mermaid / 外网。</footer>
+</div>
+</body>
+</html>

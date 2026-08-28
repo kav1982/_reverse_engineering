@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>储魔之匣（Spell4002 / EmptyContainer）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 460px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 220px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  .bad { background: #f8ecec; border-color: #b06060; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  .slots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: .3em 0 .8em; font-size: .92rem; }
+  .chip {
+    padding: 2px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-family: Consolas, "Sarasa Mono SC", monospace;
+    font-size: .85rem;
+  }
+  .chip.en { border-color: #6b3fa0; color: #6b3fa0; background: #f7f2fc; }
+  .chip.sp { border-color: #3d6b8b; color: #2a5470; background: #eef5f8; }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>储魔之匣（Spell4002 / EmptyContainer）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家被动符文「储魔之匣」（<code>abilityType = 4002</code>，配置 ID <code>40021–40023</code>）。重点是<strong><code>float1</code> 怎么进 <code>passiveWandMaxMpRatio</code></strong>，以及<strong><code>Wand.MaxMP</code> 分层公式里谁先加、谁后乘</strong>。</p>
+    <p>遗物 / 诅咒 / 法杖能力只点合成顺序，不逐条拆。宁静之花（回蓝）不是这张卡。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>这张卡是法杖级被动，主路径在 <code>Wand</code>，没有 <code>Spell4002*System</code> / Authoring，也不进弹体 ECS。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，同级被动骨架见《强制冷却逆向分析.md》，加算进上限见《奥术屏障逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">谁吃得到这张卡</a></li>
+    <li><a href="#s4">谁真正吃到这份上限</a></li>
+    <li><a href="#s5">和其它法术的关系</a></li>
+    <li><a href="#s6">运行时 vs 预览 / UI 对照</a></li>
+    <li><a href="#s7">证据索引</a></li>
+    <li><a href="#s8">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>储魔之匣</td></tr>
+  <tr><td>英文名</td><td>Magic Reservoir</td></tr>
+  <tr><td>内部名</td><td><code>EmptyContainer</code> 空的容器（+MP 上限）</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>4002</code> / <code>SpellAbilityType.EmptyContainer</code></td></tr>
+  <tr><td>配置 ID</td><td><code>40021</code>（Lv1）/ <code>40022</code>（Lv2）/ <code>40023</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>3</code>（<code>SpellType.Passive</code> 被动符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code>、<code>shootCount=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=false</code>，<code>haveEffecforSummonSpell=false</code>（自动填槽的强化过滤用；运行时不读）</td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>8 / 24 / 72</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在法杖<strong>任意有效槽</strong>里的法杖级被动。不改伤害、冷却、施法间隔、回蓝、蓝耗；只把卡上的 <code>float1</code> 按百分比<strong>加算</strong>进 <code>passiveWandMaxMpRatio</code>。真正生效在 <code>Wand.MaxMP</code>：先加完杖底 / 天赋 / 屏障 / 遗物，再乘这份 ratio。左右位置不决定「强化谁」——吃的是这根法杖的蓝上限。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">换槽 / ResetAndRecheck</div>
+    <div class="arrow">↓</div>
+    <div class="box">扫主槽 + 后槽 GetFinalConfig</div>
+    <div class="arrow">↓</div>
+    <div class="dia">abilityType == EmptyContainer?</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">ratio += float1 / 100</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">其它改上限另计</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="box">加算池 = 杖底 + 天赋 + 伞 + 遗物</div>
+    <div class="arrow">↓</div>
+    <div class="box ok">MaxMP = Ceil(加算池 × 法杖能力 × 诅咒 × ratio)</div>
+    <div class="arrow">↓</div>
+    <div class="box">CurrentMP 夹到新上限</div>
+  </div>
+</div>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7140021–7140023</code>）：</p>
+<div class="quote">法杖魔法值上限+<strong>float1</strong>%</div>
+<p>名称（<code>7040021–7040023</code>）：储魔之匣 / Magic Reservoir。三级名称相同，只有 <code>float1</code> 不同。底部补充 <code>7240021</code> 全空。卡面靠 <code>GetDes</code> 替换 <code>float1</code>，不是 <code>GetInfo</code> 自动吐冷却那种行。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>float1（上限 +%）</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>40021</td><td>1</td><td><strong>40</strong></td><td>8</td><td>true</td></tr>
+  <tr><td>40022</td><td>2</td><td><strong>80</strong></td><td>24</td><td>true</td></tr>
+  <tr><td>40023</td><td>3</td><td><strong>160</strong></td><td>72</td><td>false</td></tr>
+</table>
+<p>规律：售价每级 ×3（8 / 24 / 72，和时长强化 / 悬停同档）。<code>float1</code> 每级 ×2（40 → 80 → 160）。<code>float2/3</code>、<code>int1/2/3</code> 全 0。无耗蓝倍率。<code>coolDownRatio</code> 恒 1，自己不加不减冷却。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong><code>float1</code></strong></td><td>法杖蓝上限加算百分数；运行时 <code>ratio += float1/100</code></td><td>是</td><td>高</td></tr>
+  <tr><td>float2 / float3 / int1–3</td><td>配置为 0</td><td><strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>coolDownRatio</code> / 加减修正</td><td>1 / 0 / 0</td><td>扫描时会碰到加减字段，此卡贡献 0</td><td>高</td></tr>
+  <tr><td><code>haveEffecfor*</code></td><td>表上均为 <code>false</code></td><td>仅自动填槽的强化过滤；<code>EmptyContainer</code> 分支 <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p>没有独立 <code>Spell4002*System</code> / Authoring。这张卡本身不挂伤害组件，也不进发射包。<code>WandConfig.GetExtraMaxMP</code> 也读 <code>float1</code>，但当成<strong>绝对点数</strong>加，见第 6 节。那条不是运行时真源。</p>
+
+<h3>2.3 加算进 ratio，不是连乘，也不是取 max</h3>
+<p>两张 Lv1 是 <strong>1.80</strong>，不是 <code>1 × 1.40 × 1.40</code>，也不是 <code>max(1.40, 1.40)</code>。</p>
+<pre class="code">case SpellAbilityType.EmptyContainer:
+    passiveWandMaxMpRatio += spell.float1 / 100f;
+    break;</pre>
+<p>循环里没有「已处理过同类型就跳过」。同类型出现几次加几次。无上限、无「只取最高级」。底数从 <code>1</code> 加，没有这张卡时 <code>passiveWandMaxMpRatio = 1</code>。</p>
+<p>等级不能互替，但<strong>同级两张合成一张，ratio 刚好相等</strong>：</p>
+<table>
+  <tr><th>槽位</th><th>ratio</th><th>底数 50 的 MaxMP</th><th>说明</th></tr>
+  <tr><td>无</td><td>1.00</td><td>50</td><td></td></tr>
+  <tr><td>1×Lv1</td><td>1.40</td><td><strong>70</strong></td><td><code>Ceil(50×1.40)</code></td></tr>
+  <tr><td>1×Lv2</td><td>1.80</td><td><strong>90</strong></td><td></td></tr>
+  <tr><td>1×Lv3</td><td>2.60</td><td><strong>130</strong></td><td></td></tr>
+  <tr><td>2×Lv1</td><td>1+0.40+0.40 = 1.80</td><td><strong>90</strong></td><td>和 1×Lv2 相同</td></tr>
+  <tr><td>Lv1+Lv2</td><td>1+0.40+0.80 = 2.20</td><td><strong>110</strong></td><td>比 1×Lv3 差</td></tr>
+  <tr><td>2×Lv3</td><td>1+1.60+1.60 = 4.20</td><td><strong>210</strong></td><td>无上限</td></tr>
+</table>
+<p>和强制冷却相反：那边连乘，合成既省槽又更狠；这里同级两张合成一张，<strong>ratio 不变、省一个槽</strong>。<code>Lv1+Lv2</code> 不如一张 Lv3（2.20 vs 2.60）。自动填槽<strong>不自排斥</strong>（<code>SelfRepelSpells</code> 只有元素晶石），手摆和自动都可以叠多张。</p>
+<p>写入时机：<code>ResetAndRecheck</code> / <code>ProcessSharedSpell</code> 里先解析拟态、魔力藤蔓层数、魔能升阶，再 <code>CheckWandSlotPassiveEffect</code>。每次重算都先把 <code>passiveWandMaxMpRatio</code> 置回 <code>1</code>，再扫一遍。没有「遗物 / 诅咒 / 杖底」进这个加算池——它们走 <code>MaxMP</code> 取值器的另外几层。</p>
+<p>同池里还有别的卡会改这份 ratio，见 4.2。只插储魔之匣时，槽位左右顺序不影响结果（都是 <code>+=</code>）。</p>
+
+<h3>2.4 不改回蓝、不改蓝耗</h3>
+<p><code>passiveBonusMpGen</code> / <code>passiveMpGenRatio</code> / <code>passiveMpCostCorrection</code> 都不读这张卡。回蓝是宁静之花（<code>4003</code> <code>ManaEssence</code>），耗蓝修正是蓄力模式等。文案写的是上限，不是回复。</p>
+
+<h3>2.5 魔能升阶抬的是这张卡的 float1</h3>
+<p><code>CheckWandSlotPassiveEffect</code> 取 <code>GetFinalConfig()</code>。魔能升阶先把槽位的 <code>slotSpellExtraLevel</code> 加上，<code>GetFinalLevelId</code> 再把 <code>40021</code> 抬成 <code>40022</code> / <code>40023</code>。叠加规则不变，变的是送进加算的百分数：40 → 80 → 160。</p>
+
+<h2 id="s3">3. 谁吃得到这张卡</h2>
+<h3>3.1 法杖级被动，不走 EnhanceList</h3>
+<p><code>SpellGroupParser</code> 的左侧累积是给 Enhance / 触发器用的。储魔之匣是 <code>useType = Passive</code>，<code>CheckWandSlotPassiveEffect</code> 直接扫 <code>GetValidSlotsData</code>：主槽一遍、后槽一遍，每张有效槽的 <code>GetFinalConfig()</code> 丢进同一个 <code>action</code>。</p>
+<p>左右位置不决定「强化谁」。插在魔法弹左边、右边、后槽，吃的都是<strong>这根法杖</strong>的 <code>MaxMP</code>。主槽加得到后槽——后槽里的一张同样加进同一个 <code>passiveWandMaxMpRatio</code>。</p>
+<div class="slots"><span class="chip en">匣</span><span class="chip sp">弹</span><span>→ 法杖上限 ×1.40</span></div>
+<div class="slots"><span class="chip sp">弹</span><span class="chip en">匣</span><span>→ 同样 ×1.40</span></div>
+<div class="slots"><span class="chip sp">弹</span><span>…后槽</span><span class="chip en">匣</span><span>→ 同样 ×1.40</span></div>
+<div class="slots"><span class="chip en">匣A</span><span class="chip en">匣B</span><span class="chip sp">弹</span><span>→ ×1.80（两张 Lv1）</span></div>
+<p>封印槽（<code>isSealSlot</code>）不进 <code>GetValidSlotsData</code>。空槽跳过。背包里没插上的不算。</p>
+
+<h3>3.2 haveEffecfor* = false 拦不住运行时</h3>
+<p><code>EmptyContainer</code> 分支只看 <code>abilityType</code> 和 <code>float1</code>，不读两个 <code>haveEffecfor*</code>。表标「对导弹 / 召唤无效」只影响自动填槽的<strong>强化过滤</strong>；这张卡根本不是 Enhance，填槽走的是 Passive 通道。</p>
+
+<h3>3.3 自动填槽当普通被动</h3>
+<p>不在 <code>IgnoreSpells</code>（忽略的是触发器、传送石、全域强化、拟态、魔力藤蔓等），不在 <code>SelfRepelSpells</code>，不在 <code>SpellAvoidEnhances</code>。<code>AppendPassiveSpells</code> 只要求 <code>useType == Passive</code>。手摆和自动都可以叠多张。</p>
+
+<h3>3.4 全域强化会把右边那张抄走</h3>
+<p><code>AllFieldEnhance</code>（<code>4010</code>）把<strong>紧挨在自己右边</strong>的那张卡复制到其它法杖。<code>[全域][储魔之匣]</code> 会让别的杖也带上一份同等级（等级被全域自己的等级封顶）。复制过去的槽同样走 <code>GetFinalConfig</code> + <code>EmptyContainer</code> 加算。这是「一张卡喂多根杖」的入口，不是这张卡自己的逻辑。</p>
+
+<h2 id="s4">4. 谁真正吃到这份上限</h2>
+<p>真正用这份 ratio 的，是 <code>Wand.MaxMP</code> 取值器。谁读 <code>MaxMP</code>，谁就吃到；谁走 <code>GetExtraMaxMP</code>，谁就不是文案说的「上限 +N%」。</p>
+
+<h3>4.1 合成顺序：先加完加算池，再乘三层 ratio</h3>
+<pre class="code">public float MaxMP
+{
+    get
+    {
+        int num = WandCfg.maxMP;
+        num += BaData.mpMax;
+        num += RoundToInt(passiveBonusMaxMp);
+        num += relicCfg_MaxMP / 套装组3 / 符文巫师套;   // 有则加
+        float num2 = 1f;
+        num2 *= MaxMpRatioFromWandAbility();
+        if (curseCfg_LoseMPLimit != null)
+            num2 *= 1f - curseCfg_LoseMPLimit.int1.result / 100f;
+        num2 *= passiveWandMaxMpRatio;
+        return CeilToInt(num * num2);
+    }
+}</pre>
+<pre class="code">加算池
+  法杖底数     WandCfg.maxMP（常见 50，也有 45 / 80 / 100 / 220 等）
+  + 天赋       BaData.mpMax
+  + 奥术屏障   Round(passiveBonusMaxMp)，40121 的 int2 = 400
+  + 遗物加算   relicCfg_MaxMP / 套装组 3 / 符文巫师套
+乘算池（从 1 连乘）
+  × 法杖能力   AllWandMaxMpRatio（点名，不拆）
+  × 失蓝诅咒   1 - int1/100（点名，不拆）
+  × 储魔之匣等 passiveWandMaxMpRatio
+最后         CeilToInt(加算池 × 乘算池)</pre>
+<p>加算在乘之前。<code>[奥术屏障][储魔之匣 Lv1]</code>、底数 <code>50</code>：先 <code>50+400=450</code>，再 <code>×1.40 → 630</code>。不是 <code>50×1.40 + 400 = 470</code>。</p>
+<p>天赋、遗物加算同样被这份 ratio 放大。杖底越大，同一张匣加得越多。</p>
+<p><code>Battery</code> 法杖能力（<code>MaxManaAmountFromWandAbility</code>）<strong>不在</strong>这个取值器里。它是开火够不够蓝时，把其它电池杖的 <code>MaxMP</code> 另加一笔，见 4.4。</p>
+
+<h3>4.2 同一份 passiveWandMaxMpRatio 里还有谁</h3>
+<p>扫描按槽位从左到右、先主槽后后槽。<code>+=</code> 和 <code>*=</code> <strong>按遇到的顺序交错</strong>，不是「先加完再乘」。</p>
+<table>
+  <tr><th>来源</th><th>abilityType</th><th>怎么改 ratio</th><th>和匣同场</th></tr>
+  <tr><td>储魔之匣</td><td><code>4002</code> EmptyContainer</td><td><code>+= float1/100</code></td><td>自身</td></tr>
+  <tr><td>魔力藤蔓</td><td><code>4021</code> ManaTendril</td><td><code>+= float2/100 × (specialInt+1)</code></td><td>同池加算；藤蔓自己的层数规则不拆</td></tr>
+  <tr><td>魔力接口</td><td><code>4009</code> ManaInterface</td><td><code>*= float1/100</code></td><td>同池连乘。当前 <code>SpellConfig.json</code> <strong>没有 4009 行</strong>，代码分支还在</td></tr>
+  <tr><td>奥术屏障</td><td><code>4012</code> Umbrella</td><td>不进 ratio；进加算池 <code>passiveBonusMaxMp</code></td><td>先被匣乘</td></tr>
+</table>
+<p>只插匣时顺序无所谓。匣和接口同场时，<code>[匣][接口]</code> 与 <code>[接口][匣]</code> 结果不同——接口在匣前面会先把底数 1 乘下去，再加匣。玩家卡导出里目前看不到接口，这条只作代码入口。</p>
+<p><code>CheckWandManaRelatePassiveEffect</code>（扩槽后的蓝量旁路）会从 1 重算匣 / 藤蔓 / 屏障，<strong>没有</strong>接口分支。<code>Wand.Update</code> 在槽数真变时会立刻再 <code>ResetAndRecheck</code>，主路径会补回完整扫描。</p>
+
+<h3>4.3 上限变了，当前蓝只夹、不补满</h3>
+<p>两个扫描结尾都写 <code>CurrentMP = CurrentMP</code>。setter 把当前蓝 <code>Clamp(0, MaxMP)</code>：</p>
+<ul>
+  <li>插上匣、上限升高：当前蓝<strong>不</strong>立刻补到新上限，靠回蓝慢慢涨。</li>
+  <li>拔掉匣、上限下降：超出部分当场削掉。</li>
+</ul>
+<p><code>Update</code> 里若 <code>MaxMP</code> 和上一帧差超过 <code>0.01</code>，会再 <code>ResetAndRecheck</code> 一次。稳定后不再重入。</p>
+
+<h3>4.4 谁读 MaxMP（吃得到），谁不读</h3>
+<p>吃得到这份上限的：</p>
+<table>
+  <tr><th>表面</th><th>怎么用 MaxMP</th></tr>
+  <tr><td>当前蓝条 / 回蓝夹顶</td><td><code>CurrentMP</code> 上限；回蓝涨到 <code>MaxMP</code> 停</td></tr>
+  <tr><td>开火够不够蓝</td><td><code>CheckMaxMpEnough</code>：<code>MaxMP + 其它电池杖的 MaxMP</code> ≥ 组耗蓝</td></tr>
+  <tr><td>奥术屏障</td><td>盾按这根杖的 <code>MaxMP</code> 换算「一点血等于多少蓝」</td></tr>
+  <tr><td>狴犴飞剑</td><td>飞剑数 <code>Ceil(MaxMP / 25)</code></td></tr>
+  <tr><td><code>UIInfoWand</code>（手上有活 <code>Wand</code>）</td><td>直接读 <code>wand.MaxMP</code>（含天赋 / 遗物 / 诅咒 / 匣）</td></tr>
+</table>
+<p>不吃这份 %、或另算的：</p>
+<table>
+  <tr><th>表面</th><th>实际</th></tr>
+  <tr><td>弹体伤害 / 持续 / 半径</td><td>不读 MaxMP</td></tr>
+  <tr><td>法杖冷却 / 施法间隔</td><td>不读 MaxMP</td></tr>
+  <tr><td>宁静之花回蓝</td><td>加的是 <code>passiveBonusMpGen</code>，不是上限</td></tr>
+  <tr><td>电池杖「借蓝」</td><td>不改本杖 <code>MaxMP</code>；开火判定时把<strong>其它</strong>电池杖的 <code>MaxMP</code> 另加</td></tr>
+  <tr><td><code>GetExtraMaxMP</code> 预览</td><td>把 <code>float1</code> 当点数加，见第 6 节</td></tr>
+</table>
+<div class="note">组耗蓝 80、杖底 50：一张 Lv1 匣变成 70，仍然开不出；一张 Lv2 变成 90，开得出。验收看活 Wand 的 <code>MaxMP</code>，不要看商店预览。</div>
+
+<h3>4.5 这张卡不出伤、不改冷却</h3>
+<p>它只抬（或拔掉后降下）这根杖的蓝上限。出不出伤、转多快，看法术和法杖自己。</p>
+
+<h2 id="s5">5. 和其它法术的关系</h2>
+<p>齐射 / 多重 / 伤害强化 / 加速器 / 悬停只改发射或弹体，不改这份 ratio，不列。</p>
+<table>
+  <tr><th>对象</th><th>储魔之匣怎么变</th></tr>
+  <tr><td>魔能升阶 <code>3126</code></td><td>抬这张卡的 <code>float1</code>（40→80→160）</td></tr>
+  <tr><td>拟态魔方 <code>3109</code></td><td><code>GetFinalConfig</code> 已解析；模仿成 4002 的那格也会再加一次</td></tr>
+  <tr><td>全域强化 <code>4010</code></td><td>紧挨右边的 4002 被抄到其它杖，那些杖各自加算</td></tr>
+  <tr><td>奥术屏障 <code>4012</code></td><td><code>+400</code> 进加算池，再被匣的 ratio 乘</td></tr>
+  <tr><td>魔力藤蔓 <code>4021</code></td><td>同池 <code>+=</code>；层数规则不拆</td></tr>
+  <tr><td>魔力接口 <code>4009</code></td><td>同池 <code>*=</code>；导出表缺行，只点入口</td></tr>
+  <tr><td>宁静之花 <code>4003</code></td><td>只加回蓝，不进 <code>MaxMP</code></td></tr>
+  <tr><td>蓄力 / 节能 / 过载</td><td>改耗蓝或间隔，不改上限</td></tr>
+  <tr><td>天赋 / 遗物加算 / 失蓝诅咒 / <code>AllWandMaxMpRatio</code></td><td>在取值器另外几层；只点顺序</td></tr>
+  <tr><td>电池杖能力</td><td>不进本杖 <code>MaxMP</code>；开火时借用其它电池杖上限</td></tr>
+</table>
+
+<h2 id="s6">6. 运行时 vs 预览 / UI 对照</h2>
+<p>这张卡没有 ECS / Mono 双轨。对照的是「活 Wand」和「只拿着 WandConfig 的预览」。</p>
+<p>和运行时对齐的部分：加算、从 1 起、同类型出现几次加几次；主槽 + 后槽都算，封印槽不算；取值器最后乘 <code>passiveWandMaxMpRatio</code>，再 <code>CeilToInt</code>。</p>
+<p>差别在 <code>WandConfig.GetExtraMaxMP</code>：它把 <code>float1</code> 当成<strong>绝对点数</strong>加（Lv1 +40，不是 +40%），而且读的是槽位<strong>原始 <code>id</code></strong>，不是 <code>GetFinalConfig()</code>。</p>
+<pre class="code">public float GetExtraMaxMP()
+{
+    float num = 0f;
+    // 主槽 + 后槽：非封印且 abilityType == EmptyContainer
+    num += SpellConfig.dic[slot.id].float1;
+    return num;
+}</pre>
+<table>
+  <tr><th>表面</th><th>用的公式</th><th>吃不吃 4002 的 %</th></tr>
+  <tr><td><code>UIInfoWand</code>（手上有 <code>Wand</code>）</td><td><code>wand.MaxMP</code></td><td><strong>吃</strong>（完整分层 + Ceil）</td></tr>
+  <tr><td><code>UIInfoWand</code>（只有 <code>WandConfig</code>）</td><td><code>maxMP + GetExtraMaxMP()</code></td><td><strong>当点数加</strong></td></tr>
+  <tr><td><code>UIRewardWand</code></td><td>同上</td><td><strong>当点数加</strong></td></tr>
+  <tr><td><code>UIGallery</code></td><td>同上</td><td><strong>当点数加</strong></td></tr>
+  <tr><td>卡面 <code>GetDes</code></td><td><code>上限+float1%</code></td><td>展示这张卡自己的百分数，不合成整杖</td></tr>
+</table>
+<div class="note">底数 50、一张 Lv1：运行时 <strong>70</strong>，预览 <strong>90</strong>（50+40）。底数恰好 100 时两边数字碰巧一样（100×1.40 = 100+40），不要拿 100 底的杖当验收。Lv3 预览是 50+160=210，运行时是 <code>Ceil(50×2.60)=130</code>。</div>
+<p>预览还缺：天赋、遗物、诅咒、法杖能力、奥术屏障加算、藤蔓、魔能升阶 / 拟态后的最终 <code>float1</code>。商店 / 图鉴 / 奖励里的「魔法值: X」往往是底数加点。装备到活 Wand 之后，<code>UIInfoWand</code> 才走真公式。</p>
+<p><code>GetExtraMaxMP</code> <strong>有调用方</strong>（和强制冷却的 <code>GetCoolDownRatio</code> 零引用不同）。它是活着的错公式，不是死代码。</p>
+
+<h2 id="s7">7. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>Wand.CheckWandSlotPassiveEffect</code></td><td>从 1 重算；<code>EmptyContainer</code> 加算 <code>float1/100</code></td></tr>
+  <tr><td><code>Wand.CheckWandManaRelatePassiveEffect</code></td><td>扩槽旁路；同样加算匣，无接口分支</td></tr>
+  <tr><td><code>Wand.MaxMP</code></td><td>加算池 → × 法杖能力 / 诅咒 / ratio → Ceil</td></tr>
+  <tr><td><code>Wand.CurrentMP</code> setter</td><td><code>Clamp(0, MaxMP)</code></td></tr>
+  <tr><td><code>Wand.Update</code></td><td>回蓝夹顶；槽数变或上限变则 <code>ResetAndRecheck</code></td></tr>
+  <tr><td><code>Wand.CheckMaxMpEnough</code></td><td><code>MaxMP + 电池杖 MaxMP</code> ≥ 组耗蓝</td></tr>
+  <tr><td><code>Wand.SpawnBiAnBlade</code></td><td><code>Ceil(MaxMP / 25)</code></td></tr>
+  <tr><td><code>CheckSpellListForLevelEnhanceEffect</code></td><td>先于被动扫描；抬 <code>slotSpellExtraLevel</code></td></tr>
+  <tr><td><code>GetWandAllFieldEnhanceSpell</code></td><td>全域抄走右边那张</td></tr>
+  <tr><td><code>MaxMpRatioFromWandAbility</code></td><td><code>AllWandMaxMpRatio</code> 连乘</td></tr>
+  <tr><td><code>MaxManaAmountFromWandAbility</code></td><td>电池杖另加，不进本杖 <code>MaxMP</code></td></tr>
+  <tr><td><code>WandConfig.GetValidSlotsData</code></td><td>非空且非封印</td></tr>
+  <tr><td><code>WandConfig.GetExtraMaxMP</code></td><td>全槽把匣的 raw <code>float1</code> 当点数加</td></tr>
+  <tr><td><code>SlotData.GetFinalConfig</code></td><td>拟态 + 魔能升阶后的配置</td></tr>
+  <tr><td><code>SpellConfig.GetDes</code></td><td><code>714002*</code> 替换 <code>float1</code></td></tr>
+  <tr><td><code>UIInfoWand</code></td><td>有 Wand 用 <code>MaxMP</code>；否则 <code>maxMP + GetExtraMaxMP</code></td></tr>
+  <tr><td><code>UIRewardWand</code> / <code>UIGallery</code></td><td><code>maxMP + GetExtraMaxMP</code></td></tr>
+  <tr><td><code>SpellAutoFullTool.AppendPassiveSpells</code></td><td>当 Passive 填；不自斥、不忽略</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>40021–40023</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>704002*</code> / <code>714002*</code></td><td>名称与文案</td></tr>
+</table>
+
+<h2 id="s8">8. 待决 / 局限</h2>
+<ol>
+  <li><strong>魔力接口缺表</strong>：<code>ManaInterface</code> 分支和 <code>714009*</code> 文案还在，<code>SpellConfig.json</code> 没有 <code>40091–40093</code>。和匣的左右顺序会改结果，但玩家当前可能摸不到这张卡。</li>
+  <li><strong>扩槽旁路</strong>：<code>CheckWandManaRelatePassiveEffect</code> 会重算匣，不重算接口。主路径在槽数变化后会再 <code>ResetAndRecheck</code>。未对 <code>PlayerItemController</code> 每条扩槽调用是否都回到完整扫描做穷尽。</li>
+  <li><strong>全域复制等级封顶</strong>：抄走时若源卡等级高于全域等级，会把复制 ID 压到全域等级。只点入口，不拆全域自己的规则。</li>
+  <li><strong>遗物 / 诅咒 / 符文巫师套</strong>：只确认进加算池或乘算池。具体 <code>int1</code> 数值不拆。</li>
+  <li><strong>电池杖 / 狴犴 / 屏障读 MaxMP</strong>：确认会读，机制本身见各自文档；不在这里展开。</li>
+  <li><strong>天赋 <code>BaData.mpMax</code></strong>：由 <code>talentUpgrade2.maxMP</code> 在进战斗时写入。具体升级表不拆。</li>
+</ol>
+
+<footer>与 <code>储魔之匣逆向分析.md</code> 同步。离线可开，流程图不依赖外网。</footer>
+</div>
+</body>
+</html>
