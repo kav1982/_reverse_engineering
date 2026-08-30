@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>齐射（Spell3001 / Volley）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 460px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 188px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>齐射（Spell3001 / Volley）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家强化符文「齐射」（<code>abilityType = 3001</code>，配置 ID <code>30011–30013</code>）。重点是<strong>一组里能同时塞几张可施放卡</strong>、<strong>每多一张怎么乘蓝和加散射</strong>，以及<strong>开火时这几发怎么打出去</strong>。</p>
+    <p>不把 3002 多重、3003 超载散射写成同级全文；它们只在第 4 节对照。不展开遗物/诅咒逐条来源。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>玩家施法主路径是 ECS。组解析与扣蓝在 <code>Wand</code> / <code>SpellGroupParser</code>，生成走 <code>ShootSpellUtils</code>。Mono <code>SpellBase.ApplyEnhanceSpell</code> <strong>没有</strong>齐射分支，文末单独对照。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《精准施法逆向分析.md》3.1，子弹不重跑见《分裂逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">和其它法术的关系</a></li>
+    <li><a href="#s5">Mono 残留轨对照</a></li>
+    <li><a href="#s6">证据索引</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>齐射</td></tr>
+  <tr><td>英文名</td><td>Volley</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>3001</code> / <code>SpellAbilityType.Volley</code></td></tr>
+  <tr><td>配置 ID</td><td><code>30011</code>（Lv1）/ <code>30012</code>（Lv2）/ <code>30013</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>2</code>（Enhance 强化符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code>、<code>shootCount=0</code>、<code>angle=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=true</code>，<code>haveEffecforSummonSpell=true</code></td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>12 / 36 / 108</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在主动/召唤<strong>左侧</strong>的发射形态符文。它<strong>不把同一张卡复制成多发</strong>，而是把法杖这一段的「同时施放容量」加上 <code>int1</code>；解析时往<strong>同一个 <code>SpellShootGroup</code></strong> 里多塞几张可施放卡。组内实际张数 <code>N</code> 再拿来算：魔耗 × <code>(float1/100)^(N-1)</code>，散射 + <code>int2×(N-1)</code>。散射和魔耗<strong>只读最高级那一张</strong>。没有独立 ECS Job。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">SpellGroupParser：容量 = 杖.shootCount + Σ int1</div>
+    <div class="arrow">↓</div>
+    <div class="box">一组塞进 N 张可施放</div>
+    <div class="arrow">↓</div>
+    <div class="box">每发魔耗 × (float1/100)^(N-1)</div>
+    <div class="arrow">↓</div>
+    <div class="box">散射 AddBase += int2×(N-1)</div>
+    <div class="arrow">↓</div>
+    <div class="box">TryShoot：按一组总蓝扣一次</div>
+    <div class="arrow">↓</div>
+    <div class="box ok">组内每发各自 SipToSSP</div>
+    <div class="arrow">↓</div>
+    <div class="box">锥角内随机 / 均分，无间隔</div>
+  </div>
+</div>
+
+<p class="quote">法杖同时施放法术数量+<strong>int1</strong><br>同时施法时每多一个可施放法术，魔耗×<strong>float1</strong>%，散射+<strong>int2</strong>°</p>
+<p>名称（<code>7030011–7030013</code>）：齐射 / Volley。三级名称相同，只有 <code>int1</code> / <code>float1</code> / <code>int2</code> 不同。</p>
+<p>俄语本地化把第一句写成「法术块容量」，和代码一致：改的是<strong>一组能装几张卡</strong>，不是「这一张弹复制几份」。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>int1 容量</th><th>float1 魔耗%</th><th>int2 散射°</th><th>float2</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>30011</td><td>1</td><td><strong>2</strong></td><td><strong>78</strong></td><td><strong>10</strong></td><td>0</td><td>12</td><td>true</td></tr>
+  <tr><td>30012</td><td>2</td><td><strong>3</strong></td><td><strong>73</strong></td><td><strong>15</strong></td><td>2</td><td>36</td><td>true</td></tr>
+  <tr><td>30013</td><td>3</td><td><strong>4</strong></td><td><strong>68</strong></td><td><strong>20</strong></td><td>0</td><td>108</td><td>false</td></tr>
+</table>
+<p><code>int1</code> / <code>int2</code> 每级 +1 / +5；<code>float1</code> 每级 −5；售价每级 ×3。<code>mpCostMulDivCorrection=0</code>，不走多重那种耗蓝字段。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong>int1</strong></td><td>同时施放容量加算（多张<strong>相加</strong>）</td><td>是</td><td>高</td></tr>
+  <tr><td><strong>float1</strong></td><td>每多一张可施放，魔耗再乘 <code>float1/100</code></td><td>是；<strong>只取最高级一张</strong></td><td>高</td></tr>
+  <tr><td><strong>int2</strong></td><td>每多一张可施放，散射 +<code>int2</code>°</td><td>是；<strong>只取最高级一张</strong></td><td>高</td></tr>
+  <tr><td>float2</td><td>Lv2 配了 2，Lv1/Lv3 为 0</td><td>齐射路径 <strong>未读</strong></td><td>高</td></tr>
+  <tr><td>int3 / float3</td><td>配置为 0</td><td>未读</td><td>高</td></tr>
+  <tr><td><code>angle</code> / <code>mpCostMulDivCorrection</code></td><td>均为 0</td><td>散射不靠自己的 <code>angle</code>；耗蓝不靠这字段</td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>表上对弹幕与召唤都标生效</td><td>容量 / 魔耗 / 散射函数 <strong>不读</strong>这两旗</td><td>高</td></tr>
+</table>
+
+<h3>2.3 叠加：容量相加，魔耗和散射只吃最高级</h3>
+<p>容量入口：<code>SpellShootData.GetMaxMeantimeShootCount</code>。</p>
+<pre class="code">num = baseMeantimeShootCount;
+foreach EnhanceList:
+    Volley / TotalScattering → num += int1;</pre>
+<p><code>baseMeantimeShootCount</code> 是法杖 <code>WandCfg.shootCount</code>（多数杖是 <strong>1</strong>，少数 2 / 3 / 5）。齐射和超载散射的 <code>int1</code> <strong>加在同一个容量上</strong>。</p>
+<p>魔耗、散射不扫每一张齐射，只取 <code>GetMaxLevelVolley</code>：<code>EnhanceList</code> 里 <code>abilityType == Volley</code> 的卡，按 <code>level</code> 取最高，同级取第一张。</p>
+<pre class="code">容量   = 杖.shootCount + Σ 齐射.int1 + Σ 超载.int1
+散射°  = 最高级齐射.int2 × (N - 1)     （没有齐射则为 0）
+魔耗比 = (最高级齐射.float1 / 100)^(N - 1)</pre>
+<p><code>N</code> 是<strong>这一组树里实际装进去的可施放张数</strong>（含触发器后槽），不是容量上限，也不是「齐射 int1 本身」。</p>
+<table>
+  <tr><th>左侧</th><th>容量（杖 shootCount=1）</th><th>散射 / 魔耗用哪张</th></tr>
+  <tr><td>一张 Lv1</td><td>1+2=<strong>3</strong></td><td>Lv1：10°、×78%</td></tr>
+  <tr><td>两张 Lv1</td><td>1+2+2=<strong>5</strong></td><td>仍是 Lv1（只取一张）</td></tr>
+  <tr><td>一张 Lv2</td><td>1+3=<strong>4</strong></td><td>Lv2：15°、×73%</td></tr>
+  <tr><td>一张 Lv3</td><td>1+4=<strong>5</strong></td><td>Lv3：20°、×68%</td></tr>
+  <tr><td>Lv1 + Lv3</td><td>1+2+4=<strong>7</strong></td><td><strong>只吃 Lv3</strong></td></tr>
+</table>
+<div class="note">两张 Lv1 <strong>不能</strong>合成一张 Lv2 的魔耗 / 散射；合成的意义是省槽，并换更高的 <code>int1</code> / 更好的 <code>float1</code> / <code>int2</code>。魔能升阶走 <code>GetFinalConfig()</code>，抬的是这张卡自己的三级数字，叠加规则不变。</div>
+<p><code>haveEffecforSummonSpell</code> 不进这三个函数。自动填槽会避开齐射；手动插在召唤左侧，召唤一样进组、一样乘蓝、一样加散射。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<p>齐射没有自己的 Job。它改的是「这一枪的组里有几张卡、这几张怎么算蓝和锥角」。之后每张卡各自走一遍 <code>SipToSSP</code>，和没齐射时同一条生成轨。</p>
+
+<h3>3.1 容量：解析时往一组里塞，不绕回复制</h3>
+<p><code>Wand.RecalculateSpellGroups</code>：主槽和后槽分开 <code>SpellGroupParser.Parse(..., WandCfg.shootCount)</code>，互不串。Enhance 从左往右累积，<strong>消耗后不清空</strong>：插在最左的齐射，会进它右边所有主动 / 召唤的 <code>EnhanceList</code>。</p>
+<p><code>NextGroup</code> 从左到右继续取下一张 Missile / Summon。组内张数还没到 <code>GetMaxMeantimeShootCount</code> 就继续取；取完了就停。<strong>不会绕回再放同一张卡。</strong></p>
+<ul>
+  <li><code>[齐射 Lv1][魔法弹]</code>：容量 3，但右边只有 1 张可施放 → 一组 <code>N=1</code>。多出来的 +2 <strong>空着</strong>。</li>
+  <li><code>[齐射 Lv1][弹][弹][弹]</code>：一组塞 3 张，一次扳机打出 3 张不同的卡。</li>
+  <li><code>[齐射 Lv1][弹A][弹B][弹C][弹D]</code>：第一组 A+B+C，第二组只剩 D。</li>
+  <li><code>[弹A][齐射][弹B][弹C]</code>：A 吃不到齐射，单独一组；B 带着齐射开新组，再把 C 拉进来。</li>
+</ul>
+<p>可施放 = <code>useType</code> 为 Missile(0) 或 Summon。齐射自己是 Enhance，不进组、不占容量。触发器会挂到前一张主动上，后槽进 <code>SubGroup</code>。</p>
+<p><code>CreateShootInfoFromShootData</code> 里那层 <code>shootCount × multiShootCount</code> <strong>不是</strong>齐射：前者是法术自己的发数（散弹 / 彩虹等），后者是多重 3002。</p>
+
+<h3>3.2 魔耗：最高级 float1 的 (N-1) 次幂</h3>
+<p><code>N</code> 来自 <code>GetGroupTotalShootDataForVolley</code>：从根组 BFS，把 <code>Shoots</code> 和每发的 <code>SubGroup</code> 都算上。同一棵树共用一个 <code>N</code>。</p>
+<pre class="code">if (GetMaxLevelVolley() == null) return 1;
+N = GetGroupTotalShootDataForVolley().Length;
+return Pow(float1 / 100, N - 1);</pre>
+<p><code>GetSpellManaCost</code> 先 <code>MulRatio(GetGroupManaCostRatio)</code>。齐射比乘在多重、父法术（秘法新星 / 礼花）之前。<code>N=1</code> 时幂为 0，比为 <strong>1</strong>：单独一张弹 + 齐射，<strong>不打折也不加价</strong>。</p>
+<p><code>TryShoot</code> 按<strong>一组总蓝</strong>扣一次。组总蓝 = 组内每发已经乘过齐射比之后再相加。</p>
+<p>以魔法弹（<code>10011</code>，<code>mpCost=3</code>）、杖 <code>shootCount=1</code>、只有齐射 Lv1 为例：</p>
+<table>
+  <tr><th>槽位</th><th>N</th><th>每发比</th><th>每发蓝</th><th>一组总蓝</th><th>若拆开点 N 次</th></tr>
+  <tr><td><code>[齐射][弹]</code></td><td>1</td><td><code>0.78^0 = 1</code></td><td>3</td><td><strong>3</strong></td><td>3</td></tr>
+  <tr><td><code>[齐射][弹][弹]</code></td><td>2</td><td><code>0.78</code></td><td>2.34</td><td><strong>4.68</strong></td><td>6</td></tr>
+  <tr><td><code>[齐射][弹][弹][弹]</code></td><td>3</td><td><code>0.78² = 0.6084</code></td><td>1.825</td><td><strong>5.48</strong></td><td>9</td></tr>
+</table>
+<div class="note"><code>×78%</code> 是折扣，不是加价。装得越满，单张越便宜；一组总蓝仍高于单张，但低于「拆开点同样多张」。</div>
+
+<h3>3.3 散射：最高级 int2 × (N-1)</h3>
+<pre class="code">if (GetMaxLevelVolley() == null) return 0;
+return int2 * (N - 1);</pre>
+<p><code>GetSpellScatter</code>：底数是主动法术自己的 <code>angle</code>，再 <code>AddBase(齐射散射)</code>，再把 EnhanceList 里每张卡的 <code>angle</code> 加上（超载、精准施法）。</p>
+<p><code>ProcessShootDataEffect</code>：<code>extraScatter += CurrentAddBase</code>（齐射度数 + 增强卡 <code>angle</code>；不含主动自己的 <code>angle</code>）。法杖自身散射在 <code>ProcessWandEffect</code> 另加一份。</p>
+<p>开火锥角：<code>cone = (主动.angle + extraScatter) × finalScatterRatio</code>。默认每发独立随机 <code>±cone/2</code>；法杖均分被动则按本枪全部 <code>SpellShootInfo</code> 均分最大锥角。</p>
+<p><code>SipToSSP</code> 另写一份快照 <code>Config.Scatter</code>（再加法杖、再乘「站定专注」一类遗物），<strong>小于 0 钳成 0</strong>。发射方向用的是 <code>extraScatter</code> 锥，不是事后改这份快照。</p>
+<p>同一组 <code>N=3</code>、齐射 Lv1：散射 <strong>+20°</strong>。魔法弹自身 <code>angle=0</code> 时，随机锥是 ±10°。</p>
+
+<h3>3.4 开火：一组同时打，无间隔</h3>
+<p><code>TryShoot</code>：蓝够 → 扣一组蓝 → <code>Shoot</code> → <code>EnterNextGroup</code>。组内每张卡各自 <code>ApplySpellShootDataEffect</code> + <code>SipToSSP</code>。齐射<strong>不写</strong> <code>multiShootGap</code>，几发在同一帧生成。</p>
+<p>方向共享这一枪的瞄准，再各自加散射偏角。复制遗物打出的那发（<code>IsCopyShoot</code>）改走 <code>Random(0, 360)</code>，与齐射锥无关。分裂子弹不再跑解析，也不会再齐射一次。</p>
+
+<h2 id="s4">4. 和其它法术的关系</h2>
+<p>只写会改容量 / <code>N</code> / 魔耗比 / 散射锥 / 发射循环的交互。伤害强化 / 加速器 / 时长只改别的池，不列。</p>
+
+<h3>4.1 多重施法 3002</h3>
+<p>完全另一条轴。<code>GetSpellMultiShootData</code>：<code>count = 1 + Σ int1</code>，<code>gap = Max(float1)</code>（0.4）。同一张卡再打几发，并横向错位。</p>
+<table>
+  <tr><th></th><th>齐射 3001</th><th>多重 3002</th></tr>
+  <tr><td>改什么</td><td>一组塞几张<strong>不同的卡</strong></td><td><strong>同一张卡</strong>再打几发</td></tr>
+  <tr><td>间隔</td><td>无</td><td><code>float1</code> 横向错开</td></tr>
+  <tr><td>耗蓝</td><td><code>(float1/100)^(N-1)</code>，只吃最高级齐射</td><td><code>mpCostMulDivCorrection</code>（×150%），每张多重都乘</td></tr>
+  <tr><td>进 SubGroup</td><td>会（不 <code>HindInSubGroup</code>）</td><td><strong>不会</strong>（只挡多重）</td></tr>
+</table>
+<p><code>[齐射 Lv1][多重 Lv1][弹][弹][弹]</code>：先装箱 3 张弹，每张再打 2 发，一共 6 个实体。齐射按 <code>N=3</code> 乘蓝、+20°；多重再对每张 ×150%。奥术屏障的齐发点数读的是多重，不是齐射。</p>
+
+<h3>4.2 超载散射 3003</h3>
+<p>和齐射进<strong>同一句</strong>容量加算。Lv1/2/3 的 <code>int1</code> 是 5 / 8 / 12。</p>
+<p>散射不走齐射那条 <code>int2×(N-1)</code>。超载用自己的 <code>angle</code>（+60 / +90 / +150），和精准施法的 <code>angle</code> 相加。两边可以同时在：容量相加，锥角相加。超载<strong>不改</strong>齐射魔耗幂。自动填槽同样跳过超载。</p>
+
+<h3>4.3 精准施法 3105</h3>
+<p>不改容量、不改 <code>N</code>、不改魔耗幂。它的 <code>angle</code>（−30 / −60 / −100）和齐射散射进<strong>同一个</strong>加算池，可以部分对冲 <code>int2×(N-1)</code>。<code>Scatter</code> 钳 0：减到没有锥角为止。详见《精准施法逆向分析》2.6。</p>
+
+<h3>4.4 分裂 3013</h3>
+<p>发射时齐射已经装箱、扣过蓝、打出过锥角。<code>ToSplit</code> 整包复制快照，不再 <code>Parse</code>、不再齐射。子弹是「这一发实体」的复制，不是「再来一组」。见《分裂逆向分析》第 7 节。</p>
+
+<h3>4.5 触发器 / 后槽</h3>
+<p><code>GetGroupTotalShootDataForVolley</code> 会把 <code>SubGroup</code> 算进 <code>N</code>。<code>[齐射][弹A][二重奏][弹B][弹C]</code>：根组只有 A，但 B/C 在后槽里，<code>N=3</code>。齐射不挡后槽，后槽里的弹仍乘这份比、加这份散射。</p>
+<p>主槽齐射加不到后槽整段（后槽自己 Parse）。后槽里另插齐射，只改后槽各组。</p>
+
+<h3>4.6 法杖 shootCount / 四向</h3>
+<p>容量底数是杖的 <code>shootCount</code>。<code>shootCount=3</code> 的杖，<strong>不插齐射</strong>也能一组打 3 张；此时没有齐射卡，魔耗比 1、齐射散射 0。</p>
+<div class="note">一旦插了齐射，公式按<strong>实际 N</strong> 生效——杖原生就能齐发的那几张，也会吃 <code>×78%</code> 和 <code>+10°</code>。这是「有齐射卡才开公式」，不是「只对 int1 多出来的那几张开」。</div>
+<p>四向法杖把<strong>同一组</strong>打 4 个方向。蓝仍按一组扣一次。装箱 / 幂 / 散射公式不变；每个方向各自再滚一遍锥角。</p>
+
+<h3>4.7 召唤</h3>
+<p>召唤是可施放，占容量、进 <code>N</code>。<code>[齐射][召唤A][召唤B]</code> 一次扳机放出两个召唤物，并按 <code>N=2</code> 乘蓝、加散射。</p>
+<p><code>Wand.GetWandOnceShootCountWithEnhance</code> 会把杖上<strong>所有</strong>齐射 + 超载的 <code>int1</code> 加到 <code>shootCount</code> 上。玩家 ECS 主路径<strong>不读</strong>这个函数。目前只有召唤物 <code>Teammate6</code> 用它当 <code>onceShootCount</code>。</p>
+
+<h3>4.8 自动填槽</h3>
+<p><code>SpellAutoFullTool.IgnoreSpells</code> 含 <code>Volley</code> 和 <code>TotalScattering</code>。推荐填槽不会塞齐射。不阻止手动插。</p>
+
+<h2 id="s5">5. Mono 残留轨对照</h2>
+<p><code>SpellBase.ApplyEnhanceSpell</code> 的 switch <strong>没有</strong> <code>Volley</code> / <code>TotalScattering</code>。齐射不靠给单个 <code>SpellBase</code> 加字段生效。</p>
+<p>组解析、容量、魔耗幂、散射加算都在 <code>SpellGroupParser</code> / <code>SpellShootGroup</code> / <code>SpellShootData</code>，和 ECS、Mono 共用。玩家开火走 <code>ShootSpellUtils.ShootSpellGroup</code> → <code>SipToSSP</code> → <code>SpellShootSystem</code>。</p>
+<p>Mono 残留如果仍从 SIP 读 <code>extraScatter</code> 拧方向，锥角和 ECS 同构。<code>extraEnhanceIds</code> 再跑 <code>ApplyEnhanceSpell</code> 也不会补上齐射。讨论玩家构筑时以第 3 节为准。</p>
+
+<h2 id="s6">6. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>SpellGroupParser.NextGroup</code></td><td>按 <code>GetMaxMeantimeShootCount</code> 往一组里装箱；取完即停，不绕回</td></tr>
+  <tr><td><code>SpellShootData.GetMaxMeantimeShootCount</code></td><td>齐射 / 超载 <code>int1</code> 加在杖 <code>shootCount</code> 上</td></tr>
+  <tr><td><code>SpellShootDataExtend.GetMaxLevelVolley</code></td><td>只取最高级齐射</td></tr>
+  <tr><td><code>SpellShootGroup.GetGroupTotalShootDataForVolley</code></td><td><code>N</code> = 根组树里全部可施放（含 SubGroup）</td></tr>
+  <tr><td><code>SpellShootGroup.GetGroupManaCostRatioFromVolley</code></td><td><code>(float1/100)^(N-1)</code></td></tr>
+  <tr><td><code>SpellShootGroup.GetGroupShootScatterFromVolley</code></td><td><code>int2 × (N-1)</code></td></tr>
+  <tr><td><code>SpellShootData.GetSpellScatter</code></td><td>齐射散射 + 增强卡 <code>angle</code></td></tr>
+  <tr><td><code>SpellShootData.GetSpellManaCost</code></td><td><code>MulRatio(组魔耗比)</code></td></tr>
+  <tr><td><code>SpellInitialParameter.Builder</code></td><td><code>extraScatter += CurrentAddBase</code></td></tr>
+  <tr><td><code>ShootSpellUtils.ShootSpellGroup</code></td><td>一组同时生成；随机 / 均分锥角</td></tr>
+  <tr><td><code>ShootSpellUtils.CreateShootInfoFromShootData</code></td><td>法术 <code>shootCount</code> × 多重；<strong>不含</strong>齐射</td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td><code>Scatter</code> 钳 0；每发独立快照</td></tr>
+  <tr><td><code>Wand.TryShoot</code> / <code>RecalculateSpellGroups</code></td><td>按一组扣蓝；主槽 / 后槽分别 Parse</td></tr>
+  <tr><td><code>Wand.GetWandOnceShootCountWithEnhance</code></td><td>整杖齐射+超载加总；仅 <code>Teammate6</code> 读</td></tr>
+  <tr><td><code>SlotData.HindInSubGroup</code></td><td>只挡多重，不挡齐射</td></tr>
+  <tr><td><code>SpellAutoFullTool.IgnoreSpells</code></td><td>自动填槽跳过齐射 / 超载</td></tr>
+  <tr><td><code>SpellBase.ApplyEnhanceSpell</code></td><td>无 <code>Volley</code> 分支</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>30011–30013</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>703001*</code> / <code>713001*</code></td><td>名称与文案</td></tr>
+</table>
+
+<footer>由《齐射逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+</div>
+</body>
+</html>

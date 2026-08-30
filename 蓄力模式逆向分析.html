@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蓄力模式（Spell4004 / ChargeMode）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  .flow {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 12px;
+    margin: 1em 0 .4em;
+    overflow-x: auto;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 280px;
+  }
+  .box, .dia {
+    max-width: 520px;
+    text-align: center;
+    padding: .55em .9em;
+    border: 1.5px solid #7a58b0;
+    background: #f7f2fc;
+    border-radius: 8px;
+    font-size: .95rem;
+  }
+  .dia {
+    background: #fff7e8;
+    border-color: #b8892e;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    padding: 1.35em 2.2em;
+    min-width: 220px;
+  }
+  .arrow { color: var(--accent); font-size: 1.2rem; line-height: 1.2; margin: .15em 0; }
+  .branch {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: .3em;
+  }
+  .branch .arm { display: flex; flex-direction: column; align-items: center; }
+  .lbl { font-size: .8rem; color: var(--muted); }
+  .end { background: #eeeae3; border-color: #9aa1a9; }
+  .ok { background: #eef7ee; border-color: #3d8b4a; }
+  .bad { background: #f8ecec; border-color: #b06060; }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>蓄力模式（Spell4004 / ChargeMode）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家被动符文「蓄力模式」（<code>abilityType = 4004</code>，配置 ID <code>40041–40043</code>）。重点是<strong>按住怎么攒星、松手怎么射星</strong>，以及<strong>耗蓝修正 / 层数怎么叠</strong>。</p>
+    <p>不展开遗物 / 诅咒逐条来源。闪耀星矢 / 超新星的暴击曲线、档位特效只写挂接点，公式见《闪耀星矢逆向分析.md》。魔导书 <code>2005</code> 有自己的挂星，不拆。</p>
+    <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+    <p>这张卡是法杖级被动。扫描和攒星主路径在 <code>Wand</code>；星星是 Mono + <code>Spell4004StartData</code>，挂上去的法术走 ECS。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，同级被动骨架见《强制冷却逆向分析.md》《储魔之匣逆向分析.md》，蓄力法术见《闪耀星矢逆向分析.md》，子弹抄 <code>ChargeTimer</code> 见《分裂逆向分析.md》。</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">身份与定位</a></li>
+    <li><a href="#s2">数值与叠加</a></li>
+    <li><a href="#s3">主路径（核心）</a></li>
+    <li><a href="#s4">ECS 挂星</a></li>
+    <li><a href="#s5">和其它法术的关系</a></li>
+    <li><a href="#s6">Mono 残留轨对照</a></li>
+    <li><a href="#s7">证据索引</a></li>
+    <li><a href="#s8">待决 / 局限</a></li>
+  </ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table>
+  <tr><th>项</th><th>值</th></tr>
+  <tr><td>中文名</td><td>蓄力模式</td></tr>
+  <tr><td>英文名</td><td>Charge Mode</td></tr>
+  <tr><td>内部名</td><td><code>ChargeMode</code> 蓄力模式</td></tr>
+  <tr><td><code>abilityType</code></td><td><code>4004</code> / <code>SpellAbilityType.ChargeMode</code></td></tr>
+  <tr><td>配置 ID</td><td><code>40041</code>（Lv1）/ <code>40042</code>（Lv2）/ <code>40043</code>（Lv3）</td></tr>
+  <tr><td>稀有度</td><td>稀有（<code>dropType=2</code>）</td></tr>
+  <tr><td><code>useType</code></td><td><code>3</code>（<code>SpellType.Passive</code> 被动符文）</td></tr>
+  <tr><td>槽位消耗</td><td><code>slotCost=1</code>，自身 <code>mpCost=0</code>、<code>damage=0</code>、<code>shootCount=0</code></td></tr>
+  <tr><td>作用对象</td><td><code>haveEffecforMissileSpell=false</code>，<code>haveEffecforSummonSpell=false</code>（自动填槽的强化过滤用；运行时不读）</td></tr>
+  <tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr>
+  <tr><td>售价（金币）</td><td>14 / 42 / 126</td></tr>
+</table>
+
+<p><strong>机制一句话</strong>：插在法杖<strong>任意有效槽</strong>里的法杖级被动。装上之后，按住施法不再走 <code>TryShoot()</code>，改成「每扣一次当前组蓝，生成一颗绕枪口转的星」。蓄力法术（星矢 / 超新星）在<strong>攒星当时</strong>挂到星上；其余法术在<strong>松手</strong>时从星上射出。左右位置不决定「强化谁」——吃的是这根法杖的整条射击路径。</p>
+
+<div class="flow">
+  <div class="flow-col">
+    <div class="box">换槽 / ResetAndRecheck</div>
+    <div class="arrow">↓</div>
+    <div class="box">扫主槽 + 后槽 GetFinalConfig</div>
+    <div class="arrow">↓</div>
+    <div class="dia">abilityType == ChargeMode?</div>
+    <div class="branch">
+      <div class="arm">
+        <div class="lbl">是</div>
+        <div class="arrow">↓</div>
+        <div class="box">enable=true；limit += int1；cost *= mp/100</div>
+      </div>
+      <div class="arm">
+        <div class="lbl">否</div>
+        <div class="arrow">↓</div>
+        <div class="box end">其它被动另计</div>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="box">按住：StartCharge</div>
+    <div class="arrow">↓</div>
+    <div class="box">TryChargeOnce：够蓝且未满层 → 扣一组蓝 + 生成星</div>
+    <div class="arrow">↓</div>
+    <div class="box">ChargeOnce：只把 IsChargingSpell 挂到星上</div>
+    <div class="arrow">↓</div>
+    <div class="box">松手：ReleaseCharge</div>
+    <div class="arrow">↓</div>
+    <div class="box ok">每颗星 ShootPassiveChargeOne：射出非蓄力法术</div>
+    <div class="arrow">↓</div>
+    <div class="box">EnterNextGroup</div>
+  </div>
+</div>
+
+<p>文案（<code>TextConfig_Spell</code> id <code>7140041–7140043</code>）三级相同，只替换 <code>int1</code>：</p>
+<div class="quote">按住施法键积累法术，最多<strong>int1</strong>次</div>
+<p>名称（<code>7040041–7040043</code>）：蓄力模式 / Charge Mode。底部补充 <code>7240041</code> 全空。</p>
+<p>卡面数值行还会额外打出 <code>mpCostMulDivCorrection</code>（<code>SpellConfig.GetInfo</code> 在该字段非 0 时追加「耗蓝 ×N%」）。<code>float2</code> <strong>不出现在文案里</strong>。</p>
+
+<h2 id="s2">2. 数值与叠加</h2>
+<h3>2.1 配置表</h3>
+<table>
+  <tr><th>ID</th><th>Level</th><th>int1 最大层数</th><th>耗蓝倍率</th><th>float2（写入后未读）</th><th>售价</th><th>可合成</th></tr>
+  <tr><td>40041</td><td>1</td><td><strong>6</strong></td><td><strong>×90%</strong></td><td>0.3</td><td>14</td><td>true</td></tr>
+  <tr><td>40042</td><td>2</td><td><strong>12</strong></td><td><strong>×80%</strong></td><td>0.25</td><td>42</td><td>true</td></tr>
+  <tr><td>40043</td><td>3</td><td><strong>24</strong></td><td><strong>×70%</strong></td><td>0.2</td><td>126</td><td>false</td></tr>
+</table>
+<p>规律：售价每级 ×3（14 / 42 / 126）。<code>int1</code> 每级 ×2（6 → 12 → 24）。耗蓝倍率每级再降 10 个百分点。<code>float1/3</code>、<code>int2/3</code> 全 0。</p>
+
+<h3>2.2 字段语义</h3>
+<table>
+  <tr><th>字段</th><th>语义</th><th>运行时是否被读</th><th>置信度</th></tr>
+  <tr><td><strong><code>int1</code></strong></td><td>最大攒星数；多张<strong>相加</strong>写入 <code>passiveChargeCountLimit</code></td><td>是</td><td>高</td></tr>
+  <tr><td><strong><code>mpCostMulDivCorrection</code></strong></td><td>法杖耗蓝连乘；<code>passiveMpCostCorrection *= 该值/100</code></td><td>是</td><td>高</td></tr>
+  <tr><td><strong><code>float2</code></strong></td><td>写入 <code>passiveChargeInterval = Min(..., float2)</code></td><td>字段被写，<strong>之后全工程零读取</strong></td><td>高</td></tr>
+  <tr><td>float1 / float3 / int2 / int3</td><td>配置为 0</td><td><strong>未读</strong></td><td>高</td></tr>
+  <tr><td><code>haveEffecforMissile/Summon</code></td><td>表上均为 <code>false</code></td><td>仅自动填槽的强化过滤；<code>ChargeMode</code> 分支 <strong>不读</strong></td><td>高</td></tr>
+</table>
+<p>没有 <code>Spell4004*Job</code>。星星是 <code>Spell4004ChargeStars</code>（Mono）+ <code>Spell4004StartData</code>（ECS 影子实体）。挂上去的法术才进弹体 ECS。</p>
+<p><code>passiveChargeInterval</code> 是 <code>private</code>，只在 <code>CheckWandSlotPassiveEffect</code> 里被 <code>Mathf.Min</code> 写入。<code>TryChargeOnce</code> 把间隔写成 <code>WandShootInterval</code>，<strong>不读</strong>这份 float。旧表《法术能力类型字段语义表》把 <code>float2</code> 标成「蓄力间隔(秒)」，和运行时不一致。</p>
+
+<h3>2.3 层数加算，耗蓝连乘，不是取 max</h3>
+<pre class="code">case SpellAbilityType.ChargeMode:
+    passiveChargeEnable = true;
+    passiveMpCostCorrection *= spell.mpCostMulDivCorrection / 100f;
+    passiveChargeCountLimit += spell.int1;
+    passiveChargeInterval = Mathf.Min(passiveChargeInterval, spell.float2);
+    break;</pre>
+<p>循环里没有「已处理过同类型就跳过」。同类型出现几次加几次、乘几次。无上限、无「只取最高级」。</p>
+<p>耗蓝底数从 <code>1</code> 乘；层数从 <code>0</code> 加。没有这张卡时 <code>passiveChargeEnable = false</code>，输入走普通 <code>TryShoot()</code>。</p>
+<table>
+  <tr><th>槽位</th><th>层数</th><th>耗蓝连乘</th><th>说明</th></tr>
+  <tr><td>无</td><td>0</td><td>1</td><td>普通射击</td></tr>
+  <tr><td>1×Lv1</td><td>6</td><td><strong>×0.90</strong></td><td></td></tr>
+  <tr><td>1×Lv2</td><td>12</td><td><strong>×0.80</strong></td><td></td></tr>
+  <tr><td>1×Lv3</td><td>24</td><td><strong>×0.70</strong></td><td></td></tr>
+  <tr><td>2×Lv1</td><td>6+6=<strong>12</strong></td><td>0.9×0.9=<strong>×0.81</strong></td><td>层数追平 Lv2，耗蓝略贵</td></tr>
+  <tr><td>Lv1+Lv2</td><td>18</td><td>×0.72</td><td>比 1×Lv3 层数少、更省蓝</td></tr>
+  <tr><td>2×Lv2</td><td>24</td><td>×0.64</td><td>层数追平 Lv3，更省蓝，占两槽</td></tr>
+</table>
+<p>合成的意义是<strong>省槽</strong>。两张低级在层数上可以替代一张高级；耗蓝连乘没有「一张高级 = 两张低级」这种整齐关系。</p>
+<p>写入时机：<code>ResetAndRecheck</code> / <code>ProcessSharedSpell</code> 里先解析拟态、魔能升阶，再 <code>CheckWandSlotPassiveEffect</code>。每次重算都先把 <code>enable=false</code>、<code>limit=0</code>、<code>interval=∞</code>、<code>cost=1</code>，再扫一遍。</p>
+
+<h3>2.4 攒星节奏吃的是法杖施法间隔，不是 float2</h3>
+<p><code>Wand.Update</code> 每帧 <code>ChargeControlUpdate</code> → <code>TryChargeOnce</code>。成功攒一颗之后：</p>
+<pre class="code">ShootIntervalTimer = WandShootInterval</pre>
+<p>下一颗要等 <code>CanShootCurrentGroup()</code>：<code>ShootIntervalTimer ≤ 0</code> 且 <code>CoolingTimer ≤ 0</code>，再扣得起一组蓝。</p>
+<p><code>WandShootInterval</code> = 杖底 <code>shootInterval</code> + 被动加减，再乘慢杖诅咒 / 静止专注。这张卡自己的 <code>shootIntervalAddSubRevise</code> 是 0，<strong>不改</strong>这份间隔。杖底间隔是 0 时，蓝够就可以每帧攒一颗，直到顶层。</p>
+
+<h3>2.5 耗蓝进 GetWandMpCorrection，不是 EnhanceList</h3>
+<pre class="code">num  = WandCfg.costCorrection / 100
+num *= passiveMpCostCorrection          ← 4004 在这里
+num *= PlayerMgr.MpCostRatioFromWandAbility()
+num *= 诅咒耗蓝修正（若有）</pre>
+<p>组蓝耗 <code>GetGroupManaCost_FinalPlayerValue</code> 会 <code>MulRatio(GetWandMpCorrection())</code>。节能模式 / 齐射 / 分裂的 <code>mpCostMulDivCorrection</code> 在<strong>另一层</strong>（Enhance / 组公式），见 5.5。</p>
+<p><code>GetWandAllEnhanceMpCorrection</code> 只扫 <code>useType == Enhance</code>，<strong>不读</strong>这张 Passive。</p>
+
+<h3>2.6 魔能升阶抬的是这张卡的等级</h3>
+<p><code>CheckWandSlotPassiveEffect</code> 取 <code>GetFinalConfig()</code>。<code>SpellLevelEnhance</code>（魔能升阶）先把槽位的 <code>slotSpellExtraLevel</code> 加上，<code>GetFinalLevelId</code> 再把 <code>40041</code> 抬成 <code>40042</code> / <code>40043</code>。叠加规则不变，变的是送进加算 / 连乘的 <code>int1</code> 和耗蓝倍率。</p>
+
+<h2 id="s3">3. 主路径（核心）</h2>
+<h3>3.1 输入分流：有这张卡就不走 TryShoot</h3>
+<p><code>PlayerController.Shoot()</code> 每帧在按住时：无蓄力被动 → <code>TryShoot()</code>；有 <code>passiveChargeEnable</code> → <code>WandChargeEffect(true)</code>。</p>
+<p><code>WandChargeEffect(true)</code>：还没在蓄力就 <code>StartCharge()</code>；已经在蓄力则空操作。它<strong>永远返回 false</strong>。按住期间的攒星不靠这里连打，靠 <code>Wand.Update</code> → <code>ChargeControlUpdate</code>。</p>
+<p>松手：<code>ShootCanceld</code> → <code>WandChargeEffect(false)</code> → <code>ReleaseCharge()</code>。换杖、改槽（正在蓄力时）、部分 UI 关界面，也会走松手。</p>
+
+<h3>3.2 开始蓄力</h3>
+<p><code>StartCharge</code>：从对象池取出 <code>EF_WandChargeMagicCircle</code>（<code>Spell4004ChargeController</code>），开环绕特效和循环音；立刻 <code>TryChargeOnce()</code>（第一颗不必再等一帧）。</p>
+<p><code>IsCharging</code> 就是 <code>chargeAura</code> 非空。满层时 <code>WandFullCharge()</code>：关掉 <code>normalCharge</code>，打开 <code>fullCharge</code>。只换圈，不停攒（已经满了，<code>TryChargeOnce</code> 也不会再扣蓝）。</p>
+
+<h3>3.3 攒一颗星：先扣整组蓝，再拆开发射</h3>
+<p>门禁和普通射击同一套：间隔 / 冷却 / 持续施法锁 + 当前组 MaxMP 够 + 当前蓝够。付不起当前组会 <code>EnterNextGroup(false)</code> 跳组，和 <code>TryShoot</code> 一样。</p>
+<p><code>ChargeOnce</code> 做两件事：</p>
+<ol>
+  <li>生成 <code>EF_WandChargeStars</code>，绕枪口转（半径随已有星数略变大；方向随机）。<code>Initialized</code> 时创建一个只有 <code>LocalTransform</code> + <code>Spell4004StartData</code> 的 ECS 实体，<code>Released = false</code>。</li>
+  <li><strong>复制当前组</strong>，只留下 <code>abilityType.IsChargingSpell()</code> 的条目，立刻发射。SIP 里 <code>ChargeStar = 这颗星</code>，<code>Shooter = 星的 Entity</code>。</li>
+</ol>
+<p><code>IsChargingSpell</code> 只认闪耀星矢 <code>1026</code> 和超新星 <code>1027</code>。组里没有这两种时，星星仍然生成，只是当时不发射任何东西。</p>
+
+<h3>3.4 松手：每颗星再打一次「非蓄力」半组</h3>
+<p><code>ReleaseCharge</code>：对当时列表里的每颗星 <code>ShootPassiveChargeOne</code>；射出过至少一颗则 <code>EnterNextGroup(true)</code>；再 <code>CancelCharge</code> 停圈。</p>
+<p><code>ShootPassiveChargeOne</code> 同样复制当前组，但过滤条件相反：<code>!IsChargingSpell()</code>。从<strong>星星当前位置</strong>朝当前瞄准方向发射。打完 <code>star.Release()</code>（<code>Released = true</code>），再从列表移除。</p>
+<p>同一组蓝在攒星时已经付过了。松手不再扣蓝。</p>
+<table>
+  <tr><th>时机</th><th>发出去的</th></tr>
+  <tr><td>攒星当时</td><td>星矢 / 超新星，贴在这颗星上继续蓄</td></tr>
+  <tr><td>松手</td><td>魔法弹等其余法术，从星的位置飞出</td></tr>
+  <tr><td>星 <code>Released</code></td><td>贴在星上的星矢结束蓄力，按《闪耀星矢逆向分析.md》飞出去</td></tr>
+</table>
+<p>只有星矢、没有普通弹：松手半组是空的，仍然 <code>Release()</code> 星星，星矢照样结束蓄力。只有普通弹：攒星当时半组是空的，松手才从每颗星各打一组——视觉上就是「按住攒发射次数」。</p>
+
+<h3>3.5 后坐、回响、切组</h3>
+<p><code>ShootPassiveCharge</code> 在打完所有星之后 <code>ApplyShootGroupRecoil</code> <strong>一次</strong>（按当前组），不是每颗星后坐一次。</p>
+<p><code>!fromEcho</code> 时先 <code>TryTriggerEchoEffect</code>：让<strong>其它</strong>带回响的杖 <code>TryShoot(fromEcho: true)</code>。回响杖即使自己也插了蓄力模式，走的仍是 <code>TryShoot</code>，<strong>不</strong>再攒星。见 5.8。</p>
+<p><code>EnterNextGroup(true)</code>：还有下一组只写 <code>ShootIntervalTimer</code>；已经是最后一组则写 <code>CoolingTimer</code>。强制冷却吃的是这里。</p>
+
+<h3>3.6 星星自己的寿命</h3>
+<ul>
+  <li>未松手：跟着枪口转，同步位置和 <code>WandShootDirection</code>。</li>
+  <li><code>NeedBreak == true</code>（超新星蓄满 6 秒会写）：对<strong>这一颗</strong>立刻 <code>ShootPassiveChargeOne</code>，不必等玩家松手。</li>
+  <li>已 <code>Release</code>：再等至少 1 帧；若登记过的持续施法实体都不在了，<code>Break()</code> 播捏碎、回池。</li>
+</ul>
+<p><code>AttachToStarSystem</code> 只给<strong>非</strong> <code>IsChargingSpell</code> 的挂星法术登记。纯星矢的星，名单是空的，松手后约 1 帧就捏碎；星矢实体继续飞。</p>
+<p><code>CancelCharge</code> 直接回收 GameObject，不走射星。正常松手不会走到「列表里还有星再 Cancel」；换槽时 <code>ResetAndRecheck</code> 先 <code>ReleaseCharge()</code>（会射），再重算。</p>
+
+<h2 id="s4">4. ECS 挂星</h2>
+<h3>4.1 星的影子实体</h3>
+<p><code>Initialized</code> 创建的实体只有 <code>Spell4004StartData</code>：<code>Star</code> 引用、<code>Released</code>、<code>WandShootDirection</code>、<code>NeedBreak</code>。没有碰撞、没有伤害。<code>OnDisable</code> 销毁这个实体。</p>
+
+<h3>4.2 法术怎么知道自己挂在星上</h3>
+<p><code>ShootSpellUtils.SipToSSP</code>：SIP 有 <code>ChargeStar</code> 就抄到快照。公转类还会把 <code>AroundTarget</code> 指到星（持续施法）或玩家环绕中心。</p>
+<p><code>SpellShootSystem</code> 在「持续施法 / 带 <code>SpellChargeData</code>」那条生成分支里，若 <code>ChargeStar</code> 非空，加可禁用组件 <code>SpellFromChargeModeStar</code>。星矢 / 超新星一定会进。龙息 / 分解射线 / 高压水枪从星上射出时也会进，并被登记进星星的持续施法名单。普通魔法弹<strong>不</strong>走这条，松手飞出后就是普通弹。</p>
+<p>加完后 <code>AttachToStarSystem</code> 把该组件<strong>禁用</strong>（<code>HasComponent</code> 仍为真）。<code>SpellChargeEndSystem</code> / <code>SuperNovaJob</code> 用的是 <code>HasComponent</code>，禁用不影响它们。</p>
+
+<h3>4.3 蓄力计时看的是星，不是玩家是否按住</h3>
+<p><code>SpellChargeSystem</code> 每帧 <code>ChargeTimer += dt</code>。关掉 <code>ChargingTag</code> 要下面<strong>三条同时不成立</strong>：</p>
+<ol>
+  <li>射击者是玩家，且 <code>holdingShoot</code></li>
+  <li>射击者有 <code>Spell4004StartData</code>，且 <strong><code>Released == false</code></strong></li>
+  <li>射击者有魔导书数据，且还没 <code>ReleaseChargeSpell</code></li>
+</ol>
+<p>挂在星上的星矢，<code>Shooter</code> 是星的实体。玩家松手不会单独拆掉第 2 条——要等这颗星 <code>Release()</code>。按住期间星矢在星上照常涨暴击；松手（或 <code>NeedBreak</code>）才进《闪耀星矢逆向分析.md》的结束蓄力。</p>
+<p><code>SpellKeepCastingAttachSystem</code>：带 <code>SpellFromChargeModeStar</code> 时，贴身位置跟星，方向跟星上缓存的射击方向。蓄力期星矢贴着星星转，不贴玩家枪口。</p>
+
+<h3>4.4 松手后的公转重绑</h3>
+<p><code>SpellChargeEndSystem</code>（查 <code>ChargingTag</code> 已关）：若是闪耀星矢且运动是 <code>Rotation</code>，并且实体上还有 <code>SpellFromChargeModeStar</code>，把 <code>AroundTarget</code> 改绑到玩家环绕中心 / Owner。这是星矢 + 公转 + 蓄力星的交叉，曲线不在本文。</p>
+
+<h2 id="s5">5. 和其它法术的关系</h2>
+<p>只写会改这张卡行为、或被这张卡改发射时机的交互。伤害强化 / 范围增强 / 加速器只改快照通道，不列。</p>
+
+<h3>5.1 闪耀星矢 1026 / 超新星 1027</h3>
+<p><code>IsChargingSpell</code> 只认这两种。它们在攒星当时发射、<code>Shooter = 星</code>、<code>ChargingTag</code> 打开，暴击 / 档位按《闪耀星矢逆向分析.md》。4004 不读星矢卡上的 <code>float1/2/3</code>。</p>
+<p>超新星 <code>ChargeTimer &gt; 6</code> 时自己关 tag，若带 <code>SpellFromChargeModeStar</code>，给那颗星写 <code>NeedBreak = true</code>。该星会提前打出同组里的非蓄力半组，其它星不受影响。</p>
+
+<h3>5.2 公转 3009 / 自由公转 3117</h3>
+<p>不改攒星公式。星矢 + 公转在松手后走 4.4 的环绕重绑。加速器仍只改松手后的飞速。</p>
+
+<h3>5.3 分裂 3013</h3>
+<p>蓄力期 <code>ChargingTag</code> 亮着时寿命不计，星矢在星上<strong>不会</strong>因寿命分裂。松手飞完（或悬停走完）才裂。</p>
+<p>分裂时若母弹有 <code>SpellChargeData</code>，把当下 <code>ChargeTimer</code> 抄进子弹。这是「活体计时例外」，不是 4004 卡自己的字段。《分裂逆向分析.md》6.6 写的「充能模式 4004」指的是这条抄计时，不是把星星再分裂一次。</p>
+
+<h3>5.4 齐射 3001 / 多重 3002</h3>
+<p>不改 4004 的层数 / 间隔。当前组里有几张可施放，攒星半组和松手半组就各带几张。齐射把多张主动塞进<strong>同一组</strong>，所以一颗星会把组里所有星矢一起挂上，松手再把组里所有非蓄力一起射出。组蓝耗仍按齐射公式算，再乘 4004 的杖修正。</p>
+
+<h3>5.5 节能模式 3104</h3>
+<p>节能的耗蓝在 Enhance 层，4004 在法杖层再乘。两张同场是<strong>先组内乘、再乘杖修正</strong>。节能还砍伤和持续，4004 不砍。</p>
+
+<h3>5.6 储魔之匣 4002 / 强制冷却 4006</h3>
+<p>匣只改 <code>MaxMP</code>，不改层数。组耗蓝变了之后，每颗星扣蓝跟着变。</p>
+<p>强制冷却不改攒星间隔。松手后若这是最后一组，<code>EnterNextGroup</code> 写入的 <code>CoolingTimer</code> 才吃 <code>coolDownRatio</code>。</p>
+
+<h3>5.7 时长强化 / 悬停</h3>
+<p>不改攒星。星矢在星上寿命冻结；松手后才扣 Duration / 悬停第二段。</p>
+
+<h3>5.8 回响符文 4008</h3>
+<p>松手时源杖触发其它杖按概率 <code>TryShoot(fromEcho)</code>。回响<strong>绕过</strong> <code>passiveChargeEnable</code> 分流，即使目标杖也插了 4004，这一发也不攒星。</p>
+
+<h3>5.9 四向射击法杖</h3>
+<p><code>ChargeOnce</code>（挂星矢）<strong>没有</strong>四向分支，只打一发。<code>ShootPassiveChargeOne</code>（松手非蓄力）有：四个方向各打半组，起点都是这颗星。后坐仍按一组算一次。</p>
+
+<h3>5.10 法杖之魂 4005</h3>
+<p>杖灵就绪且这根杖开了蓄力：未满层就攒星，满层立刻松手。玩家不用按住。第一拍 <code>StartCharge</code> 里已经 <code>TryChargeOnce</code> 过一次，紧接着又调一次，但间隔已写入，第二次通常被门禁挡掉。不拆杖灵追敌。</p>
+<p><code>Teammate52</code> / 星矢 Mono：杖上 <code>passiveChargeCountLimit &gt; 0</code> 时 <code>AutoFire(0)</code>，不等到暴击阈值。只点入口。</p>
+
+<h3>5.11 后槽</h3>
+<p>后槽照常按充能条自己打，<strong>不</strong>走攒星。后槽里的星矢本身就不开 <code>ChargingTag</code>。</p>
+<p>4004 插在后槽仍然会把整根杖的 <code>passiveChargeEnable</code> 打开——主槽射击改成攒星。后槽那张卡的 <code>int1</code> / 耗蓝同样进同一份扫描。</p>
+
+<h3>5.12 全域强化 4010</h3>
+<p><code>[全域][蓄力模式]</code> 会把右边这张复制到其它法杖。复制过去的槽同样走扫描。等级封顶是全域自己的规则，不拆。</p>
+<p>自动填槽：<code>AppendPassiveSpells</code> 只要求 Passive 且不在忽略表。4004 不在忽略表、不在晶石自斥表。手摆和自动都可以叠多张。</p>
+
+<h2 id="s6">6. Mono 残留轨对照</h2>
+<p>玩家主路径是 ECS。Mono <code>IHoldingSpell.NeedSkipHolding</code>：SIP 上有 <code>ChargeStar</code>（且不是分裂 / 由法术派生）则视为跳过蓄力，立刻 <code>StopHolding()</code>。<code>SpellBase</code> 初始化里对 <code>ChargeStar</code> 只有一次空读取。</p>
+<p>若某发星矢走 Mono 且带着蓄力星引用，<strong>不会</strong>再走一套按住涨暴击。ECS 主轨以 <code>SpellChargeSystem</code> + 星的 <code>Released</code> 为准。</p>
+<p><code>SpellBase.ApplyEnhanceSpell</code> <strong>没有</strong> <code>ChargeMode</code> 分支。这张卡不进 EnhanceList。</p>
+
+<h2 id="s7">7. 证据索引</h2>
+<table>
+  <tr><th>文件</th><th>作用</th></tr>
+  <tr><td><code>Wand.CheckWandSlotPassiveEffect</code></td><td><code>enable</code> / 层数加算 / 耗蓝连乘 / <code>float2</code> 写入未读字段</td></tr>
+  <tr><td><code>Wand.CheckWandManaRelatePassiveEffect</code></td><td>只再乘耗蓝；不重置、不改 enable / 层数</td></tr>
+  <tr><td><code>Wand.GetWandMpCorrection</code></td><td>杖修正 × <code>passiveMpCostCorrection</code></td></tr>
+  <tr><td><code>Wand.GetWandAllEnhanceMpCorrection</code></td><td>只扫 Enhance，不含 4004</td></tr>
+  <tr><td><code>Wand.StartCharge</code> / <code>ReleaseCharge</code> / <code>CancelCharge</code></td><td>开圈 / 松手射星 / 回收</td></tr>
+  <tr><td><code>Wand.TryChargeOnce</code> / <code>ChargeOnce</code></td><td>扣组蓝、生成星、挂 <code>IsChargingSpell</code></td></tr>
+  <tr><td><code>Wand.ShootPassiveCharge</code> / <code>ShootPassiveChargeOne</code></td><td>松手打非蓄力半组</td></tr>
+  <tr><td><code>Wand.ChargeControlUpdate</code></td><td>每帧尝试再攒一颗</td></tr>
+  <tr><td><code>Wand.WandShootInterval</code></td><td>真正的攒星间隔</td></tr>
+  <tr><td><code>Wand.EnterNextGroup</code></td><td>松手后写间隔或冷却</td></tr>
+  <tr><td><code>PlayerController.Shoot</code> / <code>WandChargeEffect</code></td><td>按住分流、松手释放</td></tr>
+  <tr><td><code>PlayerMgr</code> 选杖</td><td>换杖时若在蓄力则 <code>ReleaseCharge</code></td></tr>
+  <tr><td><code>SpellTools.IsChargingSpell</code></td><td>只认星矢 / 超新星</td></tr>
+  <tr><td><code>Spell4004ChargeStars</code></td><td>绕转、影子实体、<code>NeedBreak</code>、捏碎</td></tr>
+  <tr><td><code>Spell4004ChargeController</code></td><td>普通圈 / 满层圈</td></tr>
+  <tr><td><code>Spell4004StartData</code> / <code>SpellFromChargeModeStar</code></td><td>ECS 数据</td></tr>
+  <tr><td><code>Spell4004AttachToStarSystem</code></td><td>非蓄力挂星登记后禁用 tag</td></tr>
+  <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td><code>ChargeStar</code> 抄进快照；环绕目标</td></tr>
+  <tr><td><code>SpellShootSystem</code></td><td>给持续施法 / 蓄力法术加挂星组件</td></tr>
+  <tr><td><code>SpellChargeSystem</code></td><td><code>Released==false</code> 时星上的法术继续蓄</td></tr>
+  <tr><td><code>SpellChargeEndSystem</code></td><td>星矢 + 公转松手重绑 <code>AroundTarget</code></td></tr>
+  <tr><td><code>SpellKeepCastingAttachSystem</code></td><td>蓄力期贴星走</td></tr>
+  <tr><td><code>SuperNovaJob</code></td><td><code>ChargeTimer&gt;6</code> 写 <code>NeedBreak</code></td></tr>
+  <tr><td><code>SpellDestroySystem.Split</code></td><td>母弹 <code>ChargeTimer</code> 抄给子弹</td></tr>
+  <tr><td><code>SpellWandSpiritShootSystem</code></td><td>杖灵满层自动松手</td></tr>
+  <tr><td><code>WandExtend.TryTriggerEchoEffect</code></td><td>松手触发其它杖 <code>TryShoot</code></td></tr>
+  <tr><td><code>IHoldingSpell.NeedSkipHolding</code></td><td>Mono：有 <code>ChargeStar</code> 则跳过蓄力</td></tr>
+  <tr><td><code>SpellAutoFullTool.AppendPassiveSpells</code></td><td>当 Passive 填；不自斥、不忽略</td></tr>
+  <tr><td><code>SpellConfig.GetDes</code> / <code>GetInfo</code></td><td>文案替换 <code>int1</code>；数值行打出耗蓝 ×%</td></tr>
+  <tr><td><code>SpellConfig.json</code> <code>40041–40043</code></td><td>配置原始值</td></tr>
+  <tr><td><code>TextConfig_Spell</code> <code>704004*</code> / <code>714004*</code></td><td>名称与机制文案</td></tr>
+</table>
+
+<h2 id="s8">8. 待决 / 局限</h2>
+<ol>
+  <li><strong><code>float2</code> / <code>passiveChargeInterval</code></strong>：全工程写入后零读取。若后续版本重新接上，语义才是「蓄力间隔(秒)」。当前以 <code>WandShootInterval</code> 为准。</li>
+  <li><strong>扩槽旁路</strong>：<code>CheckWandManaRelatePassiveEffect</code> 对 ChargeMode 再 <code>*=</code> 耗蓝，且<strong>不先置回 1</strong>。<code>PlayerMgr</code> 扩槽走这条。主路径 <code>ResetAndRecheck</code> 会完整重扫。未对扩槽全路径核对会不会把耗蓝乘两次。</li>
+  <li><strong>魔导书 2005</strong>：<code>SpellChargeSystem</code> 第三条是书的 <code>ReleaseChargeSpell</code>，和 4004 平行。挂星实现不在本文。</li>
+  <li><strong>杖灵双调用</strong>：<code>StartCharge</code> + 紧接着的 <code>TryChargeOnce</code> 在间隔为 0 的杖上是否能同一拍攒两颗，未逐帧核。</li>
+  <li><strong>全域复制等级封顶</strong>：只点入口，不拆全域自己的规则。</li>
+  <li><strong>四向 + 星矢</strong>：挂星只有一发、松手非蓄力有四向，是否为设计如此，代码就是这样，没有反证。</li>
+</ol>
+
+<footer>与 <code>蓄力模式逆向分析.md</code> 同步。离线可开，流程图不依赖外网。</footer>
+</div>
+</body>
+</html>
