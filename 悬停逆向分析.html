@@ -374,6 +374,7 @@ valueRW.DurationTimer += DeltaTime;   // 坠落 / 激光族：只加 Duration，
 <table>
   <tr><th>机制族</th><th>走不走 4.1</th><th>怎么走</th><th>边界</th></tr>
   <tr><td>通用导弹（魔法弹等）</td><td><strong>走</strong></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code></td><td>命中且穿透耗尽会直接销毁</td></tr>
+  <tr><td>蝴蝶 <code>1003</code></td><td><strong>走</strong></td><td>同通用导弹。悬停前置分支在 <code>switch (movement.Type)</code> 之前，专属 <code>Butterfly_Common</code> 悬停期根本不被调用——原地不动、不追踪</td><td>与自身减速 Job 有一处理论竞态，见 4.3</td></tr>
   <tr><td>坠落 <code>IsFallSpell</code></td><td><strong>不走</strong></td><td>只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因时长销毁</td><td>秒数仍写入快照；通用坠落活到落地再决定死活</td></tr>
   <tr><td>激光 / 符文锤 / 激光束 / 彼岸致命刃 / 保护伞 / 高压水枪 / 戴夫鱼叉</td><td><strong>通用路径不走</strong></td><td><code>UpdateDuration</code> 把它们和坠落一起短路</td><td>各专属 Job 自己读 <code>HoverDuration</code></td></tr>
   <tr><td>高压水枪 <code>1019</code>、诡雷 <code>1012</code>（非坠落）</td><td><strong>折进 Duration</strong></td><td><code>Duration.Extra += HoverDuration</code>，然后 <code>HoverDuration = 0</code></td><td>继续喷 / 继续活，不是停在原地</td></tr>
@@ -389,6 +390,17 @@ valueRW.DurationTimer += DeltaTime;   // 坠落 / 激光族：只加 Duration，
 <h3>4.3 进悬停当帧就要锁位置</h3>
 <p><code>SpellMoveJob</code> 在 <code>HoverTimer &gt; 0 &amp;&amp; HoverDuration &gt; 0</code> 时把 <code>Speed</code> 和 <code>PhysicsVelocity.Linear</code> 都写成 0。第一帧 <code>HoverTimer</code> 仍可能是 0（MoveJob 若先于 <code>UpdateDuration</code>），靠 <code>UpdateDuration</code> 里那句 <code>Speed = 0</code> 刹住；下一帧 MoveJob 才接手锁死。</p>
 <div class="note">不要只做「<code>HoverTimer &gt; 0</code> 才停」，会漏一帧位移。停在当时的坐标，寻踪 / 导航 / 公转不再跟——速度为 0，按路程转的转角也是 0。</div>
+<h3>反向竞态：自身 Job 可能把速度抬回来</h3>
+<div class="box">SpellMoveJob      压 0    @ FixedStepSimulationSystemGroup
+Spell1003Job      覆写    @ SpellSimulationSystemGroup（每帧晚于 MoveJob）
+
+若进悬停时 StartTraceTargets 仍 false：
+  lerp(0, 0, 5·dt) = 0 &lt; InitialSpeed × 0.15
+  → 把 Speed 从 0 抬回地板值，并置 StartTraceTargets = true
+  → 下一个固定步长 MoveJob 再压回 0
+
+最多漏一帧位移，闩锁置真后不复发</div>
+<p class="note">触发前提是「<code>duration</code> 用尽早于该法术自己的相变」。蝴蝶需 <code>duration &lt; 0.379 s</code>，而 <code>GetSpellDuration</code> 唯一乘算是节能 <code>float2/100</code>（最低 0.75），三张也只能把 3.5 s 压到约 1.48 s → <b>当前配置无法触发</b>，属理论问题。复刻时若给专属 System 写速度覆写，要么让它读悬停状态，要么保证顺序在 MoveJob 之前。详见 蝴蝶逆向分析.md 7.8。</p>
 
 <h3>4.4 回收和触发器在第二段之后</h3>
 <p><code>destroySelf == true</code> 时 <code>SpellSystem</code> 打开 <code>SpellDestroyTag</code>。<code>SpellDestroySystem</code> 在销毁当帧做分裂（<code>ToSplit</code>），结束传送、结束触发也挂在这条回收上。雷霆晶石的落雷同样走销毁。</p>

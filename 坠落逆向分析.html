@@ -402,13 +402,23 @@ return true;</pre>
   <tr><td>陨石 <code>1013</code></td><td><code>SipToSSP</code> 硬编码 <code>IsFallSpell=true</code>。不挂 3119 时 <code>FallRadius=0</code>，落地圈只用表半径</td></tr>
   <tr><td>火球 / 奥术新星 / 冲刺 / 悬停火把 / 预兆烟花</td><td>非坠落 +15 <code>ReboundCount</code>；挂上坠落<strong>不再加</strong></td></tr>
   <tr><td>火球非坠落</td><td>走 <code>TrickMine_Fall</code>，不走 <code>Normal_Fall</code></td></tr>
-  <tr><td>蝴蝶</td><td>坠落时三速 ×0.35</td></tr>
+  <tr><td>蝴蝶 <code>1003</code></td><td>坠落时三速 ×0.35，<strong>并且核心机制整个关掉</strong>（见表下）</td></tr>
   <tr><td>黑洞</td><td>坠落时三速 ×6</td></tr>
   <tr><td>巨型泡泡</td><td><code>CurrentFallSpeed += 2</code>，<code>Speed += |2 / tan(75°)|</code></td></tr>
   <tr><td>霰弹</td><td>坠落时不走散射偏角</td></tr>
   <tr><td>奥爆</td><td>生成时 <code>Speed=0</code>、时长改 0.6s</td></tr>
   <tr><td>龙息 / 超新星 / 审判之刃 / 闪耀星矢 / 符文锤 / 高压水枪</td><td>有自己的 Fall Job；<code>DisableDefaultFallDamage</code> 或根本不进 <code>SpellMoveJob</code></td></tr>
 </table>
+<h3>蝴蝶补充：×0.35 不是主要影响</h3>
+<div class="box">Spell1003Job 守卫 = !data.StartTraceTargets &amp;&amp; !movement.IsFallSpell
+  → 坠落蝴蝶 StartTraceTargets 恒 false，整个 if 块永远跳过
+
+不减速   Speed 保持 15 × 0.35 = 5.25 不变
+不追踪   Butterfly_Common 的 if 恒假 → 落到末行 = 等价 Normal_Common
+
+「坠落 + 蝴蝶」= 一枚 5.25 m/s 的普通坠落弹
+玩家看到的是「蝴蝶不追人了」，比速度 ×0.35 显眼得多</div>
+<p class="note"><b>通用教训：</b>坠落改的不只是运动学。凡是自身 Job 带 <code>!IsFallSpell</code> 守卫的法术，坠落会连带关掉它的专属机制。复刻时要按法术清查这类守卫，不能只看速度字段。详见 蝴蝶逆向分析.md 7.3。</p>
 
 <h2 id="s5">5. Mono 残留轨对照</h2>
 <p><code>SpellBase</code> 的 Enhance 开关<strong>没有</strong> <code>case Fall</code>。坠落态完全看 <code>SIP.spellIsFall</code>（同一份 <code>GetSpellFallExplosionRadius</code>）。</p>

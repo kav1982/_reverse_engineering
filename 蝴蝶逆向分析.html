@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蝴蝶 Spell1003 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>蝴蝶 · Spell1003</h1>
+  <p>Missile 主动法术 · ID 10031–10033 · 一发 3~5 只 · 减速到初速 15% 后转追踪 · 被异阵营法术碰到一击必杀</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>一次施放生成 <code>shootCount</code> 只蝴蝶，在 <code>angle=90</code> 的扇形内<strong>各自独立</strong>随机偏角。出膛后按 <code>v(t)=v₀·e^(−5t)</code> 减速；掉到 <strong>初速 15%</strong> 时相变为追踪态，锁最小夹角敌人，以<strong>硬编码</strong> <code>5f·dt</code> 的 lerp 转向。躯体脆弱，被任何异阵营法术实体碰到即当场销毁。</p>
+<p>文案：机制栏 <code>711003x</code> <strong>三级全为空字符串</strong>，游戏内不解释减速转追踪、也不解释脆弱。风味文案「注入魔力的蝴蝶会被怪物的气息吸引，但脆弱的身体禁不住其他法术的干扰」两半各对应一条真机制。</p>
+<ul>
+  <li>ECS 主路径：<code>Spell1003ButterFlySystem</code>（减速/相变）+ <code>SpellMoveJob.Butterfly_Common</code>（追踪）</li>
+  <li>Mono <code>Spell1003Butterfly</code> 为残留轨，见第 8 节</li>
+  <li>追踪转向率<strong>不在配置里</strong>，无法调节，只能被自动导航整体顶替</li>
+  <li><code>CalculateSpellComplexity</code> 记 3 分（与滚球、激光、霰弹同档）</li>
+</ul>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">单只伤害</th><th class="num">只数</th><th class="num">蓝耗</th><th class="num">整发伤害</th><th class="num">伤/蓝</th><th class="num">售价</th><th>可合成</th></tr>
+  <tr><td>10031</td><td class="num">1</td><td class="num"><b>10</b></td><td class="num"><b>3</b></td><td class="num">8</td><td class="num"><b>30</b></td><td class="num">3.75</td><td class="num">6</td><td>true</td></tr>
+  <tr><td>10032</td><td class="num">2</td><td class="num"><b>18</b></td><td class="num"><b>4</b></td><td class="num">11</td><td class="num"><b>72</b></td><td class="num">6.55</td><td class="num">18</td><td>true</td></tr>
+  <tr><td>10033</td><td class="num">3</td><td class="num"><b>34</b></td><td class="num"><b>5</b></td><td class="num">15</td><td class="num"><b>170</b></td><td class="num">11.3</td><td class="num">54</td><td>false</td></tr>
+</table>
+<ul>
+  <li>三级共用 <code>prefab="10031"</code>；<code>speed=15</code>、<code>duration=3.5</code>、<code>angle=90</code>、<code>knockback=0.5</code>、<code>float1=5</code>、<code>float2=0.15</code> <strong>三级完全不变</strong></li>
+  <li><code>float3</code>、<code>int1/2/3</code>、<code>radius</code>、<code>gravity</code>、<code>upSpeed</code> 全 0</li>
+  <li><code>mpCost</code> 是<strong>整发总价</strong>，<code>SipToSSP</code> 按只数均摊：<code>ManaCost = 总蓝 / shootCount</code></li>
+  <li>升级同时抬 <code>damage</code> 和 <code>shootCount</code>，所以整发伤害 Lv1→Lv3 涨 <b>5.67 倍</b>，蓝耗只涨 1.88 倍</li>
+</ul>
+
+<div class="box">float1 = 5     减速率      Speed ← lerp(Speed, 0, 5·dt)
+float2 = 0.15  速度地板比  地板 = InitialSpeed × 0.15
+angle  = 90    散射锥角    每只 Random.Range(−45°, +45°)
+
+· InitialSpeed 是首帧从 movement.Speed 抓的，已含加速器
+· 地板是相对值，不是绝对 0.15（Mono 非玩家分支才是绝对值）
+· 转向率 5f 是硬编码字面量，不是配置字段</div>
+
+<h2>3. 核心机制：减速 → 相变 → 追踪</h2>
+<div class="code">
+  <div class="bar"><b>Spell1003ButterFlySystem.Spell1003Job.Execute</b><span>L420–437 · 每渲染帧 1 次</span></div>
+<pre>if (!data.IsInitialize)
+{
+    data.IsInitialize = true;
+    data.InitialSpeed = movement.Speed;   // 已含加速器
+}
+if (!data.StartTraceTargets &amp;&amp; !movement.IsFallSpell)
+{
+    float num = math.lerp(movement.Speed, 0f, config.Float1 * DeltaTime);
+    if (num &lt; data.InitialSpeed * config.Float2)
+    {
+        num = data.InitialSpeed * config.Float2;
+        data.StartTraceTargets = true;    // 单向闩锁，永不复位
+    }
+    movement.Speed = num;
+}</pre>
+</div>
+
+<div class="box">t_相变 = ln(1 / 0.15) / 5 = 1.897 / 5 ≈ 0.379 s   ← 与 v₀ 无关！
+减速段位移 = (v₀/5) × (1 − 0.15) = 0.17 × v₀
+
+默认（v₀=15, duration=3.5）：
+  地板 2.25 m/s ·  减速段 0.379 s / 2.55 m
+  追踪段 3.12 s / 7.02 m  ·  总航程 ≈ 9.6 m
+
+追踪段占 89% 寿命，只占 73% 航程 → 大部分时间在慢速盘旋</div>
+
+<div class="code">
+  <div class="bar"><b>SpellMoveJob.Butterfly_Common</b><span>L940–956 · 固定步长</span></div>
+<pre>if (ButterFlyDataLookUp[spell].StartTraceTargets)
+{
+    GetValidChaseEnemyPosition(..., out hasTarget, out targetPosition);
+    if (hasTarget)
+    {
+        float3 end = DTool.IgnoreZDir(in targetPosition, in transform.Position);
+        movement.Direction = math.lerp(movement.Direction, end, 5f * DeltaTime);
+        velocity.Linear    = math.lerp(velocity.Linear,
+                                       movement.Direction * movement.Speed, 5f * DeltaTime);
+        return;
+    }
+}
+velocity.Linear = movement.Direction * movement.Speed;   // 无目标 → 直飞</pre>
+</div>
+
+<div class="grid">
+  <div class="card right">
+    <h3>转向模型 · 时间型</h3>
+    <ul>
+      <li><code>lerp(..., 5f·dt)</code>，约 0.2 s 收敛过半</li>
+      <li><strong>快慢不随速度变化</strong></li>
+      <li>速度低 → 转弯半径极小</li>
+      <li>无目标退化直飞，<b>不</b>复位闩锁</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>不是这样</h3>
+    <ul>
+      <li>不是自动导航那套 °/米路程型</li>
+      <li>不是取最近敌人（是<b>最小夹角</b>）</li>
+      <li>不是每帧重选（目标失效才重锁）</li>
+      <li>房间清空后不会停下</li>
+    </ul>
+  </div>
+</div>
+
+<h3>System 执行顺序</h3>
+<table>
+  <tr><th>System</th><th>所属组</th><th>频率</th></tr>
+  <tr><td><code>SpellMoveSystem</code>（含 <code>Butterfly_Common</code>）</td><td><code>SpellPhysicsSystemGroup</code> ⊂ FixedStep</td><td>固定步长，每帧 0~n 次</td></tr>
+  <tr><td><code>Spell1003ButterFlySystem</code>（减速/相变）</td><td><code>SpacialSpellSystemGroup</code> ⊂ SpellSimulation</td><td>每渲染帧 1 次</td></tr>
+  <tr><td><code>Spell1003ButterFlyBeAttackedSystem</code>（脆弱）</td><td><code>UnitTakeDamageGroup</code></td><td>每渲染帧 1 次</td></tr>
+</table>
+<p class="note">一帧内顺序：物理位移 → 减速/相变 → 脆弱销毁。减速用可变帧 <code>DeltaTime</code>、位移消费在固定步长，这个错配导致低帧率下相变略早（见第 10 节）。</p>
+
+<h2>4. 弹道分派：三条路，其中一条不存在</h2>
+<table>
+  <tr><th>运动类型</th><th>由谁写入</th><th>蝴蝶走哪个函数</th></tr>
+  <tr><td><code>Normal</code>（默认）</td><td>—</td><td class="ok"><b>Butterfly_Common</b>（专属，L268）</td></tr>
+  <tr><td><code>ChaseMouse</code></td><td>寻踪 <code>3010</code></td><td class="ok"><b>Butterfly_Mouse</b>（专属，L368）</td></tr>
+  <tr><td><code>Rotation</code></td><td>公转 <code>3009</code></td><td><code>Normal_Rotation</code>（通用 default）</td></tr>
+  <tr><td><code>ChaseEnemy</code></td><td>自动导航 <code>3011</code></td><td class="bad"><b>无 case → Normal_ChaseTarget</b></td></tr>
+  <tr><td><code>ChaseOwner</code></td><td>自我追踪 <code>3114</code></td><td class="bad">同上</td></tr>
+</table>
+<p><code>ChaseEnemy</code>/<code>ChaseOwner</code> 的 switch（L425–475）只有 <code>HoverTorch</code> / <code>Meteor</code> / <code>JudgementBlade</code> / <code>MagicBreaker</code> / <code>Boomerang</code> / <code>Summon4</code> / <code>BiAnLethalBlade</code> / <code>HighPressureWasher</code> / <code>BlueRune</code>。<strong>蝴蝶落到 default</strong>——这是第 6 节最重要那条交互的根因。</p>
+
+<div class="code">
+  <div class="bar"><b>SpellMoveJob.Butterfly_Mouse</b><span>L655–660 · 对比 Normal_Mouse L632–642</span></div>
+<pre>float3 end = DTool.IgnoreZDir(in MousePosition, in transform.Position) * movement.Speed;
+velocity.Linear = math.lerp(velocity.Linear, end,
+                  movement.Speed * DeltaTime * movement.ChaseMouseLerpSpeed * 4f);
+movement.Direction = math.normalize(velocity.Linear);
+//                                                              ↑ 唯一差别就是这个 ×4</pre>
+</div>
+<p class="note">×4 是补偿：<code>Normal_Mouse</code> 的插值系数含 <code>movement.Speed</code> 因子，而蝴蝶追踪态只有 2.25 m/s，跟手性会极差。注意 <code>Butterfly_Mouse</code> <strong>不判 <code>StartTraceTargets</code></strong>，减速段和追踪段同一条公式，只是 <code>Speed</code> 不同。</p>
+<p>坠落方面蝴蝶<strong>不特殊</strong>：<code>Execute</code> 尾部只对 <code>FireBall</code>（走 <code>TrickMine_Fall</code>）和 <code>HighPressureWasher</code>（<code>Int3==0</code>）开口子，其余全进 <code>Normal_Fall</code> + z 轴积分。</p>
+
+<h2>5. 脆弱：一击必杀，但走正常销毁路径</h2>
+<div class="code">
+  <div class="bar"><b>SpellTools.GetEntityHitType</b><span>L2775–2779</span></div>
+<pre>if (componentData2.AbilityType == SpellAbilityType.Butterfly)
+{
+    cmd.SetComponentEnabled&lt;Spell1003ButterflyBeAttackedTag&gt;(sortKey, target, value: true);
+    return HitType.Butterfly;
+}
+// 对比滚球 L2770：cmd.AttackRollball(...) —— 滚球有 Float1 当血条，蝴蝶没有</pre>
+</div>
+<div class="code">
+  <div class="bar"><b>Spell1003ButterFlyBeAttackedSystem.Execute</b><span>L147–155 · WithDisabled(SpellDestroyTag)</span></div>
+<pre>endSimulationEMD.CreateSpellHitEffect(index, in spellSingleton, in config,
+                                      in data, in position, in direction, transform.Scale);
+destroyTagRef.ValueRW = true;      // ← 正常 SpellDestroyTag，不是特殊回收</pre>
+</div>
+
+<div class="grid">
+  <div class="card right">
+    <h3>关键推论</h3>
+    <ul>
+      <li><b>无伤害门槛、无生命值</b>，一击必杀</li>
+      <li>走正常销毁 → <b>分裂、结束触发、雷霆落雷照常</b></li>
+      <li>敌方打碎你的蝴蝶反而提前触发分裂</li>
+      <li>异阵营的蝴蝶是<b>合法攻击目标</b></li>
+    </ul>
+  </div>
+  <div class="card add">
+    <h3>己方不会自伤（已核验）</h3>
+    <ul>
+      <li>ECS：<code>RemoveCannotAttackSpell</code> L2967 只留异阵营滚球/蝴蝶</li>
+      <li><code>GetEntityHitType</code> 先 <code>return SameCamp</code>（L2766）</li>
+      <li>Mono 落雷：<code>SpellBase</code> L1636 有 <code>!IsSameCamp(this)</code></li>
+      <li>伞爆的 <code>thunderColliderTags</code> 是<b>死字段</b>（零引用）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="code">
+  <div class="bar"><b>SpellTools.RemoveCannotAttackSpell</b><span>L2967–2981 · 阵营守卫</span></div>
+<pre>SpellAbilityType abilityType = componentData.AbilityType;
+if ((abilityType != SpellAbilityType.Rollball &amp;&amp; abilityType != SpellAbilityType.Butterfly)
+    || DTool.IsSameCamp(componentData.ShooterType, selfCamp))
+{
+    entities.RemoveAt(i);      // 己方蝴蝶被剔除 → 打不到
+    i--;
+}</pre>
+</div>
+<p class="note">未逐条核验的缺口：<code>Teammate2_FuseLeg</code> / <code>Teammate3</code> / <code>Teammate4</code> / <code>Teammate6</code> / <code>Teammate7</code> / <code>SpiderEgg</code> / <code>SpellExplosionBug</code> / <code>SpellWandInvisibleSpellBreaker</code> 等处的 <code>HitEFAndRecycle()</code> 调用点，部分在 tag 判定后<strong>没有</strong> <code>IsSameCamp</code>。属各单位文档范围。</p>
+
+<h2>6. 增强符文 × 蝴蝶 逐一校验（21 张）</h2>
+<table>
+  <tr><th>符文</th><th>type</th><th>蝴蝶实际分支</th><th>判定</th></tr>
+  <tr><td>自动导航</td><td>3011</td><td><code>ChaseEnemy</code> 无 case → 专属追踪被顶替，但减速仍跑</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>坠落</td><td>3119</td><td>×0.35 成立；另有 <code>!IsFallSpell</code> 关掉整个核心机制</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>精准施法</td><td>3105</td><td><code>angle</code> 池 90−100 → 钳 0，扇形塌缩</td><td class="warn">需回写</td></tr>
+  <tr><td>悬停</td><td>3008</td><td>走通用路径；机制族表缺行 + 理论竞态</td><td class="warn">需回写</td></tr>
+  <tr><td>反弹</td><td>3012</td><td>拧回行为分相变前后两相位</td><td class="warn">需回写</td></tr>
+  <tr><td>加速器</td><td>3106</td><td>被首帧抓成 <code>InitialSpeed</code>，地板等比抬高</td><td class="ok">一致</td></tr>
+  <tr><td>分裂</td><td>3013</td><td>子弹继承烘焙初值，以半速重跑完整周期</td><td class="ok">一致</td></tr>
+  <tr><td>时长强化</td><td>3103</td><td><code>Duration.AddBase</code>；边际收益偏高</td><td class="ok">一致</td></tr>
+  <tr><td>齐射</td><td>3001</td><td>容量正收益；<code>int2</code> 进同一 <code>angle</code> 池恶化散布</td><td class="ok">一致</td></tr>
+  <tr><td>伤害强化</td><td>3102</td><td><code>Damage.AddRatio</code>，作用于<b>单只</b></td><td class="ok">一致</td></tr>
+  <tr><td>节能模式</td><td>3104</td><td>伤害/持续 <code>MulRatio</code> + 蓝耗乘算</td><td class="ok">一致</td></tr>
+  <tr><td>范围增强</td><td>3107</td><td><code>radius=0</code>，只改体积/碰撞盒表现</td><td class="ok">一致</td></tr>
+  <tr><td>寒霜晶石</td><td>3014</td><td><code>FrozenDuration</code> 每只独立挂，但只有第一只的 <code>SetFrozen</code> 过门</td><td class="ok">一致</td></tr>
+  <tr><td>毒液晶石</td><td>3005</td><td><code>VenomApplyCount</code> 按只数倍增</td><td class="ok">一致</td></tr>
+  <tr><td>粘液晶石</td><td>3004</td><td>减的是被命中单位，不影响蝴蝶自己</td><td class="ok">一致</td></tr>
+  <tr><td>雷霆晶石</td><td>3101</td><td>每只销毁各落一次雷；不伤己方蝴蝶</td><td class="ok">一致</td></tr>
+  <tr><td>闪电链</td><td>3007</td><td><code>LightningChainDamage</code>；链在同发相邻实体间建</td><td class="ok">一致</td></tr>
+  <tr><td>奥术屏障</td><td>4012</td><td>盾不飞；<code>thunderColliderTags</code> 死字段</td><td class="ok">一致</td></tr>
+  <tr><td>蓄力模式</td><td>4004</td><td><code>IsChargingSpell()</code> 只认 1026/1027，蝴蝶不攒星</td><td class="ok">一致</td></tr>
+  <tr><td>强制冷却</td><td>4006</td><td>法杖层，不进发射包</td><td class="ok">一致</td></tr>
+  <tr><td>储魔之匣</td><td>4002</td><td>法杖层，不进发射包</td><td class="ok">一致</td></tr>
+</table>
+
+<h3>6.1 自动导航 3011 —— 插了是降级</h3>
+<div class="code">
+  <div class="bar"><b>SpellMoveJob.Normal_ChaseTarget</b><span>L861–876 · 蝴蝶实际走的</span></div>
+<pre>float num = (movement.IsFallSpell ? movement.OriginalSpellHorizontalSpeed : movement.Speed);
+movement.Direction = DTool.DirMoveTowardsIgnoreZ(in source, in target,
+                     num * movement.ChaseRotateSpeed * DeltaTime);   // ← 路程型
+velocity.Linear = movement.Direction * movement.Speed;</pre>
+</div>
+<div class="box">1. Butterfly_Common 完全不再被调用（时间型 lerp → 路程型 DirMoveTowards）
+2. Spell1003Job 的查询不看 movement.Type → 减速照旧，Speed 仍钳到 15%
+3. 于是 maxDelta = 2.25 × ChaseRotateSpeed × dt
+     Lv1(12) ≈ 27 °/s   ·   Lv3(38) ≈ 85.5 °/s
+
+→ 把「与速度无关的快速转向」换成「与速度成正比的慢速转向」
+→ 而蝴蝶恰好是全表速度最低的弹之一
+→ StartTraceTargets 仍置真但无人读取，成为空转状态位</div>
+<p class="note">《自动导航逆向分析.md》第 6 节两张例外表原本都没有 1003，已回写。</p>
+
+<h3>6.2 坠落 3119 —— 关掉核心机制</h3>
+<div class="code">
+  <div class="bar"><b>SpellSpawnParamsProcessor</b><span>L17–25</span></div>
+<pre>_processors.Add(SpellAbilityType.Butterfly, delegate(...)
+{
+    if (ssp.MovementComponentData.IsFallSpell)
+    {
+        ssp.MovementComponentData.CurrentFallSpeed *= 0.35f;
+        ssp.MovementComponentData.Speed *= 0.35f;
+        ssp.MovementComponentData.OriginalSpellHorizontalSpeed *= 0.35f;
+    }
+});</pre>
+</div>
+<div class="box">原文档只写了 ×0.35，漏掉更要紧的一半：
+
+Spell1003Job 守卫 = !StartTraceTargets &amp;&amp; !movement.IsFallSpell
+  → 坠落蝴蝶 StartTraceTargets 恒 false
+  → 不减速（Speed 保持 15 × 0.35 = 5.25 不变）
+  → Butterfly_Common 的 if 恒假，落到末行 = 等价 Normal_Common
+  → 既不减速也不追踪
+
+「坠落 + 蝴蝶」= 放弃蝴蝶的全部特色，只剩「一次 3~5 发、单只伤害低」</div>
+<p class="note">《坠落逆向分析.md》4.13 表的蝴蝶行已改写。</p>
+
+<h3>6.3 精准施法 3105 —— 扇形塌缩</h3>
+<table>
+  <tr><th>槽位</th><th class="num">锥角 θ</th><th class="num">每只偏角</th></tr>
+  <tr><td><span class="chip sp">蝶</span></td><td class="num">90</td><td class="num">±45°</td></tr>
+  <tr><td><span class="chip en">精Lv1</span> <span class="chip sp">蝶</span></td><td class="num">60</td><td class="num">±30°</td></tr>
+  <tr><td><span class="chip en">精Lv2</span> <span class="chip sp">蝶</span></td><td class="num">30</td><td class="num">±15°</td></tr>
+  <tr><td><span class="chip en">精Lv1</span><span class="chip en">精Lv1</span> <span class="chip sp">蝶</span></td><td class="num">30</td><td class="num">±15°</td></tr>
+  <tr><td><span class="chip en">精Lv3</span> <span class="chip sp">蝶</span></td><td class="num">−10 → <b>0</b></td><td class="num"><b>±0°</b></td></tr>
+  <tr><td><span class="chip en">精Lv1</span><span class="chip en">精Lv2</span> <span class="chip sp">蝶</span></td><td class="num"><b>0</b></td><td class="num"><b>±0°</b></td></tr>
+  <tr><td><span class="chip orb">超载散射</span> <span class="chip sp">蝶</span></td><td class="num">150</td><td class="num">±75°</td></tr>
+</table>
+<p>「完全同向」<strong>不等于叠成一发</strong>：3~5 只实体仍各自独立，只是初始方向相同；相变后各锁各自的最小夹角目标，很快散开。实际效果是<strong>把前 0.38 秒压成一束</strong>。</p>
+<p class="note">暴击是<b>每只独立掷骰</b>（读实体快照）。5 只 × 40% 期望 2 只暴击，方差比单发弹小——多发弹吃期望值不吃运气。</p>
+
+<h3>6.4 加速器 3106 —— 地板等比抬高，相变时刻不变</h3>
+<table>
+  <tr><th>槽位</th><th class="num">v₀</th><th class="num">地板</th><th class="num">相变</th><th class="num">减速段</th><th class="num">追踪段</th><th class="num">总航程</th></tr>
+  <tr><td><span class="chip sp">蝶</span></td><td class="num">15</td><td class="num">2.25</td><td class="num">0.379 s</td><td class="num">2.55 m</td><td class="num">7.02 m</td><td class="num"><b>9.6 m</b></td></tr>
+  <tr><td><span class="chip en">加Lv1</span> <span class="chip sp">蝶</span></td><td class="num">18</td><td class="num">2.70</td><td class="num">0.379 s</td><td class="num">3.06 m</td><td class="num">8.43 m</td><td class="num"><b>11.5 m</b></td></tr>
+  <tr><td><span class="chip en">加Lv2</span> <span class="chip sp">蝶</span></td><td class="num">21</td><td class="num">3.15</td><td class="num">0.379 s</td><td class="num">3.57 m</td><td class="num">9.83 m</td><td class="num"><b>13.4 m</b></td></tr>
+  <tr><td><span class="chip en">加Lv3</span> <span class="chip sp">蝶</span></td><td class="num">27</td><td class="num">4.05</td><td class="num">0.379 s</td><td class="num">4.59 m</td><td class="num">12.64 m</td><td class="num"><b>17.2 m</b></td></tr>
+  <tr><td><span class="chip en">加Lv3</span><span class="chip en">加Lv3</span> <span class="chip sp">蝶</span></td><td class="num">39</td><td class="num">5.85</td><td class="num">0.379 s</td><td class="num">6.63 m</td><td class="num">18.26 m</td><td class="num"><b>24.9 m</b></td></tr>
+</table>
+<ul>
+  <li><strong>相变时刻恒为 0.379 s</strong>，与加速器档位无关——加速器不会让蝴蝶「更晚开始追踪」</li>
+  <li>加速器同时抬高<strong>追踪态巡航速度</strong>，这是蝴蝶特有收益；对普通弹加速器只是让它更快飞出屏幕</li>
+</ul>
+
+<h3>6.5 分裂 3013 —— 子弹重跑完整周期</h3>
+<div class="box">ToSplit 复制快照 + 非坠落 Speed *= 0.5
+子弹用同一预制体 10031 → 带 Authoring 烘焙初值
+  InitialSpeed = 0f, IsInitialize = false, StartTraceTargets = false
+
+→ 子蝴蝶以 v₀ = 7.5 重新起算，地板 = 1.125 m/s
+→ 再花 0.379 s 减速、再进追踪态，Duration 满额重开
+→ 伤害 Damage.MulRatio *= 0.33
+
+蝶Lv3(5 只) + 分裂Lv3(int1=8) = 40 只子蝴蝶，每只 34 × 0.33 ≈ 11.2
+且被脆弱机制打碎的蝴蝶走正常销毁路径 → 照样分裂</div>
+
+<h3>6.6 时长强化 3103 —— 边际收益偏高</h3>
+<table>
+  <tr><th>槽位</th><th class="num">duration</th><th class="num">追踪段</th><th class="num">总航程</th><th class="num">相对默认</th></tr>
+  <tr><td><span class="chip sp">蝶</span></td><td class="num">3.5</td><td class="num">3.12 s</td><td class="num">9.6 m</td><td class="num">—</td></tr>
+  <tr><td><span class="chip en">时Lv1</span> <span class="chip sp">蝶</span></td><td class="num">5.5</td><td class="num">5.12 s</td><td class="num">14.1 m</td><td class="num">+47%</td></tr>
+  <tr><td><span class="chip en">时Lv2</span> <span class="chip sp">蝶</span></td><td class="num">7.0</td><td class="num">6.62 s</td><td class="num">17.5 m</td><td class="num">+82%</td></tr>
+  <tr><td><span class="chip en">时Lv3</span> <span class="chip sp">蝶</span></td><td class="num">9.5</td><td class="num">9.12 s</td><td class="num">23.1 m</td><td class="num"><b>+141%</b></td></tr>
+</table>
+<p>0.379 s 的减速段是<strong>固定开销</strong>，加的秒数全进追踪段。蝴蝶不靠「飞过去撞」而靠「在场上盘旋等目标进来」，时长价值高于同等速度加成。</p>
+
+<h3>6.7 齐射 3001 —— 散射与 angle 共享加算池</h3>
+<div class="code">
+  <div class="bar"><b>SpellShootData.GetSpellScatter</b><span>L117–126 · 齐射散射与增强 angle 同池</span></div>
+<pre>RatioValue ratioValue = new RatioValue(Spell.GetFinalConfig().angle);   // 蝴蝶 = 90
+ratioValue.AddBase(OwnerGroup.GetGroupShootScatterFromVolley(this));   // int2 × (N−1)
+foreach (SpellConfig item in EnhanceList.Select(e =&gt; e.GetFinalConfig()))
+    ratioValue.AddBase(item.angle);                                    // 精准施法 = 负数
+return ratioValue;</pre>
+</div>
+<table>
+  <tr><th>槽位（N = 齐射后同帧法术数）</th><th class="num">θ</th><th class="num">每只偏角</th></tr>
+  <tr><td><span class="chip sp">蝶</span>，N=1</td><td class="num">90</td><td class="num">±45°</td></tr>
+  <tr><td><span class="chip en">齐Lv1</span> <span class="chip sp">蝶</span><span class="chip sp">弹</span><span class="chip sp">球</span>，N=3</td><td class="num">110</td><td class="num">±55°</td></tr>
+  <tr><td><span class="chip en">齐Lv3</span> <span class="chip sp">蝶</span><span class="chip sp">弹</span><span class="chip sp">球</span>，N=3</td><td class="num">130</td><td class="num">±65°</td></tr>
+  <tr><td><span class="chip en">齐Lv3</span><span class="chip en">精Lv2</span> <span class="chip sp">蝶</span>…，N=3</td><td class="num">70</td><td class="num">±35°</td></tr>
+  <tr><td><span class="chip en">齐Lv3</span><span class="chip en">精Lv3</span> <span class="chip sp">蝶</span>…，N=3</td><td class="num">30</td><td class="num">±15°</td></tr>
+</table>
+<p class="note">蝴蝶 <code>angle</code> 底数大 → 齐射会让散布进一步恶化。想吃容量又不想散布爆炸，得用精准施法在同一加算池里做代数。</p>
+
+<h3>6.8 悬停 3008 / 反弹 3012</h3>
+<div class="grid">
+  <div class="card mul">
+    <h3>悬停 · 理论竞态</h3>
+    <ul>
+      <li>悬停期 <code>Butterfly_Common</code> 根本不被调用（前置分支在 switch 之前）</li>
+      <li>若进悬停时闩锁仍 false，<code>Spell1003Job</code> 会把 <code>Speed</code> 从 0 <b>抬回地板</b>并置真</li>
+      <li>最多漏一帧位移，此后不复发</li>
+      <li>需 <code>duration &lt; 0.379 s</code>；<code>GetSpellDuration</code> 唯一乘算是节能 <code>float2/100</code>，三张也只能压到 1.48 s → <b>当前配置无法触发</b></li>
+    </ul>
+  </div>
+  <div class="card add">
+    <h3>反弹 · 分相位</h3>
+    <ul>
+      <li>减速段：<b>不拧回</b>，老实沿反射方向飞</li>
+      <li>追踪段：拧回，但 <code>5f·dt</code> 比自动导航柔和</li>
+      <li><code>Duration.Extra</code> 是纯收益，延长追踪段</li>
+      <li>而时长对蝴蝶边际价值又偏高 → 两者相乘</li>
+    </ul>
+  </div>
+</div>
+
+<h2>7. 算例</h2>
+<h3>伤害类作用于「单只」</h3>
+<table>
+  <tr><th>槽位</th><th class="num">单只倍率</th><th class="num">单只</th><th class="num">整发</th></tr>
+  <tr><td><span class="chip sp">蝶Lv1</span></td><td class="num">×1.00</td><td class="num">10</td><td class="num">30</td></tr>
+  <tr><td><span class="chip en">伤Lv1</span> <span class="chip sp">蝶Lv1</span></td><td class="num">×1.25</td><td class="num">13</td><td class="num">39</td></tr>
+  <tr><td><span class="chip en">伤Lv3</span> <span class="chip sp">蝶Lv1</span></td><td class="num">×2.00</td><td class="num">20</td><td class="num">60</td></tr>
+  <tr><td><span class="chip en">伤Lv3</span> <span class="chip sp">蝶Lv3</span></td><td class="num">×2.00</td><td class="num">68</td><td class="num"><b>340</b></td></tr>
+  <tr><td><span class="chip en">节Lv1</span> <span class="chip sp">蝶Lv3</span></td><td class="num">×0.75</td><td class="num">26</td><td class="num">130<span class="chip dim">蓝 9</span></td></tr>
+  <tr><td><span class="chip en">伤Lv3</span><span class="chip en">节Lv1</span> <span class="chip sp">蝶Lv3</span></td><td class="num">×1.50</td><td class="num">51</td><td class="num">255<span class="chip dim">蓝 9</span></td></tr>
+</table>
+<p class="note">伤害强化作用在<b>单只</b>上，而只数随等级增长 → 高级蝴蝶从伤害强化拿到的绝对收益是低级的 5.67 倍。蝴蝶是伤害强化性价比最高的载体之一。</p>
+
+<h3>元素层每只独立结算</h3>
+<div class="box">[毒Lv3] [蝶Lv3]  int2 = 4 层/命中，5 只全中同一目标 → 一发叠 20 层毒
+[霜Lv3] [蝶Lv3]  每只独立 SetFrozen，但三道门里有 FronzenState == Normal
+                  → 第一只把目标打成 Frozening，紧随 4 只直接 return
+                  → 冻结结束还有 2 秒 FrozenImmune，整段窗口都刷不上
+                  → 5 只只有 1 只生效，另外 4 份时长全部浪费
+
+毒层能叠满，冻结不能 —— 「多发弹 × 元素」的通用不对称，蝴蝶放大到 5 倍</div>
+
+<h3>航程综合</h3>
+<table>
+  <tr><th>槽位</th><th class="num">v₀</th><th class="num">duration</th><th class="num">地板</th><th class="num">总航程</th></tr>
+  <tr><td><span class="chip sp">蝶</span></td><td class="num">15</td><td class="num">3.5</td><td class="num">2.25</td><td class="num">9.6 m</td></tr>
+  <tr><td><span class="chip en">加Lv3</span> <span class="chip sp">蝶</span></td><td class="num">27</td><td class="num">3.5</td><td class="num">4.05</td><td class="num">17.2 m</td></tr>
+  <tr><td><span class="chip en">时Lv3</span> <span class="chip sp">蝶</span></td><td class="num">15</td><td class="num">9.5</td><td class="num">2.25</td><td class="num">23.1 m</td></tr>
+  <tr><td><span class="chip en">加Lv3</span><span class="chip en">时Lv3</span> <span class="chip sp">蝶</span></td><td class="num">27</td><td class="num">9.5</td><td class="num">4.05</td><td class="num"><b>41.5 m</b></td></tr>
+  <tr><td><span class="chip en">坠落</span> <span class="chip sp">蝶</span></td><td class="num">5.25</td><td class="num">—</td><td class="num">—</td><td class="num">落地即止（无追踪）</td></tr>
+</table>
+<p>AI 射程估算是<strong>全表唯一乘 <code>float2</code> 的分支</strong>：<code>速度 × 时长 × 0.15</code>。默认 <code>15 × 3.5 × 0.15 = 7.88 m</code>，接近追踪段位移 7.02 m——它实际在近似「蝴蝶以地板速度飞完全程」，忽略减速段那 2.55 m。</p>
+
+<h2>8. Mono 残留轨</h2>
+<div class="code">
+  <div class="bar"><b>Spell1003Butterfly.Update</b><span>L37–56 · 分玩家 / 非玩家两支</span></div>
+<pre>base.CurrentSpeed = Mathf.Lerp(base.CurrentSpeed, 0f, base.spellCfg.float1 * Time.deltaTime);
+UnitType unitType = ownerPpt.unitCfg.unitType;
+if (unitType == Player || unitType == Teammate || unitType == TeammateNotAttack)
+{
+    if (base.CurrentSpeed &lt;= base.spellCfg.speed * base.spellCfg.float2)   // 表值 × 比例
+    { ...; isTrace = true; spellFollowTargetPpt = GetMiniMalAngleTargetablePpt(); }
+}
+else if (base.CurrentSpeed &lt;= base.spellCfg.float2)                        // 绝对速度！
+{ ...; isTrace = true; spellFollowTargetPpt = GetMiniMalAngleTargetablePpt(); }</pre>
+</div>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono 玩家分支</th><th>Mono 非玩家分支</th></tr>
+  <tr><td>地板</td><td><code>InitialSpeed × float2</code><br><span class="chip dim">含加速器</span></td><td><code>spellCfg.speed × float2</code><br><span class="chip dim">表值，不含加速器</span></td><td><code>float2</code><br><span class="chip dim">绝对速度</span></td></tr>
+  <tr><td>目标重选</td><td><code>ChaseTarget</code> 失效才重锁</td><td>每 1 秒定时重锁</td><td>同</td></tr>
+  <tr><td>转向</td><td><code>lerp(Direction, 敌向, 5f·dt)</code><br><span class="chip dim">硬编码</span></td><td><code>DirMoveTowards(..., CurrentSpeed × spellFollowTargetRotateSpeed × dt)</code><br><span class="chip dim">吃自动导航加成</span></td><td>同</td></tr>
+</table>
+<p class="note">Mono 时代蝴蝶的原生转向<b>就吃自动导航</b>；ECS 改成硬编码 <code>5f</code> 后反而变成 6.1 的互斥关系。</p>
+<ul>
+  <li><code>TryRefract</code> 覆写：折射成功后 <code>isTrace = false</code>，把蝴蝶<strong>打回减速态</strong>重跑周期。<b>ECS 侧没有等价逻辑</b></li>
+  <li><code>InitSpeedAndPosition</code>：坠落时临时 <code>spellCfg.speed /= 2.8f</code>，与 ECS 的 ×0.35（≈1/2.86）近似但不相等</li>
+  <li><code>FallInitialHeight = Random.Range(5f, 7f)</code>、<code>FallSpeedRatio = 0.8f</code>、<code>InFallingReboundingGravity = 10f</code></li>
+  <li>寿命结束后若有分裂/结束触发则直接回收，否则 <code>tsf_Layer</code> 每秒缩 5 倍淡出</li>
+  <li><code>Spell1003BodyFlipJob</code>（L126–134）/ Mono <code>FilpModel</code>：按速度 x 正负翻转贴图，<strong>纯表现</strong></li>
+</ul>
+
+<h2>9. 构筑摘要</h2>
+<div class="grid3">
+  <div class="card add">
+    <h3>正收益</h3>
+    <ul>
+      <li>伤害强化（作用于单只，高级蝶收益翻倍）</li>
+      <li>加速器（初速 + 巡航速度双抬）</li>
+      <li>时长强化（全进追踪段）</li>
+      <li>毒液晶石（层数按只数倍增）</li>
+      <li>分裂（每只各裂，被打碎也照裂）</li>
+      <li>反弹（加时是纯收益）</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>要权衡</h3>
+    <ul>
+      <li>精准施法（暴击好，但 Lv3 散射归零）</li>
+      <li>齐射（容量好，但散布恶化）</li>
+      <li>寒霜晶石（5 只只有 1 只的冻结过门）</li>
+      <li>悬停（寿命末原地不动、不追踪）</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>负收益</h3>
+    <ul>
+      <li><b>坠落</b>：关掉减速 + 追踪，退化成普通坠落弹</li>
+      <li><b>自动导航</b>：原生快速转向被路程型慢速转向顶替</li>
+      <li>范围增强（<code>radius=0</code>，只改表现）</li>
+    </ul>
+  </div>
+</div>
+
+<h2>10. 关键文件与待决</h2>
+<table>
+  <tr><td>减速 + 相变闩锁</td><td><code>Spell1003ButterFlySystem.cs</code> L420–437</td></tr>
+  <tr><td>状态组件 / 烘焙初值</td><td><code>Spell1003ButterflyData.cs</code>；<code>Spell1003ButterflyAuthoring.cs</code> L10–20</td></tr>
+  <tr><td>追踪转向 / 锁敌</td><td><code>SpellMoveJob.cs</code> L940–956；L1081–1099</td></tr>
+  <tr><td>寻踪 ×4</td><td><code>SpellMoveJob.cs</code> L655–660（对比 L632–642）</td></tr>
+  <tr><td><code>ChaseEnemy</code> 无 case</td><td><code>SpellMoveJob.cs</code> L423–475（default 在 L472–474）</td></tr>
+  <tr><td>坠落三速 ×0.35</td><td><code>SpellSpawnParamsProcessor.cs</code> L17–25</td></tr>
+  <tr><td>脆弱链</td><td><code>SpellTools.cs</code> L2775–2779；<code>Spell1003ButterFlyBeAttackedSystem.cs</code> L147–155</td></tr>
+  <tr><td>阵营守卫</td><td><code>SpellTools.cs</code> L2967–2981；<code>SpellBase.cs</code> L1633–1645</td></tr>
+  <tr><td>散射</td><td><code>SpellShootData.cs</code> L117–126；<code>ShootSpellUtils.cs</code> L627–643、L282</td></tr>
+  <tr><td>蓝耗均摊</td><td><code>ShootSpellUtils.cs</code> L215；<code>SpellShootDataExtend.cs</code> L35–40</td></tr>
+  <tr><td>射程估算</td><td><code>SpellGroupAttackDistanceCalculator.cs</code> L258–260（免修正名单 L146）</td></tr>
+  <tr><td>Mono 双分支</td><td><code>Spell1003Butterfly.cs</code> L37–56、L140–149</td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.Butterfly = 1003</code>；<code>TagMgr.Butterfly = "Butterfly"</code></td></tr>
+</table>
+<p class="note"><b>待决：</b>① 减速用可变帧 <code>DeltaTime</code>、位移在固定步长 → 低帧率下相变略早于 0.379 s（Mono 的 <code>GetLowFPSTimeScale</code> 只补了 <code>DurationTimer</code>，没补速度 lerp）。② 第 5 节列出的无阵营守卫 <code>HitEFAndRecycle()</code> 调用点未逐条核验。③ <code>FindMinAngleTarget</code> 的搜索半径未展开，它决定蝴蝶「能感知多远」。④ 多重施法 3002 / 超载散射 3003 / 寻踪 3010 / 自我追踪 3114 / 公转 3009 尚无逆向文档，未做逐一校验。⑤ <code>Spell1003BodyTag</code> 的挂载 Authoring 未定位到，仅影响表现。</p>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 蝴蝶逆向分析.md · 槽位解析见 伤害强化逆向分析.md · 飞弹侧第一篇</footer>
+</body>
+</html>

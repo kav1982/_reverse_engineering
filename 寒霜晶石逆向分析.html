@@ -407,6 +407,16 @@ affect_FrozenTime = time * frozenTimeRatio;</pre>
 </table>
 <p><code>[粘][霜] [弹]</code>：外观黄或蓝各 50%（再被雷晶石概率改色）；命中同时上粘液和冰。粘液时长对 Boss 也乘 <code>frozenTimeRatio</code>，和冰冻共用这个字段。</p>
 <p>同一发穿透打两个敌人：各冻一份，互不分享。同一敌人要等解冻 + 2 秒免疫结束，才能被下一发再冻。</p>
+<h3>一次施放多个实体的法术会浪费大半冻结</h3>
+<div class="box">shootCount > 1（蝴蝶 1003 = 3/4/5 只、霰弹 1031 等）
+每个实体各带一份 FrozenDuration，命中时各自调 SetFrozen
+
+但只要几只先后命中同一目标：
+  第一只 → 目标进入 Frozening
+  其余   → FronzenState != Normal，直接 return
+
+Lv3 蝴蝶 5 只全中一个目标 → 只有 1 份生效，另外 4 份白给</div>
+<p class="note">不是 bug，是 <code>FronzenState == Normal</code> 这道门的必然结果。构筑含义：寒霜晶石配<b>单发高伤</b>弹优于配多发弹；多发弹应改配毒液（层数按只数倍增）。见 毒液晶石逆向分析.md 与 蝴蝶逆向分析.md 8.2。</p>
 
 <h2 id="s7">7. 证据索引</h2>
 <table>

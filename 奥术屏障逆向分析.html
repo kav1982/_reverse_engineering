@@ -434,6 +434,7 @@ radius  = float3 × ShieldSize × GetRadiusRatio()</code></pre>
   <tr><td><code>GetWandOneHpAsMp(maxMp)</code></td><td>忽略参数</td></tr>
   <tr><td><code>Spell4012MagicShieldData.ShieldMaxReduce</code> / <code>IsInitialized</code></td><td>结构有，无人写无人读</td></tr>
   <tr><td>Controller 元素字段（粘液/毒/冻/烧/雷/牵引/坍缩）</td><td>挨打时重写，爆炸不读</td></tr>
+  <tr><td><code>thunderColliderTags</code> / <code>thunderColliderBuffer</code></td><td>声明后<strong>全文零引用</strong>。tag 表写了 <code>"RollBall"</code> / <code>"Butterfly"</code>，但伞爆不会碰这两类脆弱法术实体——<b>己方蝴蝶不会被自己的伞爆打碎</b></td></tr>
   <tr><td>风味「蓝耗尽才消失」</td><td>代码阈值是 <strong>&lt;30 蓝</strong>，不是 0</td></tr>
   <tr><td><code>float1=0.12</code></td><td>无敌帧，机制文案没写</td></tr>
 </table>

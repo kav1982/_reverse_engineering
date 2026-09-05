@@ -324,6 +324,19 @@ CurrentAddBase  = Σ(增强卡 crit/100)     // 不含主动自身</pre>
 <p><code>GetSpellScatter</code> 同样不看 <code>abilityType</code>，把每张增强卡的 <code>angle</code> 加进加算池。底数是主动自己的 <code>angle</code>，再加齐射散射和各增强卡 <code>angle</code>。</p>
 <p><code>ProcessShootDataEffect</code>：<code>extraScatter += CurrentAddBase</code>。<code>SipToSSP</code> 写 <code>Scatter</code> 时用 <code>Result</code>，<strong>小于 0 钳成 0</strong>——减到没有散射为止，不会变成「负锥角再对称」。</p>
 <p>当前表里另一张会改增强 <code>angle</code> 的是超载散射 <code>3003</code>（+60 / +90 / +150），和 3105 同池相加。散射系统本身不在此展开。</p>
+<h3>对 angle 底数大的多发弹，钳零是质变</h3>
+<p>蝴蝶 <code>1003</code> 的 <code>angle = 90</code>，每只独立掷 <code>Random.Range(−θ/2, θ/2)</code>：</p>
+<table>
+  <tr><th>槽位</th><th class="num">锥角 θ</th><th class="num">每只偏角</th></tr>
+  <tr><td><span class="chip sp">蝶</span></td><td class="num">90</td><td class="num">±45°</td></tr>
+  <tr><td><span class="chip en">精Lv1</span> <span class="chip sp">蝶</span></td><td class="num">60</td><td class="num">±30°</td></tr>
+  <tr><td><span class="chip en">精Lv2</span> <span class="chip sp">蝶</span></td><td class="num">30</td><td class="num">±15°</td></tr>
+  <tr><td><span class="chip en">精Lv1</span><span class="chip en">精Lv1</span> <span class="chip sp">蝶</span></td><td class="num">30</td><td class="num">±15°</td></tr>
+  <tr><td><span class="chip en">精Lv3</span> <span class="chip sp">蝶</span></td><td class="num">−10 → <b>0</b></td><td class="num"><b>±0°</b></td></tr>
+  <tr><td><span class="chip en">精Lv1</span><span class="chip en">精Lv2</span> <span class="chip sp">蝶</span></td><td class="num"><b>0</b></td><td class="num"><b>±0°</b></td></tr>
+</table>
+<p>单张 Lv3、或 Lv1+Lv2，就能让一发 3~5 只蝴蝶<strong>初始方向完全相同</strong>。但这<strong>不等于叠成一发</strong>：实体仍各自独立，蝴蝶减速段结束后各锁各自的最小夹角目标很快散开。实际效果是把前约 0.38 秒压成一束。</p>
+<p class="note">多发弹的暴击是<b>每只独立掷骰</b>（各实体带自己的 <code>CriticalChance</code> 快照）。Lv3 蝴蝶 5 只 × 40% 期望 2 只暴击，方差小于单发弹——多发弹吃暴击率的期望值而非运气。详见 蝴蝶逆向分析.md 7.2。</p>
 
 <h2 id="s3">3. 谁吃得到这张卡</h2>
 <h3>3.1 只强化自己右边、同一段</h3>

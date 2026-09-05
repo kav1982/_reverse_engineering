@@ -248,7 +248,18 @@ else
   <tr><td>维度旅者</td><td>生成时 <code>ChaseRotateSpeed × 0.3</code></td></tr>
   <tr><td>诡雷</td><td>生成后 <code>ChaseRotateSpeed × 0.5</code></td></tr>
 </table>
-<p class="note">持续施法距离：自动导航不加额外秒数；只有公转会折进部分持续法术。</p>
+<h3>反过来：本来就有追踪，插了导航被顶替</h3>
+<table>
+  <tr><th>法术</th><th>插上导航之后</th></tr>
+  <tr><td>蝴蝶 <code>1003</code></td><td><code>ChaseEnemy</code> 的 switch <b>没有 Butterfly case</b> → <code>default → Normal_ChaseTarget</code>。专属 <code>Butterfly_Common</code>（硬编码 <code>lerp(Direction, 敌向, 5f·dt)</code>，时间型、与速度无关）完全不再被调用</td></tr>
+</table>
+<div class="box">Spell1003ButterFlySystem 的查询不看 movement.Type → 减速照旧跑到 InitialSpeed × 0.15
+  maxDelta = 2.25 × float1 × dt
+  Lv1(12) ≈ 27 °/s   ·   Lv3(38) ≈ 85.5 °/s   ← 低于原生手感
+
+StartTraceTargets 仍置真但无人读取，成为空转状态位
+→ 对速度极低的弹，路程型转向是「降级」，不是增益</div>
+<p class="note">持续施法距离：自动导航不加额外秒数；只有公转会折进部分持续法术。蝴蝶是全表唯一把 <code>float2</code> 乘进距离估算的法术（<code>速度 × 时长 × 0.15</code>），与导航无关。详见 蝴蝶逆向分析.md 7.1。</p>
 
 <h2>7. 开发注意事项</h2>
 <div class="grid3">
@@ -273,6 +284,7 @@ else
     <ul>
       <li>激光族 / 喷流不走通用路径</li>
       <li>流星会把角速度放大</li>
+      <li><b>蝴蝶：导航是覆盖，结果变钝</b></li>
       <li>「对召唤无效」运行时不读</li>
     </ul>
   </div>
@@ -300,7 +312,8 @@ else
   <tr><td>运动类型右优先</td><td><code>SpellShootDataExtend.GetSpellMovementType</code></td></tr>
   <tr><td>发射包角速度</td><td><code>ShootSpellUtils</code>（<code>ChaseEnemy</code> 才写）</td></tr>
   <tr><td>Mono 转向</td><td><code>SpellBase.SpellFollowTarget</code>；<code>Tool2D.DirMoveTowards</code></td></tr>
-  <tr><td>ECS 转向 / 锁敌</td><td><code>SpellMoveJob.Normal_ChaseTarget</code>；<code>DTool.DirMoveTowards</code></td></tr>
+  <tr><td>ECS 转向 / 锁敌</td><td><code>SpellMoveJob.Normal_ChaseTarget</code> / <code>GetValidChasePosition</code>；<code>DTool.DirMoveTowards</code></td></tr>
+  <tr><td>蝴蝶专用锁敌（另一支）</td><td><code>SpellMoveJob.GetValidChaseEnemyPosition</code>（L1081）</td></tr>
   <tr><td>最小夹角</td><td><code>GetMinimalAngleTargetablePpt</code> / <code>FindMinAngleTarget</code></td></tr>
   <tr><td>洗牌死代码</td><td><code>SpellBase.ApplyShootGroupV2EnhanceEffect</code></td></tr>
   <tr><td>自动填槽组互斥</td><td><code>SpellAutoFullTool.RepelSpellGroup</code></td></tr>

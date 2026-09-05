@@ -351,6 +351,13 @@ return (num, num2);</pre>
 <p>墙弹当帧：物理改速度 → Job 把 <code>Direction</code> 写成弹后速度。</p>
 <p>同一帧后半，<code>SpellMoveJob</code> 按 <code>Movement.Type</code> 再跑追赶，把 <code>Direction</code> 往目标拧回去。弹是弹了，轨迹马上被追赶盖住。</p>
 <p>公转不是追赶，是生成时直接拆掉墙层，通常根本走不到墙撞。</p>
+<h3>不插追赶符文也可能被拧回：蝴蝶 1003 分相位</h3>
+<table>
+  <tr><th>相位</th><th>走哪条</th><th>墙弹方向是否被拧回</th></tr>
+  <tr><td>减速段（约前 0.38 s，<code>StartTraceTargets == false</code>）</td><td><code>Butterfly_Common</code> 末行 <code>velocity = Direction × Speed</code></td><td class="ok"><b>不拧回</b>，老实沿反射方向飞</td></tr>
+  <tr><td>追踪段（<code>StartTraceTargets == true</code>）</td><td><code>Butterfly_Common</code> 的 lerp 分支</td><td>拧回，但系数是硬编码 <code>5f·dt</code>，比自动导航的路程型柔和</td></tr>
+</table>
+<p class="note">自带追踪的法术在 <code>Normal</code> 类型下走自己的分支，同样在墙撞之后覆写 <code>Direction</code>。另外 <code>Duration.Extra += ReboundAddTime</code> 对蝴蝶是纯收益——加的秒数全进追踪段，而时长对蝴蝶的边际价值本就偏高，两者相乘。详见 蝴蝶逆向分析.md 7.9。</p>
 
 <h3>4.8 激光 1004 / 分解射线 1011</h3>
 <p>不走 <code>SpellMoveJob</code> 墙撞（龙息直接被 Job 排除；激光用自己的步进 Job）。<code>ReboundCount</code> 被读成<strong>折线段数</strong>：</p>
