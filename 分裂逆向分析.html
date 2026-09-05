@@ -145,7 +145,7 @@
     <p>不展开绚丽烟火（<code>OnOverSplitTrigger = 3202</code>）、闪电链自身的分裂弹、召唤触手分裂、敌人分裂弹。</p>
     <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
     <p>玩家施法主路径是 ECS。Mono <code>SpellBase.TrySplit</code> 为残留轨，系数略有不同，文末单独对照。</p>
-    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，悬停结束才分裂见《悬停逆向分析.md》，闪电链分裂弹系数见《闪电链逆向分析.md》。</p>
+    <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，悬停结束才分裂见《悬停逆向分析.md》，闪电链分裂弹系数见《闪电链逆向分析.md》，注魔硬币分裂补丁见《注魔硬币逆向分析.md》5.3。</p>
   </div>
 </header>
 
@@ -489,7 +489,7 @@
   <tr><th>法术</th><th>补丁</th></tr>
   <tr><td>通用</td><td>位置 = 母弹当前位置；方向均分 360°；坠落用母弹坐标，否则沿方向偏移半径（或 0.333）</td></tr>
   <tr><td>审判之刃</td><td>生成点再沿方向偏 0.5/1，方向取反</td></tr>
-  <tr><td>魔力金币</td><td>抄活体 <code>CoinUseCount</code>、<code>BuffRatio</code></td></tr>
+  <tr><td>注魔硬币 / 魔力金币</td><td>抄 <code>CoinUseCount → Int3</code>、<code>BuffRatio → Float3</code>。子弹不扣金，改为 <code>AddRatio += Int3 × Float2 / 100</code>。母弹先吐钱再裂。<code>BuffRatio</code> 恒 0。详见《注魔硬币逆向分析.md》5.3</td></tr>
   <tr><td>次元旅行者</td><td>重力清 0，抄活体坠落速度与加成伤 / 持续</td></tr>
   <tr><td>破法者</td><td>抄 <code>Int3</code>；非坠落把 <code>AroundCenter</code> 设为母弹位置</td></tr>
   <tr><td>落雷阵 <code>1018</code></td><td>重力与坠落速度清 0（旧表作「雷霆光环」，已更正为游戏内名）</td></tr>

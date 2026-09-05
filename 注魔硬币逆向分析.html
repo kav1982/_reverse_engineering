@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>注魔硬币 Spell1020 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>注魔硬币 · Spell1020</h1>
+  <p>Missile 主动法术 · 仅 ID 10201 · 特殊掉落 · 首帧扣当前金币 20% 换基础伤害 · 销毁后原地吐回</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>射出一枚实体飞弹。首帧按<strong>当前金币的 20%</strong>（向上取整）扣钱，每扣 1 枚给这发弹 <code>Damage.AddBase += 6</code>。飞 2 秒，直线，默认打一个目标就销毁。销毁当帧在落点吐出刚才扣掉的金币，走近捡回来就回本。</p>
+<p>文案：<code>7110201</code>「消耗并射出 float1% 的金币，每消耗 1 枚基础伤害 +float2。结束时金币重新掉落」。三条都是真机制。ECS 把第一句的 <code>float1</code> 写成了字面量 <code>0.2f</code>，和表值 20 碰巧相等。</p>
+<ul>
+  <li>ECS：<code>Spell1020ManaCoinSystem</code>（扣金加伤）+ 通用 <code>SpellMoveJob.Normal_*</code> + <code>Spell1020GroundCoinSpawnerSystem</code>（吐钱）</li>
+  <li>落地堆是 <code>Spell10201Coin</code>，不是法术实体；拾取在 <code>PlayerControllerSystem</code></li>
+  <li>Mono <code>Spell1020ManaCoin</code> 为残留轨，100 金时打 132，ECS / UI 打 <b>180</b></li>
+  <li>只有 Lv1，不可合成；<code>CalculateSpellComplexity</code> 记 2 分</li>
+</ul>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">表伤</th><th class="num">蓝耗</th><th class="num">速度</th><th class="num">寿命</th><th class="num">float1</th><th class="num">float2</th><th class="num">售价</th></tr>
+  <tr><td>10201</td><td class="num">1</td><td class="num"><b>60</b></td><td class="num">20</td><td class="num">18</td><td class="num">2</td><td class="num">20</td><td class="num">6</td><td class="num">25</td></tr>
+</table>
+<ul>
+  <li><code>dropType=4</code> 特殊；<code>needActivate=false</code>，开局就进池；<code>canCompound=false</code></li>
+  <li><code>angle=0</code>、<code>knockback=5</code>、<code>shootCount=1</code>、<code>radius=0</code></li>
+  <li><code>int1=8</code> 是<strong>死字段</strong>：不进穿透，文案也不引用</li>
+  <li>AI 射程 <code>18 × 2 = 36</code>，普通飞弹公式</li>
+</ul>
+
+<div class="box">used    = ceil(金币 × 0.2)          // ECS 字面量，不读 float1
+AddBase = used × Float2             // 6 / 枚
+最终伤  = (60 + AddBase) × (1+AddRatio) × MulRatio
+
+UI / Mono / 文案读 float1=20 → 和 0.2 碰巧相等
+改表 float1 只改面板和 Mono，不改玩家主路径</div>
+
+<h2>3. 核心机制：扣金 → 加伤 → 吐回</h2>
+<div class="code">
+  <div class="bar"><b>Spell1020ManaCoinSystem.OnUpdate</b><span>L220–261 · 每实体只进一次</span></div>
+<pre>int num = Mathf.CeilToInt(PlayerMgr.Inst.CoinCount * 0.2f);
+if (!同阵营玩家) num = 0;
+if (IsSplitSpell) {
+    num = 0;
+    Damage.AddRatio += Int3 * Float2 / 100f;   // 子弹：再叠一层比率
+}
+PlayerMgr.Inst.ChangeCoin(-num);
+Damage.AddBase += num * Float2;
+CoinUseCount = num;</pre>
+</div>
+<ul>
+  <li>同一帧多枚未初始化的硬币<strong>顺序扣</strong>：后一发看见的是已经被扣过的余额</li>
+  <li>没钱 / 非玩家：<code>num=0</code>，银色空壳，落地不掉钱</li>
+  <li>虚空染色优先于金银</li>
+  <li><code>BuffRatio</code> 烘焙后从未再写；<code>GroundCoinsBuffer</code> 只挂不读——两个死件</li>
+</ul>
+<p class="note">伤害强化 / 节能的比率会乘到 <code>used × 6</code> 上。100 金时 +120 这笔加算，插伤强 Lv3 变成 +240。</p>
+
+<h2>4. 弹道：没有专属位移</h2>
+<p>没有 <code>SpellMoveJob</code> 的 <code>ManaCoin</code> case，也没有发射烘焙。默认 <code>Normal_Common</code> 直线。自动导航 / 寻踪 / 公转 / 坠落全部落到对应的 <code>Normal_*</code>。寿命走通用 4.1（2 秒 → 停 → 悬停 → 销毁）。自带穿透 = 0。</p>
+
+<h2>5. 落地金币</h2>
+<p><code>Spell1020GroundCoinSpawnerSystem</code> 在 <code>SpellEndSystemGroup</code>，<strong>先于</strong> <code>SpellDestroySystem</code>（<code>OrderLast</code>）。销毁当帧：先吐钱，再分裂，再删母弹。</p>
+<ul>
+  <li><code>CoinUseCount > 0</code> 才生成 <code>Spell10201Coin</code></li>
+  <li>Theme6 / 第三章捷径会把落点夹进房间矩形</li>
+  <li>堆外观：<code>&gt;50 / &gt;20 / &gt;10</code> 四档模型；落地动画结束后才开 <code>Layer_InteractiveObj</code></li>
+  <li>走近：<code>ChangeCoin(+used)</code>。不走普通金币拾取，<strong>不滚</strong>捡钱掉血诅咒</li>
+  <li><code>belongRoomMapPos</code>：切房再回来会按金额重建，不会蒸发</li>
+</ul>
+
+<div class="box">分裂子弹（100 金、used=20）
+母弹伤害 180 → ToSplit ×0.33 → 快照 59.4
+子弹再 AddRatio += 20×6/100 = 1.2
+单发子弹 = 59.4 × 2.2 = <span class="ok">130.68</span>
+
+母弹的金币加算已经在被复印的 Damage 里
+子弹又按同一笔 used 加了一层 120%  —— 双重计算
+BuffRatio / Float3 全程空转</div>
+
+<h2>6. 符文矩阵（21 张）</h2>
+<table>
+  <tr><th>#</th><th>符文</th><th>判定</th><th>硬币实际分支</th></tr>
+  <tr><td>1</td><td>自动导航</td><td class="ok">一致</td><td><code>Normal_ChaseTarget</code>；经济不改</td></tr>
+  <tr><td>2</td><td>加速器</td><td class="ok">一致</td><td>飞得更远；<code>used</code> 不变</td></tr>
+  <tr><td>3</td><td>范围增强</td><td class="ok">一致</td><td><code>radius=0</code>，非坠落几乎无用</td></tr>
+  <tr><td>4</td><td>时长强化</td><td class="ok">一致</td><td>只延长命中窗口</td></tr>
+  <tr><td>5</td><td>悬停</td><td class="ok">一致</td><td>吐钱推迟到悬停结束</td></tr>
+  <tr><td>6</td><td>反弹</td><td class="ok">一致</td><td>通用墙撞 + 加时</td></tr>
+  <tr><td>7</td><td>坠落</td><td class="ok">一致</td><td>先扣金，落地再吐</td></tr>
+  <tr><td>8</td><td>精准施法</td><td class="ok">一致</td><td>散射已是 0，只加暴击</td></tr>
+  <tr><td>9</td><td>齐射</td><td class="ok">一致</td><td>不复制卡；组里每张硬币各扣一次当时 20%</td></tr>
+  <tr><td>10</td><td>伤害强化</td><td class="ok">一致</td><td><code>AddRatio</code> 连金币加算一起乘</td></tr>
+  <tr><td>11</td><td>节能模式</td><td class="ok">一致</td><td><code>MulRatio</code> 连加算一起砍；效率比 1.25 档</td></tr>
+  <tr><td>12</td><td>分裂</td><td class="warn">已回写</td><td>母弹先吐钱；子弹不扣金，再叠一层 <code>AddRatio</code></td></tr>
+  <tr><td>13–17</td><td>霜 / 毒 / 粘 / 链 / 雷</td><td class="ok">一致</td><td>通用命中与销毁，不在排除名单</td></tr>
+  <tr><td>18–21</td><td>伞 / 蓄力 / 强冷 / 储魔</td><td class="ok">一致</td><td>法杖层或伞不飞</td></tr>
+</table>
+<p class="note">穿透 3006 尚未成文。硬币自带 <code>int1=8</code> <b>不是</b>穿透；默认一发打一个目标。</p>
+
+<h2>7. 算例</h2>
+<h3>裸卡伤害随金币</h3>
+<table>
+  <tr><th>当前金币</th><th class="num">used</th><th class="num">裸伤</th><th class="num">伤/蓝</th><th class="num">缩放</th><th>落地</th></tr>
+  <tr><td>0</td><td class="num">0</td><td class="num">60</td><td class="num">3.00</td><td class="num">1.00</td><td>银色，无</td></tr>
+  <tr><td>60</td><td class="num">12</td><td class="num">132</td><td class="num">6.60</td><td class="num">≈1.30</td><td>+12</td></tr>
+  <tr><td>100</td><td class="num">20</td><td class="num"><b>180</b></td><td class="num">9.00</td><td class="num">≈1.44</td><td>+20</td></tr>
+  <tr><td>200</td><td class="num">40</td><td class="num"><b>300</b></td><td class="num">15.0</td><td class="num">≈1.71</td><td>+40</td></tr>
+</table>
+
+<h3>比率吃到金币加算（100 金）</h3>
+<table>
+  <tr><th>槽位</th><th class="num">公式</th><th class="num">伤害</th></tr>
+  <tr><td><span class="chip sp">硬币</span></td><td class="num">60+120</td><td class="num">180</td></tr>
+  <tr><td><span class="chip en">伤Lv3</span> <span class="chip sp">硬币</span></td><td class="num">180×2</td><td class="num"><b>360</b></td></tr>
+  <tr><td><span class="chip en">节Lv1</span> <span class="chip sp">硬币</span></td><td class="num">180×0.75</td><td class="num">135</td></tr>
+  <tr><td><span class="chip en">伤Lv3</span><span class="chip en">节Lv1</span> <span class="chip sp">硬币</span></td><td class="num">180×2×0.75</td><td class="num">270</td></tr>
+</table>
+<p class="note">没钱时伤强 Lv3 只把 60 变成 120。有 100 金时变成 360。越有钱，伤害强化越值。</p>
+
+<h3>一组两张硬币 / 分裂</h3>
+<div class="box">100 金，两张同帧：20 + 16 = 36 枚，伤害 180 与 156，落地两堆
+100 金 + 分裂 Lv1：母弹 180 后落地 +20
+                  每发子弹 180×0.33×2.2 = 130.68，3 发全中 ≈ 392
+                  子弹不再耗金</div>
+
+<h2>8. Mono 残留轨</h2>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono</th></tr>
+  <tr><td>扣金比例</td><td>字面量 <code>0.2f</code></td><td><code>float1 / 100</code></td></tr>
+  <tr><td>加伤</td><td><code>AddBase += used×6</code></td><td><code>表伤 × (1 + ratio)</code></td></tr>
+  <tr><td>100 金裸伤</td><td class="ok"><b>180</b></td><td class="bad">132</td></tr>
+  <tr><td>缩放</td><td>含金币，<code>(伤/60)^0.3333</code></td><td>不含金币</td></tr>
+  <tr><td>落地</td><td>ECS <code>Spell10201Coin</code></td><td>对象池 <code>Spell1020CoinOnGround</code></td></tr>
+</table>
+
+<h2>9. 构筑摘要</h2>
+<div class="grid3">
+  <div class="card add">
+    <h3>正收益</h3>
+    <ul>
+      <li>身上有钱（线性换伤，打完能捡回）</li>
+      <li>伤害强化（连金币加算一起乘）</li>
+      <li>分裂（一笔钱打母弹 + 打裂片）</li>
+      <li>穿透（才能在吐钱前打多个）</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>中性 / 看情况</h3>
+    <ul>
+      <li>时长 / 悬停：只推迟吐钱</li>
+      <li>加速器 / 导航：只改弹道</li>
+      <li>齐射：不复制这张卡</li>
+      <li>节能：效率比 1.25，但加算也被砍</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>注意</h3>
+    <ul>
+      <li>没钱 = 银色 60 伤空壳</li>
+      <li>默认无穿透，打一下就吐钱</li>
+      <li>组里多张硬币顺序扣，后发更瘦</li>
+      <li>记得捡；切房不会丢</li>
+    </ul>
+  </div>
+</div>
+
+</main>
+<footer>完整证据链见 注魔硬币逆向分析.md · 配置 SpellConfig 10201 · ECS Spell1020ManaCoinSystem</footer>
+</body>
+</html>
