@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>闪电疾行 Spell1016 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>闪电疾行 · Spell1016</h1>
+  <p>Missile 主动法术 · ID 10161–10163 · 稀有 · <b>法术反过来驾驶施法者</b> · 全程无敌 · 结束后按驾驶时长过热 · 击退 20 为全表最高</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>这不是一发「打出去的弹」，而是一发<strong>反过来把施法者装进去开走的载具</strong>。开火当帧法术实体给施法者挂上 <code>FlyRegister()</code> + <code>InvincibleRegister()</code>，此后<strong>每帧把施法者的 <code>LocalTransform.Position</code> 强制同步到法术实体身上</strong>。玩家在这 1 秒里全程无敌、碰撞体关闭、可用 WASD 瞬时改向、撞墙无限反弹、碾过的敌人吃 <code>damage</code> + 击退 20。结束后按<strong>实际驾驶时长</strong>换算出一段「过热」——过热期间这根法杖打不出<b>任何含冲刺的法术组</b>。</p>
+<p>Lv2/3 在销毁点额外炸一圈 <code>Radius × Float1</code>，并<strong>清掉圈内绝大部分敌方飞弹</strong>。</p>
+<ul>
+  <li>ECS 主路径：<b>6 个专属系统</b>（<code>DashSystem</code> / <code>HitEffectSystem</code> / <code>EndSystem</code> / <code>OverheatSystem</code> / <code>CleanupSystem</code> / <code>EffectDestroySystem</code>）</li>
+  <li><strong>照常进</strong> <code>SpellPhysicsSystemGroup</code> —— 它是货真价实的物理弹，和激光的一次性几何完全相反</li>
+  <li><code>duration = 1.0</code> <strong>真的被读</strong>：同时是飞行段长度、无敌窗口、过热输入（一个字段管三件事）</li>
+  <li>Mono <code>Spell1016Dash</code>（约 930 行）为残留轨，ECS 版是它的<b>简化</b>重写，丢了若干特性，见第 8 节</li>
+  <li><code>CalculateSpellComplexity</code> 记 <b>7 分</b>（与彩虹同档；激光只有 3 分）</li>
+</ul>
+<p class="note"><b>不要和精英怪的「闪电急行」混淆：</b><code>Elite13.cs</code> 里那个 <code>[Header("闪电急行")]</code> 分组是<b>完全独立的怪物状态机</b>（<code>MonsterState.LightningDashAfter</code> 等），不走 <code>SpellAbilityType.Dash</code>、不生成 1016 实体、没有过热与驾驶权单例。「急」vs「疾」一字之差，两者没有任何代码共享。<code>Monster308DashSystem</code> / <code>Boss13DashBullet</code> / <code>Boss13DashLaser</code> 同理。</p>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">damage</th><th class="num">暴击率</th><th class="num">期望伤害</th><th class="num">蓝耗</th><th class="num">期望伤/蓝</th><th class="num">float1<br>爆炸倍率</th><th class="num">爆炸半径</th><th class="num">售价</th><th>可合成</th></tr>
+  <tr><td>10161</td><td class="num">1</td><td class="num"><b>14</b></td><td class="num">70%</td><td class="num">23.8</td><td class="num"><b>33</b></td><td class="num">0.72</td><td class="num">2</td><td class="num bad">无</td><td class="num">18</td><td>true</td></tr>
+  <tr><td>10162</td><td class="num">2</td><td class="num"><b>28</b></td><td class="num">70%</td><td class="num">47.6</td><td class="num"><b>43</b></td><td class="num">1.11</td><td class="num">2.5</td><td class="num"><b>2.5</b></td><td class="num">54</td><td>true</td></tr>
+  <tr><td>10163</td><td class="num">3</td><td class="num"><b>56</b></td><td class="num">70%</td><td class="num">95.2</td><td class="num"><b>56</b></td><td class="num">1.70</td><td class="num">3.5</td><td class="num"><b>3.5</b></td><td class="num">162</td><td>false</td></tr>
+</table>
+<ul>
+  <li>三级共用 <code>prefab="10161"</code>；<code>duration=1</code>、<code>speed=19</code>、<code>knockback=20</code>、<code>radius=1</code>、<code>criticalChance=70</code> <strong>三级完全不变</strong></li>
+  <li>升级只动 <code>damage</code>（每级 ×2）/ <code>mpCost</code> / <code>float1</code>；<code>int1</code> 只在 Lv1→Lv2 从 0 跳到 1（它是<b>开关</b>不是数量）</li>
+  <li><b>伤害涨 4 倍、蓝耗只涨 1.7 倍</b> → 每点蓝的效率翻 2.36 倍，是全表升级收益最陡的法术之一</li>
+  <li><code>knockback = 20</code> 是<b>全表最高</b>（次高：巨大气泡 Lv3 / 鱼叉 16、诡雷 15）。定位是「开路 + 打断」不是清场</li>
+  <li>Lv1 蓝耗就是 33，全表最贵档之一（分解射线 43、次元行者 40、巨大气泡 35、龙息 30）</li>
+</ul>
+
+<div class="box">duration = 1.0  <b>一个字段管三件事</b>
+                ① 飞行段长度   ② 无敌 / 驾驶窗口   ③ 过热换算的输入
+speed    = 19   <b>真速度</b>（激光的 speed 是长度，这里不是）
+radius   = 1    首帧写进 LocalTransform.Scale = 碰撞盒；同时是爆炸半径的<b>底数</b>
+float1   = 2 / 2.5 / 3.5   结束爆炸半径的<b>乘数</b>：Radius.Calculate() × Float1
+int1     = 0 / 1 / 1       ECS <b>不读它</b>，改判 Level &gt; 1；Mono 读 int1 != 0
+
+isKeepCasting = true  <b class="warn">ECS 里近乎死字段</b>
+  · 全工程唯一功能性读取点：ShootSpellUtils L357–366（仅「蓄力星 + 公转」时改公转中心）
+  · 冲刺<b>不在</b> SpellShootSystem 的持续施法注册名单里（只有 龙息/分解射线/高压水枪）
+  · 玩家的「按住感」来自另一条线：PlayerMgr.inDashSpell + 过热</div>
+
+<h2>3. 核心机制：法术驾驶施法者</h2>
+<div class="code">
+  <div class="bar"><b>Spell1016DashSystem.OnUpdate · 首帧接管</b><span>L932–982 · 主线程 · 每实体只跑一次</span></div>
+<pre>if (movement.IsFallSpell) continue;                     // 坠落态直接放弃载人
+transform.Scale = config.Radius.Calculate();            // 只写这一次
+SetComponentEnabled&lt;Spell1016InitTag&gt;(entity, false);   // 出查询，不再进
+
+Entity shooter = data.Shooter;
+if (HasComponent&lt;Spell4004StartData&gt;(shooter))          // 蓄力模式：Shooter 是蓄力星
+    shooter = data.OwnerEntity;                         // → 回溯到人
+if (!HasComponent&lt;UnitProperty_Dots&gt;(shooter)) continue;
+
+// 三道否决门
+if ((type != Player &amp;&amp; type != Teammate &amp;&amp; type != Monster &amp;&amp; !isWandSpirit)
+ || driver.IsShooterDriving(shooter)                    // 已被别的冲刺驱动
+ || (type == Player &amp;&amp; PlayerCtrller.isDashOverHeat))   // 玩家正过热
+    continue;                                           // ← Dirver 保持 Null
+
+driver.ShooterDrive(shooter);
+if (type == Player) driver.SetDashTime(config.Duration.Calculate());   // 只喂 UI
+ppt.FlyRegister();
+ppt.InvincibleRegister();                               // ← 无敌从这里开始
+cmd.AddComponent&lt;Spell1016DirverCleanupData&gt;(entity);
+spell1016Data.Dirver = shooter;</pre>
+</div>
+
+<div class="code">
+  <div class="bar"><b>每帧位置同步 —— 方向是「法术 → 驾驶者」</b><span>L988–1024</span></div>
+<pre>if (movement.IsFallSpell || data.Dirver == Entity.Null || !HasTransform(data.Dirver))
+    continue;
+float3 p = DTool.IgnoreZPosition(spellTransform.Position, driverTransform.Position.z);
+driverTransform.Position = p;                  // 玩家被钉在球上，只保留自己的 z
+if (math.length(velocity.Linear) &gt; 0f)
+    data.LastLinear = velocity.Linear;         // 留给销毁时的惯性击退</pre>
+</div>
+<p>法术实体由通用 <code>SpellMoveJob</code> 正常驱动，然后这里把结果<b>盖到驾驶者的 Transform 上</b>。<strong>这个循环不检查任何计时</strong>——只要 <code>Dirver != Null</code> 就一直同步，这是第 4 节「悬停免费无敌」的基础。</p>
+
+<h3>玩家输入：两套完全不同的操控</h3>
+<div class="code">
+  <div class="bar"><b>WASD / 摇杆</b><span>L1042–1058 · 只对 unitType == Player</span></div>
+<pre>if (movement.Type == SpellSpecialMovementType.Rotation)
+{
+    movement.AroundCenter += new float3(v.x, v.y, 0) * DeltaTime * MoveSpeed;  // 推圆心（<b class="warn">未归一化</b>）
+    CamController.Inst.dashCamFollowPoint = movement.AroundCenter;
+}
+else
+{
+    v = math.normalize(v);
+    movement.Direction = new float3(v.x, v.y, movement.Direction.z);           // <b>瞬时改向，无转速上限</b>
+}</pre>
+</div>
+<div class="grid">
+  <div class="card right">
+    <h3>非公转</h3>
+    <ul>
+      <li>WASD <b>直接改写 <code>Direction</code></b>，归一化，速度不变</li>
+      <li>转向是<b>瞬时的、没有转速上限</b></li>
+      <li>摄像机照常跟人 → 跟着球满屏飞</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>公转</h3>
+    <ul>
+      <li>WASD <b>推动 <code>AroundCenter</code></b>，玩家保持绕圈</li>
+      <li><b class="warn">未归一化</b> → 斜推圆心快 √2 倍（小瑕疵）</li>
+      <li><b>唯一会接管摄像机的组合</b>，镜头锁圆心，手感最稳</li>
+    </ul>
+  </div>
+</div>
+
+<h3>为什么公转要清空 AroundTarget</h3>
+<div class="box">Spell1016DashSystem L976–982：  movement.AroundTarget = Entity.Null;
+
+SpellMovementComponentData L77–90：
+  有 AroundTarget → 圆心<b>每帧跟着那个实体走</b>
+  无 AroundTarget → 用 AroundCenter（自由点）
+
+若不断开就会自激：<span class="bad">球绕玩家转 → 玩家被球拽着走 → 圆心跟着玩家跑 → …</span>
+清空是打断这个循环的<b>必要</b>操作，圆心从此变成一个由 WASD 推的自由点。</div>
+
+<h3>驾驶权单例：一人同时只能被一发冲刺开走</h3>
+<div class="box">SpellDashDriverSingleton
+  NativeHashSet&lt;Entity&gt; OnDashDriver     每个正在被驾驶的施法者
+  float DashRemainingTime / TotalDashTime  <b>全局单值</b>，只服务玩家的 UI 进度条
+
+IsShooterDriving(e) → 第 2..N 发冲刺撞上这道门 → continue → <b>Dirver = Null</b>
+                     但它们的 InitTag 已经被关掉了 → 变成<b>无人驾驶的闪电球</b>
+
+<b class="warn">命名误导：</b>Spell1016DashOverheatSystem 跟过热<b>毫无关系</b>，
+它全部有效逻辑只有一句 DashRemainingTime -= DeltaTime，纯粹给 UI 喂进度条。
+真正的过热在 Spell1016CleanupSystem。</div>
+
+<h2>4. 过热 · 本文核心结论</h2>
+<div class="code">
+  <div class="bar"><b>Spell1016CleanupSystem.GetOverheatTime · 过热曲线</b><span>L251–268</span></div>
+<pre>if      (duration &lt;= 1f)   overheatTime = duration;
+else if (duration &lt;= 8f)   overheatTime = 0.357f * duration + 0.643f;
+else if (duration &lt;= 50f)  overheatTime = 0.107f * duration + 2.65f;
+else                       overheatTime = 8f;          // <b>硬封顶</b></pre>
+</div>
+<p>三段在断点处几乎连续（d=1 → 1.000；d=8 → 3.499 / 3.506；d=50 → 8.000 正好接上封顶），说明是策划在曲线编辑器里拉出来后拟合成三段直线的。Mono 侧对应的正是一条 <code>AnimationCurve DurationTimeToOverheatCurve</code>。</p>
+
+<h3>过热是驾驶时长的凹函数 —— 堆时长的边际成本递减</h3>
+<table>
+  <tr><th>槽位</th><th class="num">驾驶时长 d</th><th class="num">距离(Speed=19)</th><th class="num">过热 f(d)</th><th class="num">驾驶 / 过热</th></tr>
+  <tr><td><span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">19</td><td class="num">1.00</td><td class="num">1.00</td></tr>
+  <tr><td><span class="chip en">时Lv1 +2</span> <span class="chip sp">冲刺</span></td><td class="num">3.0</td><td class="num">57</td><td class="num">1.71</td><td class="num">1.75</td></tr>
+  <tr><td><span class="chip en">时Lv2 +3.5</span> <span class="chip sp">冲刺</span></td><td class="num">4.5</td><td class="num">85.5</td><td class="num">2.25</td><td class="num">2.00</td></tr>
+  <tr><td><span class="chip en">时Lv3 +6</span> <span class="chip sp">冲刺</span></td><td class="num">7.0</td><td class="num">133</td><td class="num">3.14</td><td class="num"><b>2.23</b></td></tr>
+  <tr><td><span class="chip en">时Lv3</span><span class="chip dim">×2</span> <span class="chip sp">冲刺</span></td><td class="num">13.0</td><td class="num">247</td><td class="num">4.04</td><td class="num"><b>3.22</b></td></tr>
+  <tr><td><span class="chip en">时Lv3</span><span class="chip dim">×3</span> <span class="chip sp">冲刺</span></td><td class="num">19.0</td><td class="num">361</td><td class="num">4.68</td><td class="num"><b>4.06</b></td></tr>
+  <tr><td><span class="chip dim">任何 d &gt; 50</span></td><td class="num">&gt;50</td><td class="num">—</td><td class="num ok"><b>8.00 封顶</b></td><td class="num ok"><b>无上限</b></td></tr>
+</table>
+<p class="note">第一张时长强化 +2 秒换来 +0.71 秒过热；从 13 秒堆到 19 秒（+6 秒）只换来 +0.64 秒过热。<b>理论上把 <code>duration</code> 堆过 50 秒后，冲刺就变成「50 秒无敌换 8 秒不能用这一组」。</b></p>
+
+<h3>悬停给的无敌完全不计入过热</h3>
+<div class="box">四条代码事实拼起来：
+
+① SpellSystem.UpdateDuration：DurationTimer &gt;= Duration 之后<b>停止累加</b>，改累加 HoverTimer
+② Spell1016DirverCleanupData.DashTimer 每帧同步的是 <b>DurationTimer</b> → 悬停段<b>冻结</b>
+③ FlyRegister / InvincibleRegister 直到实体<b>销毁</b>才解除，不是 duration 到点
+④ 位置同步循环<b>不检查任何计时</b>，只要 Dirver != Null 就一直钉着玩家
+
+⇒ <b class="ok">悬停段里玩家仍然无敌、仍被驾驶（速度 0，原地悬空），但这段时间完全不进过热计算。</b></div>
+<table>
+  <tr><th>槽位</th><th class="num">飞行</th><th class="num">悬停</th><th class="num">总无敌</th><th class="num">过热</th><th class="num">无敌 / 过热</th></tr>
+  <tr><td><span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">0</td><td class="num">1.0</td><td class="num">1.00</td><td class="num">1.00</td></tr>
+  <tr><td><span class="chip en">悬Lv1 +2</span> <span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">2.0</td><td class="num"><b>3.0</b></td><td class="num ok">1.00</td><td class="num"><b>3.00</b></td></tr>
+  <tr><td><span class="chip en">悬Lv3 +5</span> <span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">5.0</td><td class="num"><b>6.0</b></td><td class="num ok">1.00</td><td class="num ok"><b>6.00</b></td></tr>
+  <tr><td><span class="chip en">悬Lv3</span><span class="chip dim">×2</span> <span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">10.0</td><td class="num"><b>11.0</b></td><td class="num ok">1.00</td><td class="num ok"><b>11.0</b></td></tr>
+  <tr><td><span class="chip en">悬Lv3</span><span class="chip dim">×4</span> <span class="chip sp">冲刺</span></td><td class="num">1.0</td><td class="num">20.0</td><td class="num"><b>21.0</b></td><td class="num ok">1.00</td><td class="num ok"><b>21.0</b></td></tr>
+  <tr><td><span class="chip en">时Lv3</span> <span class="chip en">悬Lv3</span> <span class="chip sp">冲刺</span></td><td class="num">7.0</td><td class="num">5.0</td><td class="num"><b>12.0</b></td><td class="num">3.14</td><td class="num">3.82</td></tr>
+</table>
+<div class="grid">
+  <div class="card right">
+    <h3>纯堆悬停</h3>
+    <ul>
+      <li>过热效率之王，无敌/过热可以到 20+</li>
+      <li>把冲刺变成「原地无敌罚站」</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>两个代价</h3>
+    <ul>
+      <li>悬停段 <code>Speed = 0</code>，<b>碾不到新敌人</b>，纯防御时间</li>
+      <li>仍处于 <code>inDashSpell</code>，<b>手动开火依然被掐断</b>（什么都做不了的无敌）</li>
+    </ul>
+  </div>
+</div>
+
+<h3>过热锁「组」不锁「杖」</h3>
+<div class="code">
+  <div class="bar"><b>Wand.CanShoot / Wand.TryShoot</b><span>L1968–1971、L2022–2025</span></div>
+<pre>// CanShoot：当前组里只要有一张冲刺，整组不能开火
+if (PlayerCtrller.isDashOverHeat &amp;&amp; currentShootGroup.HasShootableSpell(SpellAbilityType.Dash, deepSearch: false))
+    return false;
+
+// TryShoot：同样条件下直接跳到下一组，并照常吃冷却
+if (currentShootGroup != null &amp;&amp; PlayerCtrller.isDashOverHeat &amp;&amp; currentShootGroup.HasShootableSpell(...))
+    EnterNextGroup(setCoolDownOrInterval: true);</pre>
+</div>
+<p class="note"><b>这是冲刺构筑最重要的一条排版规则，游戏内没有任何提示：</b>冲刺<b>单独占一组</b>时，过热期间会自动轮空那一组继续打别的组；冲刺和输出法术<b>挤在同一组</b>时，过热就是整组停摆。注意 <code>deepSearch: false</code>——只看当前组的直接槽位，不递归子组。</p>
+<div class="box">过热注册是<b>取大值不是累加</b>：  if (!(duration &lt;= dashOverHeatTimer)) { dashOverHeatTimer = duration; ... }
+倒计时挂在 PlayerController.Shoot() 的<b>第一行</b>（在所有 early-return 之前）：
+    dashOverHeatTimer -= PlayerMgr.Inst.PlayerDeltaTime;   ← 用 PlayerDeltaTime，<b class="warn">子弹时间可能拉长过热（未验证）</b>
+
+UI 一根条复用两个含义（UIPlayerDashProgressBar）：
+    冲刺中 → DashRemainingTime / TotalDashTime（满→空）
+    过热中 → 1 - dashOverHeatProgressRatio（空→满）
+    队友 / 怪物冲刺<b>不会点亮</b>这根条（SetDashTime 只在 unitType == Player 时调）</div>
+
+<h2>5. 伤害模型</h2>
+<div class="code">
+  <div class="bar"><b>SpellSpawnParamsProcessor · 发射后处理的三条硬改写</b><span>L106–114</span></div>
+<pre>_processors.Add(SpellAbilityType.Dash, delegate(...)
+{
+    if (!ssp.MovementComponentData.IsFallSpell)
+        ssp.MovementComponentData.ReboundCount += 15;      // 但冲刺<b>不扣</b>这个数
+    ssp.ConfigComponentData.Penetrate.Base = 9999999;      // <b>无限穿透</b>（是赋值不是相加）
+    ssp.MovementComponentData.ChaseMouseLerpSpeed = 0.8f;  // <b>覆盖</b>寻踪符文自己的值
+});</pre>
+</div>
+<div class="grid3">
+  <div class="card">
+    <h3>飞行期</h3>
+    <ul>
+      <li>通用碰撞伤害（<code>SpellHitEntity</code>）</li>
+      <li><code>Penetrate.Base = 9999999</code> → 撞人不消失</li>
+      <li><code>Scale = radius = 1</code> → 直径 2 的碾压球</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>命中顿帧</h3>
+    <ul>
+      <li>存档速度 → 归零 → <b>0.05 秒</b>后还原</li>
+      <li><code>Dirver == Null</code> 就<b>不顿帧、不放粒子</b></li>
+      <li><b class="warn">不重置驾驶计时</b> → 碾人越多位移越短，过热一分不少</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>结束爆炸（Lv2+）</h3>
+    <ul>
+      <li>半径 <code>Radius.Calculate() × Float1</code></li>
+      <li>再用 <code>OverlapSphere(1&lt;&lt;23)</code> 清敌方飞弹</li>
+      <li>查询<b>不看 <code>Dirver</code></b> → 副本球也炸</li>
+    </ul>
+  </div>
+</div>
+
+<div class="code">
+  <div class="bar"><b>Spell1016DashEndSystem.Execute</b><span>L145–187 · [UpdateBefore(SpellDestroySystem)]</span></div>
+<pre>if (config.Level &lt;= 1) return;                          // Lv1 没有爆炸
+float radius = config.Radius.Calculate() * config.Float1;   // <b>乘算！</b>
+SpellTools.GetAttackableEntitiesInRange(pos, radius, ..., containsBrittleness: true, ref entities);
+foreach (Entity target in entities) { damage.spell.IgnoreHitEffect = true; CMD.TryAttackEntity(...); }
+
+// 弹幕清除：独立过滤器，只碰第 23 层
+filter.CollidesWith = 8388608u;                         // 1 &lt;&lt; 23
+PhysicsWorld.OverlapSphere(pos, radius, ref outHits, filter);
+foreach (DistanceHit h in outHits)
+    if (TryGetConfig(h.Entity, out var cfg)
+     &amp;&amp; cfg.AbilityType != SpellAbilityType.Dash          // <b>不清别的冲刺</b>
+     &amp;&amp; !DTool.IsSameCamp(config.ShooterType, cfg.ShooterType))
+        CMD.SetComponentEnabled&lt;SpellDestroyTag&gt;(h.Entity, true);</pre>
+</div>
+<p>三个限制解释了文案里「<b>大部分</b>敌方飞弹」的措辞：排除 <code>Dash</code>、同阵营免疫、只碰第 23 层。</p>
+
+<h3>范围增强是平方级收益 —— 爆炸半径要被 float1 再乘一次</h3>
+<table>
+  <tr><th>槽位</th><th class="num">Radius.Calculate()</th><th class="num">× Float1</th><th class="num">爆炸半径</th><th class="num">面积倍数</th></tr>
+  <tr><td><span class="chip sp">冲刺Lv2</span></td><td class="num">1.0</td><td class="num">2.0</td><td class="num">2.5</td><td class="num">1.00×</td></tr>
+  <tr><td><span class="chip sp">冲刺Lv3</span></td><td class="num">1.0</td><td class="num">3.5</td><td class="num">3.5</td><td class="num">1.96×</td></tr>
+  <tr><td><span class="chip en">范Lv1 +30%</span> <span class="chip sp">冲刺Lv3</span></td><td class="num">1.3</td><td class="num">3.5</td><td class="num">4.55</td><td class="num">3.31×</td></tr>
+  <tr><td><span class="chip en">范Lv2 +60%</span> <span class="chip sp">冲刺Lv3</span></td><td class="num">1.6</td><td class="num">3.5</td><td class="num">5.6</td><td class="num">5.02×</td></tr>
+  <tr><td><span class="chip en">范Lv3 +120%</span> <span class="chip sp">冲刺Lv3</span></td><td class="num">2.2</td><td class="num">3.5</td><td class="num ok"><b>7.7</b></td><td class="num ok"><b>9.49×</b></td></tr>
+  <tr><td><span class="chip en">范Lv3</span><span class="chip dim">×2</span> <span class="chip sp">冲刺Lv3</span></td><td class="num">3.4</td><td class="num">3.5</td><td class="num ok"><b>11.9</b></td><td class="num ok"><b>22.7×</b></td></tr>
+</table>
+<p class="note"><b>范围增强是冲刺最被低估的一张卡。</b>它同时放大碾人判定的宽度和结束爆炸的面积，后者因为要再乘 <code>Float1</code> 是二次放大。<code>[范Lv3][Lv3]</code> 的半径 7.7 已能覆盖大半个普通房间。<span class="warn">碰撞盒那一半置信度中</span>——若预制体上 <code>SpellNeedResize.ResizeByDamage</code> 为真，<code>SpellResizeSystem</code> 会重写 <code>Scale</code>（爆炸半径不受影响，那里读的是 <code>Radius.Calculate()</code> 不是 <code>Scale</code>）。</p>
+
+<h3>齐射 / 多重施法：一发载人，其余全是自由炸弹</h3>
+<div class="box">① 同帧生成 N 发冲刺 → 都跑首帧逻辑
+② 第 1 发 ShooterDrive 成功，<b>载人</b>
+③ 第 2..N 发撞上 IsShooterDriving == true → continue → <b>Dirver = Null</b>
+④ 这 N−1 发<b class="ok">照常飞、照常碾人</b>（伤害系统不看 Dirver），<b class="bad">但不顿帧、不放命中粒子</b>
+⑤ 销毁时<b class="ok">每一发都独立跑一次结束爆炸 + 弹幕清除 + 雷霆晶石落雷</b>（EndSystem 不看 Dirver）
+
+⇒ [齐射Lv3][冲刺Lv3][X][Y] 会在同一片区域炸出 <b>N 个半径 3.5 的圈</b>并清 N 次弹幕。
+
+多重施法<b>不被钳制</b>：ShootSpellUtils L756–761 强制 count = 1 的名单是
+  BiAnLethalBlade / LaserBeam / BlueRune / RedRune / GreenRune —— <b>不含 Dash</b>
+现实约束：Lv3 蓝耗 56 会按份数乘；复杂度 7 分会让低帧优化更早砍数量。</div>
+
+<h3>冲刺是「打不碎的法术」</h3>
+<table>
+  <tr><th>位置</th><th>含义</th></tr>
+  <tr><td><code>Spell1021MagicBreakerDamageSystem.cs</code> L777</td><td>破魔剑（ECS）打不掉冲刺</td></tr>
+  <tr><td><code>Spell1021MagicBreaker.cs</code> L455</td><td>破魔剑（Mono）同上</td></tr>
+  <tr><td><code>SpellWandInvisibleSpellBreaker.cs</code> L46</td><td>隐身法杖破法环打不掉</td></tr>
+  <tr><td><code>Monster39_Sword.cs</code> L429</td><td>剑怪挥砍消不掉</td></tr>
+  <tr><td><code>Spell1016DashEndSystem.cs</code> L182</td><td>冲刺自己的爆炸也不清冲刺</td></tr>
+</table>
+<p>五处独立逻辑都专门排除了 <code>Dash</code>。考虑到它承载着玩家的无敌状态，这是必须的——否则破法会把玩家从无敌里踢出来，甚至卡住 <code>Fly</code> / <code>Invincible</code> 计数器。<b class="warn">唯一例外是被反射</b>：<code>Monster17_Hat</code> / <code>Monster39_Sword</code> 的 <code>allowRebounceType</code> 都含 <code>Dash</code>，<b>后果未验证</b>（第 10 节最高优先级待决项）。</p>
+
+<h2>6. 墙壁：无限反弹</h2>
+<div class="code">
+  <div class="bar"><b>SpellMoveJob · 撞墙分支</b><span>L238–242</span></div>
+<pre>if (config.AbilityType != SpellAbilityType.Dash)
+{
+    movement.ReboundCount--;
+    config.Duration.Extra += movement.ReboundAddTime;
+}</pre>
+</div>
+<ul>
+  <li>方向同步、反弹特效照常，<b>只是不消耗</b></li>
+  <li><code>ReboundCount</code> 永远 &gt; 0 → <code>DisableSpellReboundCollider</code> 永不触发，反弹碰撞体全程启用</li>
+  <li><strong>反弹符文（3012）对冲刺是纯废槽</strong>——加的次数用不掉，<code>ReboundAddTime</code> 也进不了 <code>Duration.Extra</code></li>
+  <li>这正是「<code>[时Lv3]</code> 的 133 单位位移会在房间里撞十几次墙」的实现基础</li>
+</ul>
+
+<h2>7. 符文 × 冲刺 速查</h2>
+<div class="grid3">
+  <div class="card right">
+    <h3>核心 / 强收益</h3>
+    <ul>
+      <li><b>时长强化</b> 3103 —— 无敌 + 位移 + 次线性过热，三重</li>
+      <li><b>悬停</b> 3008 —— <b>免费无敌</b>，过热效率之王</li>
+      <li><b>范围增强</b> 3107 —— 平方级（碰撞盒 + 爆炸双吃）</li>
+      <li><b>伤害强化</b> 3102 —— 飞行与爆炸都吃满</li>
+      <li><b>雷霆晶石</b> 3101 —— 会落雷，必定触发</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>纯废槽 / 毁卡</h3>
+    <ul>
+      <li><b>穿透</b> 3006 —— <code>Base</code> 被写死 9999999</li>
+      <li><b>反弹</b> 3012 —— 不扣次、不加时</li>
+      <li><b>精准施法</b> 3105 —— <code>angle</code> 已是 0，且该卡不给暴击</li>
+      <li><b class="bad">坠落</b> 3119 —— 不载人 / 不无敌 / 不响应输入，<b>毁卡</b></li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>要看清楚</h3>
+    <ul>
+      <li><b>齐射 / 多重 / 分裂</b> —— 只有一发载人，其余变自由炸弹</li>
+      <li><b>寻踪</b> 3010 —— 自己的 LerpSpeed 被覆盖成 0.8</li>
+      <li><b>公转</b> 3009 —— 唯一接管摄像机的组合</li>
+      <li><b>节能</b> 3104 —— 省 30% 蓝但砍 25% 无敌（比值不变）</li>
+      <li><b>自动导航 / 自我追踪</b> —— 与 WASD 抢方向 / 疑似死结</li>
+    </ul>
+  </div>
+</div>
+
+<h3>加速器 vs 时长强化：买的东西不一样</h3>
+<table>
+  <tr><th>槽位</th><th class="num">Speed</th><th class="num">时长</th><th class="num">距离</th><th class="num">过热</th></tr>
+  <tr><td><span class="chip sp">冲刺</span></td><td class="num">19</td><td class="num">1.0</td><td class="num">19</td><td class="num">1.00</td></tr>
+  <tr><td><span class="chip en">加Lv3 +12</span> <span class="chip sp">冲刺</span></td><td class="num">31</td><td class="num">1.0</td><td class="num">31</td><td class="num ok">1.00 <span class="dim">不变</span></td></tr>
+  <tr><td><span class="chip en">时Lv3 +6</span> <span class="chip sp">冲刺</span></td><td class="num">19</td><td class="num">7.0</td><td class="num">133</td><td class="num warn">3.14</td></tr>
+  <tr><td><span class="chip en">加Lv3</span> <span class="chip en">时Lv3</span> <span class="chip sp">冲刺</span></td><td class="num">31</td><td class="num">7.0</td><td class="num">217</td><td class="num warn">3.14</td></tr>
+</table>
+<p><strong>加速器不改过热</strong>（过热只看 <code>duration</code>），时长强化会。想「跑得远又不太热」，加速器零代价；想「无敌久」，只能吃时长强化的过热。两者相乘。<span class="dim">（理论距离未扣撞墙折返与顿帧，实战有效位移显著更短。）</span></p>
+
+<h3>寻踪：专属的 Dash_Mouse</h3>
+<div class="code">
+  <div class="bar"><b>SpellMoveJob.Dash_Mouse</b><span>L690–704 · 全表唯一</span></div>
+<pre>float dist = DTool.IgnoreZDistance(MousePosition, transform.Position);
+float k    = math.clamp(dist, 0.6f, 1f);                       // 近距离减速，防抖
+float3 dir = DTool.IgnoreZDir(MousePosition, transform.Position);
+float3 end = dir * PlayerMoveSpeed * movement.Speed * 0.25f;   // <b>唯一含玩家移速的地方</b>
+if (dist &lt; 0.4f) end = 0;                                      // 贴上鼠标就停，不绕圈
+float t = math.clamp((movement.Speed + PlayerMoveSpeed) * DeltaTime * k * movement.ChaseMouseLerpSpeed, 0f, 1f);
+velocity.Linear = math.lerp(velocity.Linear, end, t);          // ChaseMouseLerpSpeed <b class="warn">已被写死 0.8</b></pre>
+</div>
+<p><code>[寻踪][冲刺]</code> = 「用鼠标画路线、球贴着鼠标跑」，是全表手感最独特的组合之一。但<b>寻踪符文的等级对跟随手感没有影响</b>（<code>LerpSpeed</code> 被后处理覆盖），只剩「切换操控模式 + 蹭一点 <code>Duration.AddBase</code>」两个作用。</p>
+
+<h3>「冲刺施法锁」只对队友生效 —— 需回写既有文档</h3>
+<div class="box">SpellGroupShootDurationCalculator.GetMaxKeepCastSpellDuration L82–83：
+    case SpellAbilityType.Dash:  num2 = ratioValue.Result + num3;   // <b>唯一把悬停算进去的法术</b>
+
+<b>但调用链只通向队友：</b>
+    GetMaxKeepCastSpellDuration
+      ← GetMaxCastDuration（唯一调用者）
+        ← Teammate5.cs L636 / L910
+        ← Teammate5FuseController.cs L651 / L884
+      <b class="bad">全工程再无其它调用者</b>
+
+玩家自己的开火节流走的是完全不同的两条路：
+    PlayerController.Shoot() 的 inDashSpell 早退  +  Wand.CanShoot 的过热门
+
+⇒ <b class="warn">《悬停逆向分析.md》L224/L327/L363 与《时长强化逆向分析.md》L289/L337 把它描述成一般意义的「施法锁」，
+   容易被读成玩家侧行为 —— 实际只影响法杖精灵 / 召唤伙伴的 castingSkillRemainingTimer。</b></div>
+
+<h2>8. Mono 残留轨：ECS 是简化重写</h2>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono <code>Spell1016Dash</code></th></tr>
+  <tr><td><b>速度</b></td><td class="bad">固定 19，<b>不叠玩家移速</b></td><td class="ok">含玩家 <code>moveSpeed</code> × <code>MoveSpeedRatio</code>，<b>每帧重算</b>（L141–148、L372）</td></tr>
+  <tr><td><b>乘客可以是另一发法术</b></td><td class="bad">❌ 只能是单位</td><td class="ok">✅ <code>currentSpellPassenger</code>（L185–205）</td></tr>
+  <tr><td><b>撞墙后短暂失控</b></td><td class="bad">❌ 无 → 手感更可控</td><td class="ok">✅ <code>afterHitWallControllabilityRecovyTime</code>（L360–371、L420–428）</td></tr>
+  <tr><td><b><code>ChaseOwner</code> 专属处理</b></td><td class="bad">❌ 无 → 疑似死结</td><td class="ok">✅ <code>SpellFollowOwner</code> 用 <code>independentRotateFollowPoint</code>（L534–550）</td></tr>
+  <tr><td><b><code>Hijack()</code> 强制中断</b></td><td class="bad">❌ 无通用接口（只有 <code>UIMenu</code> 手写兜底）</td><td class="ok">✅ 公开方法（L779–798）</td></tr>
+  <tr><td>深渊落点保护</td><td class="bad">❌ 无</td><td class="ok">✅ <code>HaveCollider(..., "Abyss")</code> 后决定是否给击退（L595–599）</td></tr>
+  <tr><td>队友视觉隐藏</td><td class="bad">❌ 无</td><td class="ok">✅ <code>OnLaunchFromUnitNotPlayer</code> 藏 Motion/LoopVF/ProgressBar/阴影（L894–919）</td></tr>
+  <tr><td>爆炸开关</td><td>判 <code>Level &gt; 1</code></td><td>判 <code>int1 != 0</code>（等价）</td></tr>
+  <tr><td>过热曲线</td><td>硬编码三段线性</td><td><code>AnimationCurve</code>（L53、L79）</td></tr>
+</table>
+<p class="note"><b>三处明确的行为退化：</b>① 移速道具在 ECS 下对冲刺速度<b>完全无效</b>（只有 <code>Dash_Mouse</code> 保留了 <code>PlayerMoveSpeed</code> 因子）。② 冲刺不能再载着别的法术飞。③ 撞墙不再短暂失控——这一条反而让 ECS 版手感更好。</p>
+
+<h2>9. 与激光（1004）的架构对照</h2>
+<table>
+  <tr><th>项</th><th>激光 <code>1004</code></th><th>闪电疾行 <code>1016</code></th></tr>
+  <tr><td>稀有度 / 蓝耗 / 复杂度</td><td>普通 / 2–4 / 3</td><td><b>稀有 / 33–56 / 7</b></td></tr>
+  <tr><td>伤害模型</td><td>hitscan，首帧一次算完</td><td>物理弹，全程碰撞</td></tr>
+  <tr><td>进 <code>SpellPhysicsSystemGroup</code></td><td class="bad">❌ 完全不进</td><td class="ok">✅ 正常进</td></tr>
+  <tr><td><code>speed</code> 语义</td><td><b>长度预算</b>（读走后置 0）</td><td><b>真速度</b></td></tr>
+  <tr><td><code>duration</code></td><td class="bad"><b>死字段</b>（寿命硬编码 0.2）</td><td class="ok"><b>驾驶时长 + 无敌 + 过热输入</b></td></tr>
+  <tr><td>时长强化</td><td class="bad">❌ 无效</td><td class="ok">✅ <b>核心卡</b></td></tr>
+  <tr><td>穿透符文</td><td class="ok">✅ 转折射，最强搭配</td><td class="bad">❌ 纯废槽（<code>Base</code> 写死）</td></tr>
+  <tr><td>反弹符文</td><td class="ok">✅ 生效（自己 <code>math.reflect</code>）</td><td class="bad">❌ 纯废槽（不扣次）</td></tr>
+  <tr><td>范围增强</td><td class="bad">❌ 非坠落纯废槽</td><td class="ok">✅ <b>平方级收益</b></td></tr>
+  <tr><td>悬停</td><td>变绊线，<b>可再命中</b></td><td><b>免费无敌</b>，不能再命中</td></tr>
+  <tr><td>与施法者的关系</td><td>无</td><td><b>反向驾驶施法者</b></td></tr>
+  <tr><td>专属系统数 / Cleanup 组件</td><td>3 / 无</td><td><b>6 / <code>Spell1016DirverCleanupData</code></b></td></tr>
+  <tr><td>击退</td><td>0.5（全表偏低）</td><td><b>20（全表最高）</b></td></tr>
+  <tr><td>销毁落雷</td><td class="ok">会</td><td class="ok">会</td></tr>
+</table>
+<p><strong>激光是「把伤害算完就走的一次性几何」，冲刺是「把玩家状态托管出去的有状态载具」。</strong>复杂度 7 分 vs 3 分如实反映了冲刺需要维护的状态量。</p>
+
+<h2>10. 构筑摘要</h2>
+<table>
+  <tr><th>行为</th><th>结果</th></tr>
+  <tr><td>裸放</td><td>化作闪电球飞 1 秒（约 19 单位），全程无敌，碾人 14/28/56 + 击退 20，结束过热 1 秒</td></tr>
+  <tr><td>升级</td><td>买的是<b>伤害</b>（×2/级）和<b>结束爆炸</b>（Lv1 没有 → Lv2 半径 2.5 → Lv3 半径 3.5）</td></tr>
+  <tr><td><b>过热</b></td><td>锁的是<b>组</b>不是杖；冲刺单独占一组时会自动轮空，挤在输出组里就是整组停摆</td></tr>
+  <tr><td>插时长强化</td><td class="ok"><b>核心卡</b>：无敌 + 位移 + <b>次线性</b>过热（封顶 8s），三重收益</td></tr>
+  <tr><td>插悬停</td><td class="ok"><b>过热效率之王</b>：悬停段全额无敌但<b>完全不计入过热</b>；代价是原地不动、不能开火</td></tr>
+  <tr><td>插范围增强</td><td class="ok"><b>平方级</b>：碰撞盒 + 爆炸半径（爆炸还要再乘 <code>float1</code>），<code>[范Lv3][Lv3]</code> 半径 7.7</td></tr>
+  <tr><td>插加速器</td><td>只加距离不加过热，零代价；但 19×1 已够用，收益不如时长</td></tr>
+  <tr><td>插穿透</td><td class="bad"><b>纯废槽</b> —— <code>Penetrate.Base</code> 被硬写成 9999999</td></tr>
+  <tr><td>插反弹</td><td class="bad"><b>纯废槽</b> —— 撞墙不扣次不加时，本来就是无限反弹</td></tr>
+  <tr><td>插精准施法</td><td class="bad"><b>纯废槽</b> —— <code>angle</code> 已是 0，且该卡不给暴击率</td></tr>
+  <tr><td>插坠落</td><td class="bad"><b>毁卡</b> —— 不载人 / 不无敌 / 不响应输入，退化成普通落地弹（但仍会炸 Lv2+ 那圈）</td></tr>
+  <tr><td>插齐射 / 多重施法</td><td class="warn"><b>只有一发载人</b>，其余变自由闪电球：照常碾人、爆炸、清弹幕、落雷；但不顿帧、不放命中粒子</td></tr>
+  <tr><td>插分裂</td><td>子弹全部不载人，等于免费多 <code>int1</code> 个爆炸圈（伤害 ×0.33）</td></tr>
+  <tr><td>插寻踪</td><td>换成「球贴着鼠标跑」；符文自己的插值参数被覆盖成 0.8</td></tr>
+  <tr><td>插公转</td><td>绕一个 WASD 可推的自由圆心；<b>唯一接管摄像机的组合</b>，手感最稳</td></tr>
+  <tr><td>插自我追踪</td><td class="warn"><b>疑似逻辑死结</b>（追踪目标 = 自己），置信度低</td></tr>
+  <tr><td>插节能模式</td><td>蓝耗 −30%，但驾驶时长和过热同步 −25%，无敌/过热比不变</td></tr>
+  <tr><td>插雷霆晶石</td><td class="ok"><b>会落雷</b>，圈心在冲刺结束位置；副本球各自落一次</td></tr>
+  <tr><td>插元素晶石</td><td>按碾到的每个不同目标各自结算，无浪费；结束爆炸也带元素</td></tr>
+  <tr><td>冲刺期间开火</td><td>手动开火被 <code>Shoot()</code> 掐断；<b>自动法杖 / 后置槽 / 法杖精灵照常开火</b></td></tr>
+  <tr><td>冲刺被破法</td><td class="ok"><b>不可能</b> —— 五处破法逻辑都排除了 <code>Dash</code></td></tr>
+  <tr><td>冲刺被怪反射</td><td class="warn"><code>Monster17_Hat</code> / <code>Monster39_Sword</code> 的 <code>allowRebounceType</code> 含 <code>Dash</code>，<b>后果未验证</b></td></tr>
+  <tr><td>结束落点</td><td>强制吸附回 NavMesh；吸附距离小时给 <code>LastLinear × Random(0.3,0.5)</code> 的顺势推力</td></tr>
+  <tr><td>多张冲刺同槽</td><td>只有第一发载人；两个法杖层字段都是 0，<b>不改整杖节奏</b></td></tr>
+</table>
+
+<h2>11. 证据速查</h2>
+<table>
+  <tr><th>结论</th><th>位置</th></tr>
+  <tr><td>首帧接管（Scale / 驾驶权 / 无敌 / Cleanup 组件）</td><td><code>Spell1016DashSystem.cs</code> L932–982</td></tr>
+  <tr><td>每帧位置同步（法术 → 驾驶者）</td><td><code>Spell1016DashSystem.cs</code> L988–1024</td></tr>
+  <tr><td>玩家输入：改 <code>Direction</code> / 推 <code>AroundCenter</code></td><td><code>Spell1016DashSystem.cs</code> L1042–1058</td></tr>
+  <tr><td>公转清空 <code>AroundTarget</code> 的必要性</td><td><code>Spell1016DashSystem.cs</code> L976–982；<code>SpellMovementComponentData.cs</code> L77–90</td></tr>
+  <tr><td>Cleanup 快照每帧刷新（<code>DashTimer</code> ← <code>DurationTimer</code>）</td><td><code>Spell1016DashSystem.cs</code> L1070–1079</td></tr>
+  <tr><td>坠落落地特效 Job（<b>无伤害</b>）</td><td><code>Spell1016DashSystem.cs</code> L139–163</td></tr>
+  <tr><td>驾驶权单例 / <code>OverheatSystem</code> 只做 UI</td><td><code>SpellDashDriverSingleton.cs</code> L1–35；<code>Spell1016DashOverheatSystem.cs</code> L76–81</td></tr>
+  <tr><td><b>过热曲线（三段线性 + 封顶 8s）</b></td><td><code>Spell1016CleanupSystem.cs</code> L251–268</td></tr>
+  <tr><td>清理：过热注册 / NavMesh 吸附 / 解无敌 / 还驾驶权 / 惯性击退</td><td><code>Spell1016CleanupSystem.cs</code> L193–248</td></tr>
+  <tr><td>过热注册取大值；倒计时挂 <code>Shoot()</code> 首行</td><td><code>PlayerController.cs</code> L2084–2091、L706、L198–200</td></tr>
+  <tr><td><b>过热锁「组」不锁「杖」</b></td><td><code>Wand.cs</code> L1968–1971、L2022–2025</td></tr>
+  <tr><td>冲刺期间手动开火被掐断 / 解除持续施法锁</td><td><code>PlayerController.cs</code> L707；<code>Wand.cs</code> L1964–1967</td></tr>
+  <tr><td>命中顿帧 0.05s + <code>Dirver == Null</code> 早退</td><td><code>Spell1016DashHitEffectSystem.cs</code> L150–194；<code>Spell1016DashAuthoring.cs</code> L9–25</td></tr>
+  <tr><td><b>结束爆炸与弹幕清除</b></td><td><code>Spell1016DashEndSystem.cs</code> L145–187（查询 L55–59，组 L16–17）</td></tr>
+  <tr><td>发射后处理三条硬改写</td><td><code>SpellSpawnParamsProcessor.cs</code> L106–114</td></tr>
+  <tr><td><b>冲刺不在 ECS 持续施法注册名单</b>（有一条只给 Dash 开的后置槽口子）</td><td><code>SpellShootSystem.cs</code> L545–563</td></tr>
+  <tr><td><code>isKeepCasting</code> 唯一功能性读取点</td><td><code>ShootSpellUtils.cs</code> L357–366</td></tr>
+  <tr><td><b>施法锁只对队友生效</b>（调用链）</td><td><code>SpellGroupShootDurationCalculator.cs</code> L5–8、L58–90 → <code>Teammate5.cs</code> L636/L910、<code>Teammate5FuseController.cs</code> L651/L884</td></tr>
+  <tr><td>撞墙不扣次、不加时</td><td><code>SpellMoveJob.cs</code> L238–242</td></tr>
+  <tr><td><code>Dash_Mouse</code> 专属鼠标跟随</td><td><code>SpellMoveJob.cs</code> L397–399、L690–704</td></tr>
+  <tr><td>走 <code>UpdateDuration</code> 正常分支（不在排除名单）</td><td><code>SpellSystem.cs</code> L274–307</td></tr>
+  <tr><td>多重施法不被钳制</td><td><code>ShootSpellUtils.cs</code> L756–761（名单不含 <code>Dash</code>）</td></tr>
+  <tr><td>不可被破法（五处）</td><td><code>Spell1021MagicBreakerDamageSystem.cs</code> L777；<code>Spell1021MagicBreaker.cs</code> L455；<code>SpellWandInvisibleSpellBreaker.cs</code> L46；<code>Monster39_Sword.cs</code> L429；<code>Spell1016DashEndSystem.cs</code> L182</td></tr>
+  <tr><td>可被怪反射</td><td><code>Monster17_Hat.cs</code> L24；<code>Monster39_Sword.cs</code> L112</td></tr>
+  <tr><td><b>销毁落雷不排除 <code>Dash</code></b></td><td><code>SpellDestroyEventJob.cs</code> L127–131</td></tr>
+  <tr><td>只有公转型接管摄像机 / 菜单兜底防无敌泄漏</td><td><code>CamController.cs</code> L298–305；<code>UIMenu.cs</code> L1410–1420</td></tr>
+  <tr><td>复杂度 7 分</td><td><code>SpellTools.cs</code> L3047–3050</td></tr>
+  <tr><td>UI 进度条双语义复用</td><td><code>UIPlayerDashProgressBar.cs</code> L13–49</td></tr>
+  <tr><td>Mono 差异（速度 / 法术乘客 / 撞墙失控 / <code>Hijack</code> / <code>ChaseOwner</code>）</td><td><code>Spell1016Dash.cs</code> L141–148、L185–205、L360–371、L779–798、L534–550</td></tr>
+  <tr><td><code>Elite13</code> 的「闪电急行」是独立状态机</td><td><code>Elite13.cs</code> L122–130、L870–918</td></tr>
+</table>
+
+<p class="note"><b>待决（按优先级）：</b>① <b>载着玩家的冲刺被 <code>Monster17_Hat</code> / <code>Monster39_Sword</code> 反射会怎样？</b>原实体销毁那一半应该正常解无敌，但新生成的敌方冲刺会不会反过来劫持玩家？<b>风险最高，需实机验证。</b>② <code>[分裂][冲刺]</code> 是否链式续杯 —— 取决于分裂生成与 <code>Spell1016CleanupSystem</code> 归还驾驶权的先后。③ <code>[自动导航][冲刺]</code> 里 <code>SpacialSpellSystemGroup</code> 与 <code>SpellPhysicsSystemGroup</code> 谁最后写赢 <code>Direction</code>，未确认。④ <code>[自我追踪][冲刺]</code> 的实际表现（置信度低的推测：原地抖动或不动）。⑤ 预制体序列化字段 <code>SpellNeedResize.ResizeByDamage</code> / <code>ReduceSizeWhenLifeEnd</code> / <code>DisableDefaultFallDamage</code> 无法从代码确定，需 dump 预制体 —— 第一个决定范围增强是「双吃」还是「单吃」。⑥ 齐射/多重的副本球组合效果未实机验证（复杂度 7 分会触发低帧砍数量）。⑦ <code>PlayerDeltaTime</code> 与过热倒计时的关系未展开（子弹时间是否拉长过热）。⑧ 重复命中去重规则未展开 —— 这是数值评估里最大的空白。⑨ <code>isKeepCasting</code> / <code>canCancelCasting</code> 在冲刺上是迁移遗漏还是刻意留白，性质未定。⑩ 遗物 / 套装 / 诅咒对无敌·飞行·过热的交互未检索。</p>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 闪电疾行逆向分析.md · 架构对照见 激光逆向分析.md · 槽位解析见 伤害强化逆向分析.md</footer>
+</body>
+</html>
