@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>激光 Spell1004 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>激光 · Spell1004</h1>
+  <p>Missile 主动法术 · ID 10041–10043 · hitscan 一帧成线 · <code>speed</code> 是长度不是速度 · 寿命硬编码 0.2s · Lv2+ 穿透转折射</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>开火当帧一次性把整条折线算完，线上所有异阵营目标<strong>同帧各吃一次伤害</strong>。<code>speed=15</code> 是这条折线的<strong>总长度预算</strong>——首帧读走之后立刻 <code>Speed = 0</code>，实体从此只是个挂 <code>LineRenderer</code> 的壳，活 <strong>0.2 秒</strong>就销毁。Lv2/3 把「穿透」变成「折射」：撞到单位后不穿过去，而是拐向下一个没打过的敌人。</p>
+<p>文案：机制栏 <code>7110041</code> <strong>为空</strong>，<code>7110042/3</code> 才写「法术穿透+int1，法术穿透会变为折射效果」。风味文案三段全部能在代码里落地——「笔直施放」= <code>angle=0</code>、「法杖也愿意更快施放法术」= 两个法杖层字段、「瞬间完成攻击」= hitscan。</p>
+<ul>
+  <li>ECS 主路径：<code>Spell1004LaserSystem</code> + <code>Spell1004LaserJob</code>（线生成 + 伤害 + 销毁判定，一个 Job 全包）</li>
+  <li><strong>完全不进</strong> <code>SpellPhysicsSystemGroup</code>：<code>SpellMoveJob</code> 里没有 Laser 分支</li>
+  <li>Mono <code>Spell1004Laser</code> 为残留轨，见第 8 节</li>
+  <li>升级买的是<strong>暴击率</strong>和<strong>折射次数</strong>，不是伤害</li>
+  <li><code>CalculateSpellComplexity</code> 记 3 分（与滚球、蝴蝶、霰弹同档）</li>
+</ul>
+<p class="note"><b>不要和棱镜核心混淆：</b><code>LaserBeam = 4014</code>（棱镜核心 / Prism Core）是持续 DPS 型法杖符文，和本文的 <code>Laser = 1004</code> 是两套机制。《雷霆晶石逆向分析.md》曾把 4014 的 ID 误写成 1004 并得出错误结论，见第 7 节。</p>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">damage</th><th class="num">暴击率</th><th class="num">期望伤害</th><th class="num">int1<br>折射</th><th class="num">蓝耗</th><th class="num">期望伤/蓝</th><th class="num">售价</th><th>可合成</th></tr>
+  <tr><td>10041</td><td class="num">1</td><td class="num"><b>8</b></td><td class="num"><b>0%</b></td><td class="num">8.0</td><td class="num"><b>0</b></td><td class="num">2</td><td class="num">4.00</td><td class="num">8</td><td>true</td></tr>
+  <tr><td>10042</td><td class="num">2</td><td class="num"><b>11</b></td><td class="num"><b>25%</b></td><td class="num">13.75</td><td class="num"><b>1</b></td><td class="num">3</td><td class="num">4.58</td><td class="num">24</td><td>true</td></tr>
+  <tr><td>10043</td><td class="num">3</td><td class="num"><b>15</b></td><td class="num"><b>50%</b></td><td class="num">22.5</td><td class="num"><b>2</b></td><td class="num">4</td><td class="num">5.63</td><td class="num">72</td><td>false</td></tr>
+</table>
+<ul>
+  <li>三级共用 <code>prefab="10041"</code>；<code>speed=15</code>、<code>duration=0</code>、<code>angle=0</code>、<code>knockback=0.5</code>、<code>float1=4</code>、<code>float2=2</code>、射速 −0.05、CD −0.1 <strong>三级完全不变</strong></li>
+  <li>升级只动 <code>damage</code> / <code>criticalChance</code> / <code>int1</code> 三样</li>
+  <li><code>shootCount=1</code>，蓝耗不均摊；<code>criticalDamageMultiplier = 2</code>，所以期望倍率 = <code>1 + 暴击率</code></li>
+  <li>只看面板伤害 Lv1→Lv3 才 1.88 倍；算上暴击是 <b>2.81 倍</b>，再算折射带来的额外命中数更高</li>
+  <li><code>isKeepCasting=false</code> —— 激光<strong>不是</strong>持续施法法术，「按住连发」的手感来自射速间隔与 CD</li>
+</ul>
+
+<div class="box">speed = 15   <b>折线总长度预算</b>，不是速度！首帧读走后立刻 Speed = 0
+duration = 0 不被读取。寿命 = 0.2 + HoverDuration（硬编码）
+int1     = 折射次数底数，与穿透相加
+angle    = 0  散射底数为 0 → 裸激光完全笔直
+
+float1 = 4   <b class="bad">死字段</b>  全工程无任何读取点
+float2 = 2   <b class="bad">死字段</b>  全工程无任何读取点
+
+· 解决了《法术能力类型字段语义表.xlsx》1004 行标注的两个 unknown
+· 读 Float1/Float2 的位置全在按 abilityType 分派的专属系统里，没有一处落到 1004
+· Mono 的长度/寿命来自预制体字段 maxLength / duration，也不是这两个</div>
+
+<h3>法杖层：多张累加</h3>
+<div class="box">shootIntervalAddSubRevise = −0.05   每张激光让整杖射速间隔 −0.05s
+coolDownAddSubRevise      = −0.10   每张激光让整杖 CD −0.1s
+
+Wand.cs L595–596 / WandConfig.GetExtraShootInterval L631–648
+→ 遍历所有槽位无条件累加，插 3 张激光就是 −0.15s / −0.3s</div>
+
+<h2>3. 核心机制：一帧成线的 hitscan</h2>
+<div class="code">
+  <div class="bar"><b>Spell1004LaserJob.Execute · 首帧初始化</b><span>L198–211 · 每渲染帧 1 次</span></div>
+<pre>data.SpellSpeed = valueRW.Speed;
+lineBuffer.Insert(0, new LaserBodyPoint { Value = valueRW4.Position });
+float num = data.SpellSpeed * 0.05f;          // 曲线模式单步长度 = 0.75
+float remainMaxDistance = valueRW.Speed;      // 总长度预算 = 15
+valueRW.Speed = 0f;                           // 实体从此不动
+data.totalTime = 0.2f + valueRW2.HoverDuration;</pre>
+</div>
+
+<div class="code">
+  <div class="bar"><b>Normal 模式：单步吃满全部预算</b><span>L972–977</span></div>
+<pre>private void StraightGoLinePosStep(..., float remainMaxDistance)
+{
+    stepVelocity = movement.Direction * remainMaxDistance;   // 一次射完！
+    normalStepPos = fromPos + stepVelocity;
+}</pre>
+</div>
+
+<p><strong>裸激光 = 一条长 15 的单次射线检测。</strong>while 循环只在「撞墙反弹」或「折射」把线掰弯时才跑第二轮。</p>
+
+<div class="code">
+  <div class="bar"><b>同帧一次性结算 + 命中压回 0.2s</b><span>L633–651</span></div>
+<pre>data.IsLaserHit = hitList.Length &gt; 0;
+if (data.IsLaserHit)
+    data.totalTime = 0.2f;                    // 覆盖掉悬停给的加时！
+RayHitGlobalEffect(...);
+RayHitDamageApply(in hitList, in hitDataList, ...);   // 每个实体各收一份
+foreach (float3 item in touchGList)
+    TouchGroundExplosion(...);                // 只有坠落态才非空
+HitNodeEffectApply(...);
+data.IsInitialize = true;                     // 此后永不再进这个块
+valueRW4.Position = new Vector3(lineBuffer[0].Value.x, lineBuffer[0].Value.y, -0.3f);</pre>
+</div>
+
+<div class="grid">
+  <div class="card right">
+    <h3>就是这样</h3>
+    <ul>
+      <li>伤害<b>同帧</b>一次性结算，没有「扫过去」的过程</li>
+      <li><code>hitList.Contains</code> 去重 → 每个实体<b>最多吃一次</b></li>
+      <li>实体位置被搬到<b>折线远端</b>（<code>lineBuffer[0]</code> 是最后插入的点）</li>
+      <li>命中任何东西 → 寿命压回 0.2s</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>不是这样</h3>
+    <ul>
+      <li><code>speed</code> 不是速度、<code>duration</code> 不被读</li>
+      <li>不走 <code>SpellMoveJob</code>，没有通用位移</li>
+      <li>反弹折回来<b>不会</b>二次伤害同一个人</li>
+      <li>不是持续施法（<code>isKeepCasting=false</code>）</li>
+    </ul>
+  </div>
+</div>
+
+<h3>寿命：只有悬停能延长</h3>
+<div class="code">
+  <div class="bar"><b>SpellSystem.UpdateDuration · 激光被短路</b><span>L275–283、L310</span></div>
+<pre>if (!spell.Movement.ValueRO.IsFallSpell)
+{
+    SpellAbilityType abilityType = spell.Config.ValueRO.AbilityType;
+    if (abilityType != SpellAbilityType.Laser &amp;&amp; abilityType != SpellAbilityType.RuneHammer
+        &amp;&amp; abilityType != SpellAbilityType.LaserBeam &amp;&amp; ... )
+    {
+        if (valueRW.DurationTimer &lt; valueRW.Duration.Calculate()) { ... return; }
+        ...
+    }
+}
+valueRW.DurationTimer += DeltaTime;      // 激光只走到这里：只累加，永不因 Duration 销毁</pre>
+</div>
+<table>
+  <tr><th>情况</th><th class="num">totalTime</th><th>实际存活</th></tr>
+  <tr><td>打中了任何目标</td><td class="num">0.2</td><td>0.2 s</td></tr>
+  <tr><td>打空，无悬停</td><td class="num">0.2</td><td>0.2 s</td></tr>
+  <tr><td>打空，<code>[悬Lv1]</code></td><td class="num">2.2</td><td>最多 2.2 s（绊到人则提前 0.1 s 结束）</td></tr>
+  <tr><td>打空，<code>[悬Lv3]</code></td><td class="num">5.2</td><td>最多 5.2 s</td></tr>
+  <tr><td><code>[时长强化Lv3]</code></td><td class="num">0.2</td><td class="bad">无效 —— 激光不读 Duration</td></tr>
+</table>
+
+<h3>命中判定：收 4 类目标，脆弱物与蝴蝶免费</h3>
+<div class="code">
+  <div class="bar"><b>RaycastCastHit 的类型过滤</b><span>L704–723 · 枚举 SpellTools.cs L18–27</span></div>
+<pre>SpellTools.HitType entityHitType = SpellTools.GetEntityHitType(...);
+if ((uint)(entityHitType - 3) &lt;= 3u)          // t ∈ {3,4,5,6}
+    hitList.Add(...);                          // Unit / Brittleness / RollBall / Butterfly
+
+// 丢掉 Unknown(0) / SameCamp(1) / IgnoreSpell(2) → 己方阵营与己方法术打不到
+
+// 主线 L865–868、悬停线 L928–933：
+if (hitType == HitType.Brittleness || hitType == HitType.Butterfly)
+    continue;                                  // 吃伤害，但不扣折射/穿透、不终止射线</pre>
+</div>
+<p><strong>激光穿过一片箱子 / 敌方蝴蝶群是完全免费的</strong>，只有 <code>Unit</code> 和 <code>RollBall</code> 消耗次数。零距离命中只在「已经打中过别人」时才跳过（L853），所以贴脸开火仍然算命中。</p>
+
+<h2>4. 五种运动类型 = 五套线生成器</h2>
+<p>激光是全表少数<strong>五种类型全都有专属实现</strong>的法术（蝴蝶只有 2 个专属分支）。每种还再分「非坠落 / 坠落」，共 10 条路径。</p>
+<table>
+  <tr><th>类型</th><th>由谁写入</th><th>非坠落几何</th><th class="num">段数</th><th>特殊</th></tr>
+  <tr><td><code>Normal</code></td><td>默认</td><td>单次全长直线</td><td class="num">1</td><td>+反弹/折射额外段</td></tr>
+  <tr><td><code>Rotation</code></td><td>公转 3009</td><td><b>绕自己一整圈</b></td><td class="num">36</td><td class="warn">无视长度预算、<b>不做墙检测</b></td></tr>
+  <tr><td><code>ChaseEnemy</code></td><td>自动导航 3011</td><td>逐步拐向最小夹角敌人</td><td class="num">≤20</td><td>无目标 → 退化全长直线</td></tr>
+  <tr><td><code>ChaseMouse</code></td><td>寻踪 3010</td><td>逐步拐向鼠标</td><td class="num">≤20</td><td class="warn">到鼠标即止，<b>加速器白给</b></td></tr>
+  <tr><td><code>ChaseOwner</code></td><td>自我追踪 3114</td><td>逆时针螺旋绕回施法者</td><td class="num">≤20</td><td>步长 0.6~1.4× 缩放</td></tr>
+</table>
+
+<div class="box">公转：for (36) 而不是 while (remainMaxDistance > 0)
+  → RotationGoLinePosStep 默认 angleSpeed = 10f，36 × 10° = 360°
+  → 长度预算被完全忽略，加速器不改形状
+  → 只调 CheckHitEnemyByStepVelocity，没有 CheckHitWallStep → 穿墙
+
+寻踪：折线走到鼠标 0.5 单位内且方向矢量 < 0.2 就 break（L527–530）
+  → 剩余长度预算直接作废</div>
+
+<h3>自动导航：把射线掰成弧</h3>
+<div class="code">
+  <div class="bar"><b>ChaseEnemyLinePosStep</b><span>L1063–1078</span></div>
+<pre>if (hasTarget)
+{
+    float3 target = DTool.IgnoreZDir(in targetPos, in prevPos);
+    stepDirection = DTool.DirMoveTowardsIgnoreZ(in source, in target,
+                        movement.ChaseRotateSpeed * orgStepLength);   // 度
+    stepVelocity  = stepDirection * orgStepLength;
+}
+else
+    StraightGoLinePosStep(...);      // 无目标 → 全长直线</pre>
+</div>
+<table>
+  <tr><th>槽位</th><th class="num">ChaseRotateSpeed</th><th class="num">单步长</th><th class="num">每步转角上限</th><th class="num">20 步累计</th></tr>
+  <tr><td><code>[导Lv1] [激光]</code></td><td class="num">12</td><td class="num">0.75</td><td class="num"><b>9°</b></td><td class="num">180°</td></tr>
+  <tr><td><code>[导Lv2] [激光]</code></td><td class="num">22</td><td class="num">0.75</td><td class="num"><b>16.5°</b></td><td class="num">330°</td></tr>
+  <tr><td><code>[导Lv3] [激光]</code></td><td class="num">38</td><td class="num">0.75</td><td class="num"><b>28.5°</b></td><td class="num">570°（早已收敛）</td></tr>
+  <tr><td><code>[导Lv1] [加Lv3] [激光]</code></td><td class="num">12</td><td class="num">1.35</td><td class="num"><b>16.2°</b></td><td class="num">324°</td></tr>
+</table>
+<p>每步转角 = <code>ChaseRotateSpeed × Speed × 0.05</code>，<strong>含 <code>Speed</code> 因子 → 加速器会放大自动导航的效果</strong>。Lv3 只用 1~3 步就把方向拧到目标上（视觉上是急弯后直射），Lv1 是一条明显长弧。</p>
+
+<h3>坠落态：完全不同的伤害模型</h3>
+<div class="box">NormalFallLineGenerate 全程<b class="bad">没有任何 CheckHitEnemyByStepVelocity 调用</b>
+→ 坠落激光<b>沿线不检测单位</b>，伤害只来自落点圆：
+
+TouchGroundExplosion (L1418):
+    float radius = config.Radius.Calculate();
+    GetAttackableEntitiesInRange(touchGroundPos, radius, ...);
+
+而激光配置 radius = 0，范围增强走 AddRatio：0 × (1 + 0.3) = 0
+→ <b class="warn">[坠落][激光] 在没有其它半径来源时几乎打不出伤害（置信度中，见待决②）</b>
+
+坠落态的折射搜敌半径也是同一个 Radius.Calculate()</div>
+
+<h2>5. 折射：Lv2/3 的真正核心</h2>
+<div class="code">
+  <div class="bar"><b>HaveRefractionCheck</b><span>L1225–1240</span></div>
+<pre>if (SpellRefractionLookup.HasComponent(entity))
+{
+    count = SpellRefractionLookup.GetRefRO(entity).ValueRO.RemainCount
+          + config.Int1 + config.Penetrate.Calculate();
+    return count &gt; 0;
+}
+if (config.Level &gt; 1)
+{
+    count = math.max(0, config.Int1 + config.Penetrate.Calculate());
+    return count &gt; 0;
+}
+count = 0;
+return false;                     // Lv1 永不折射</pre>
+</div>
+<p><code>Spell1004LaserSystem.OnUpdate</code> 在调度 Job 前先做主线程结构变更：<strong><code>Level > 1</code> 才挂</strong> <code>SpellRefractionHitEntities</code> + <code>SpellRefractionData</code>（L164–182，查询带 <code>WithNone</code> 所以只处理一次）。Lv1 拿不到组件，两个分支都进不去。</p>
+
+<div class="code">
+  <div class="bar"><b>折射优先于穿透 · 且穿透没被扣</b><span>L869–893</span></div>
+<pre>if (refractionCount &gt; 0 &amp;&amp; hitList2[i].Item2 == SpellTools.HitType.Unit)
+{
+    if (RefractionDirectionSet(ref stepDirection, in hitPosition, ...))
+    {
+        stepVelocity *= hitList2[i].Item1.Fraction;
+        refractionCount--;
+        isPreEnded = true;
+        lineEnd = false;
+        break;                    // ← 在扣穿透那两行之前就跳出了
+    }
+}
+if (config.Penetrate.Calculate() &lt;= 0) { lineEnd = true; ... break; }
+config.Penetrate.CostPenetrateValue();</pre>
+</div>
+
+<div class="grid">
+  <div class="card wrong">
+    <h3>ECS 实装 · 穿透用两遍</h3>
+    <ul>
+      <li>折射次数 = <code>Int1 + Penetrate</code></li>
+      <li>折射时<b>不</b>扣 <code>Penetrate</code></li>
+      <li>折射用尽后 <code>Penetrate</code> 还能再穿那么多次</li>
+      <li><code>[穿Lv3][激光Lv3]</code> → <b>11 次命中</b></li>
+    </ul>
+  </div>
+  <div class="card right">
+    <h3>Mono / 文案口径 · 真转换</h3>
+    <ul>
+      <li><code>remainRefractCount += penetrateTime;</code></li>
+      <li><code>penetrateTime = 0;</code>（L97–102）</li>
+      <li>文案：「法术穿透<b>会变为</b>折射效果」</li>
+      <li><code>[穿Lv3][激光Lv3]</code> → <b>7 次命中</b></li>
+    </ul>
+  </div>
+</div>
+
+<table>
+  <tr><th>槽位</th><th class="num">折射</th><th class="num">折射后剩余穿透</th><th class="num">命中上限</th><th class="num">单目标期望</th><th class="num">总期望</th></tr>
+  <tr><td><code>[激光Lv1]</code></td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">8.0</td><td class="num">8.0</td></tr>
+  <tr><td><code>[激光Lv2]</code></td><td class="num">1</td><td class="num">0</td><td class="num">2</td><td class="num">13.75</td><td class="num">27.5</td></tr>
+  <tr><td><code>[激光Lv3]</code></td><td class="num">2</td><td class="num">0</td><td class="num">3</td><td class="num">22.5</td><td class="num">67.5</td></tr>
+  <tr><td><code>[穿Lv1] [激光Lv3]</code></td><td class="num">3</td><td class="num"><b>1</b></td><td class="num"><b>5</b></td><td class="num">22.5</td><td class="num">112.5</td></tr>
+  <tr><td><code>[穿Lv3] [激光Lv3]</code></td><td class="num">6</td><td class="num"><b>4</b></td><td class="num"><b>11</b></td><td class="num">22.5</td><td class="num">247.5</td></tr>
+  <tr><td><code>[伤Lv3] [穿Lv3] [激光Lv3]</code></td><td class="num">6</td><td class="num"><b>4</b></td><td class="num"><b>11</b></td><td class="num">45.0</td><td class="num"><b>495.0</b></td></tr>
+</table>
+<p class="note"><b>判定为疑似实装偏差</b>（Mono 与文案两边口径一致，只有 ECS 这一处不同），但是否刻意改动需实机验证 —— 这是本文优先级最高的待验证项。穿透 3006 与折射机制都还没有单独逆向文档，所以这条结论只记在本文。</p>
+
+<h3>目标选择：粘住已打过的，找不到就清空重试</h3>
+<div class="box">RefractionDirectionSet (L1101–1136):
+  1. 把当前目标加进 SpellRefractionHitEntities 缓冲
+  2. 用整个缓冲当忽略集 → FindReflectionTarget
+  3. 失败 → <b>清空缓冲只留当前目标</b>，再搜一次
+  4. 还失败 → return false，掉进穿透分支
+
+→ 2 个敌人的房间里激光可以在两者之间来回折射多次
+→ 但 hitList.Contains 去重保证<b>每个敌人仍只吃一次伤害</b>，来回折射纯浪费次数和长度
+→ 缓冲在首帧清空一次（L216–219），不跨发累积</div>
+
+<h2>6. 墙壁与反弹</h2>
+<div class="code">
+  <div class="bar"><b>CheckHitWallStep</b><span>L817–842 · 过滤器 L740–745</span></div>
+<pre>if (movement.IsIgnoreWall) { wallHitType = 0; return false; }      // 次数不扣！
+
+if (CheckHitWallByStepVelocity(in fromPos, ref normalStepPos, ref stepVelocity, out wallHit))
+{
+    if (movement.ReboundCount &lt;= 0) { wallHitType = 1; lineEnd = true; }
+    else
+    {
+        movement.ReboundCount--;
+        wallHitType = 2;
+        stepDirection = math.reflect(movement.Direction, wallHit.SurfaceNormal);
+    }
+    return true;
+}
+
+// 墙层过滤器：BelongsTo = 16777216u (bit 24), CollidesWith = 256u (bit 8)</pre>
+</div>
+<ul>
+  <li>反弹用 Job <strong>自己算的 <code>math.reflect</code></strong>，不是普通弹那套 Unity Physics 碰撞事件</li>
+  <li><code>IsIgnoreWall</code> 时<strong>次数不扣</strong> —— 无视墙壁的激光穿墙且省下所有反弹次数</li>
+  <li>墙反弹与折射是<strong>两条独立计数</strong>，同一发里可以各自触发</li>
+  <li>反弹<strong>不重置长度预算</strong>（<code>stepVelocity *= wallHit.Fraction</code> 只截断到撞点）→ 反弹再多也射不出总长 15 之外</li>
+  <li><code>ReboundAddTime</code>（反弹给普通弹的加时）对激光<strong>无效</strong>，因为激光不读 <code>Duration</code></li>
+  <li><code>Rotation</code> 路径根本不调这个函数 → 公转激光无视墙</li>
+</ul>
+
+<h2>7. 增强符文 × 激光</h2>
+<table>
+  <tr><th>符文</th><th>判定</th><th>激光实际走到的分支</th></tr>
+  <tr><td>雷霆晶石 3101</td><td class="bad"><b>原文档错误</b></td><td>排除名单里是 <code>LaserBeam</code>(<b>4014</b>)，激光 1004 <b>不在</b>名单 → 照常落雷</td></tr>
+  <tr><td>范围增强 3107</td><td class="warn">原文档不完整</td><td>非坠落<b>纯废槽</b>；坠落态是伤害圈与折射圈的唯一来源</td></tr>
+  <tr><td>自动导航 3011</td><td class="warn">原文档不完整</td><td>有专属 <code>ChaseEnemy</code> 线生成器，<code>ChaseRotateSpeed</code> 决定弧度</td></tr>
+  <tr><td>加速器 3106</td><td class="ok">一致</td><td><b>唯一的射程来源</b>；段数不变、每步转角变大</td></tr>
+  <tr><td>时长强化 3103</td><td class="ok">一致</td><td><code>UpdateDuration</code> 短路 → <b>完全无效</b></td></tr>
+  <tr><td>悬停 3008</td><td class="ok">一致</td><td>唯一加时卡，且开启「绊线」重扫</td></tr>
+  <tr><td>反弹 3012</td><td class="ok">一致</td><td>自己 <code>math.reflect</code> 扣 <code>ReboundCount</code>；不加时</td></tr>
+  <tr><td>坠落 3119</td><td class="ok">一致（可补）</td><td>沿线不检测单位，伤害全靠落点圆</td></tr>
+  <tr><td>精准施法 3105</td><td class="ok">一致</td><td><code>angle</code> 池已是 0，<b>单插等于废槽</b>（这张卡不给暴击率）</td></tr>
+  <tr><td>齐射 3001</td><td class="ok">一致</td><td><code>int2 × (N−1)</code> 让激光失去「笔直」这个卖点</td></tr>
+  <tr><td>伤害强化 3102</td><td class="ok">一致</td><td>总收益 = 倍率 × 命中数</td></tr>
+  <tr><td>分裂 3013</td><td class="ok">一致</td><td>0.2s 后从射线尖端炸出 <code>int1</code> 条半长短激光</td></tr>
+  <tr><td>寒霜晶石 3014</td><td class="ok">一致</td><td>目标各不相同 → <b>没有蝴蝶那种叠同目标的浪费</b></td></tr>
+  <tr><td>毒液 3005 / 粘液 3004 / 闪电链 3007</td><td class="ok">一致</td><td>线上每个目标各自结算；激光不在闪电链排除名单</td></tr>
+  <tr><td>节能 3104 / 屏障 4012 / 蓄力 4004 / 强冷 4006 / 储魔 4002</td><td class="ok">一致</td><td>法杖层或与激光无耦合</td></tr>
+</table>
+
+<h3>雷霆晶石：既有文档结论是错的</h3>
+<div class="code">
+  <div class="bar"><b>SpellDestroyEventJob 的排除名单</b><span>L127–131</span></div>
+<pre>SpellAbilityType abilityType = spell.Config.ValueRO.AbilityType;
+if (abilityType != SpellAbilityType.DaveHarpoons
+ &amp;&amp; abilityType != SpellAbilityType.BiAnLethalBlade
+ &amp;&amp; abilityType != SpellAbilityType.LaserBeam)          // ← 4014，不是 1004！
+{
+    CMD.CheckFallThunderDamage(chunkIndex, spell3101Buffer, spell.Transform.ValueRO.Position, ...);
+}
+
+// SpellAbilityType.cs  L7:  Laser     = 1004
+//                      L107: LaserBeam = 4014   ← 棱镜核心 / Prism Core</pre>
+</div>
+<p>《雷霆晶石逆向分析.md》在 L210 / L252 / L327 / L388 / L38 五处把 <code>LaserBeam</code> 的 ID 写成 1004，进而得出「激光 1004 被 Job 排除，槽位上的 3101 不会走这套销毁落雷」的错误结论。<strong>实际会落雷</strong>，而且因为激光寿命只有 0.2 秒且必然销毁，这套落雷是 <strong>100% 触发</strong>的（门闩只看 <code>ColorType == Thunder</code>）。</p>
+<div class="box">落雷圈心 = Transform.Position = lineBuffer[0] = <b>折线的远端</b>
+
+  打中敌人      → 折线截断在命中点 → 圈心在被击中的敌人身上
+  打空          → 圈心在射线最远端（默认 15 个单位外）
+  经过折射/反弹 → 圈心在最后一段的终点
+  悬停绊到人    → 圈心在绊中位置
+
+→ 激光其实是雷霆晶石的<b>优质载体</b>：射速快、必定销毁、圈心能靠射线送到远处</div>
+
+<h3>悬停：唯一加时卡 + 一套「激光绊线」</h3>
+<div class="code">
+  <div class="bar"><b>悬停重扫（在 IsInitialize 块外面，每帧跑）</b><span>L652–671</span></div>
+<pre>if (valueRW2.HoverDuration &gt; 0f &amp;&amp; !data.IsLaserHit
+    &amp;&amp; !data.IsHoverHit &amp;&amp; !valueRW.IsFallSpell)      // 四道门
+{
+    data.IsHoverHit = HoverHitCheck(lineBuffer, valueRW2.ShooterType, ref hitEntities, out var hitUnit);
+    foreach (Entity item2 in hitEntities)                // 脆弱物/蝴蝶：吃伤害但不关掉绊线
+        CMD.TryAttackEntity(chunkIndex, in target2, in info, ...);   // CostPenetrate/CostRefraction 全 false
+    if (data.IsHoverHit)
+    {
+        CMD.TryAttackEntity(chunkIndex, in hitUnit.Item1, in info2, ...);
+        data.IsSetLinePos = true;
+        data.totalTime = math.max(valueRW2.DurationTimer + 0.1f, 0.2f);   // 0.1s 后销毁
+    }
+}</pre>
+</div>
+<ul>
+  <li>满足四道门时<strong>每帧沿首帧存下的折线重做射线检测</strong> → 激光变成留在场上的静态绊线</li>
+  <li>绊中时折线被<strong>截断到命中点</strong>（<code>HoverHitCheck</code> L901–915 把前面的点全 <code>RemoveAt(0)</code>），视觉上激光「缩」到敌人身上</li>
+  <li>命中<strong>不消耗任何次数</strong>（<code>CostPenetrate: false</code>、<code>CostRefraction: false</code>）</li>
+  <li>脆弱物 / 敌方蝴蝶<strong>不设 <code>IsHoverHit</code></strong> → 绊线继续挂着，可以一路清掉视线上刷出来的脆弱物</li>
+  <li><strong>坠落被第四道门排除</strong>：<code>[坠落][悬停][激光]</code> 拿不到绊线</li>
+</ul>
+<table>
+  <tr><th>槽位</th><th class="num">打中时存活</th><th class="num">打空时存活 / 绊线时长</th></tr>
+  <tr><td><code>[激光]</code></td><td class="num">0.2 s</td><td class="num">0.2 s</td></tr>
+  <tr><td><code>[悬Lv1(+2)] [激光]</code></td><td class="num">0.2 s</td><td class="num"><b>2.2 s</b></td></tr>
+  <tr><td><code>[悬Lv2(+3)] [激光]</code></td><td class="num">0.2 s</td><td class="num"><b>3.2 s</b></td></tr>
+  <tr><td><code>[悬Lv3(+5)] [激光]</code></td><td class="num">0.2 s</td><td class="num"><b>5.2 s</b></td></tr>
+  <tr><td><code>[悬Lv3]×2 [激光]</code></td><td class="num">0.2 s</td><td class="num"><b>10.2 s</b></td></tr>
+</table>
+
+<h3>加速器 · 射程</h3>
+<table>
+  <tr><th>槽位</th><th class="num">Speed</th><th class="num">射线总长</th><th class="num">曲线单步</th><th class="num">曲线段数</th></tr>
+  <tr><td><code>[激光]</code></td><td class="num">15</td><td class="num"><b>15</b></td><td class="num">0.75</td><td class="num">20</td></tr>
+  <tr><td><code>[加Lv1(+3)] [激光]</code></td><td class="num">18</td><td class="num"><b>18</b></td><td class="num">0.90</td><td class="num">20</td></tr>
+  <tr><td><code>[加Lv2(+6)] [激光]</code></td><td class="num">21</td><td class="num"><b>21</b></td><td class="num">1.05</td><td class="num">20</td></tr>
+  <tr><td><code>[加Lv3(+12)] [激光]</code></td><td class="num">27</td><td class="num"><b>27</b></td><td class="num">1.35</td><td class="num">20</td></tr>
+  <tr><td><code>[加Lv3]×2 [激光]</code></td><td class="num">39</td><td class="num"><b>39</b></td><td class="num">1.95</td><td class="num">20</td></tr>
+</table>
+<p>段数恒为 20 是因为预算与步长同比放大（<code>Speed / (Speed × 0.05) = 20</code>）。副作用：每步最大转角含 <code>Speed</code> 因子，所以<strong>加速器让追踪型激光拐得更急</strong>。</p>
+<p class="note"><b>AI 射程估算比实装多 5：</b><code>SpellGroupAttackDistanceCalculator</code> L255–257 写的是 <code>5f + speed</code> = 20，实装是 15。那个 <code>5f</code> 是 Mono 时代预制体 <code>maxLength</code> 的遗留（Mono：<code>_remainDistance = maxLength + spellCfg.speed</code>），ECS 简化后没同步改估算式。只影响自动施法法杖 / 队友 AI 的开火距离。</p>
+
+<h3>散射：底数为 0，全靠外来项</h3>
+<table>
+  <tr><th>槽位（N = 齐射后同帧法术数）</th><th class="num">θ</th><th class="num">偏角范围</th></tr>
+  <tr><td><code>[激光]</code></td><td class="num">0</td><td class="num"><b>±0°（完全笔直）</b></td></tr>
+  <tr><td><code>[齐Lv1] [激光] [魔法弹] [滚球]</code>，N=3</td><td class="num">20</td><td class="num">±10°</td></tr>
+  <tr><td><code>[齐Lv3] [激光] [魔法弹] [滚球]</code>，N=3</td><td class="num">40</td><td class="num">±20°</td></tr>
+  <tr><td><code>[齐Lv3] [精Lv1] [激光] …</code>，N=3</td><td class="num">10</td><td class="num">±5°</td></tr>
+  <tr><td><code>[齐Lv3] [精Lv2] [激光] …</code>，N=3</td><td class="num">−20 → <b>0</b></td><td class="num"><b>±0°</b></td></tr>
+  <tr><td><code>[超载Lv1] [激光]</code></td><td class="num">60</td><td class="num">±30°</td></tr>
+</table>
+<p>对一条长 15 的细线来说，±20° 在远端就是 ±5 个单位的偏移。<strong>这是精准施法在激光身上唯一有用的场合</strong> —— 抵消齐射带来的散射，恢复笔直。<code>Scatter</code> 在坠落态还有第二个用途：落点随机偏移 <code>Random.NextFloat3Direction() × Scatter × 0.06</code>。</p>
+
+<h2>8. Mono 残留轨对照</h2>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono</th></tr>
+  <tr><td>射线长度</td><td><code>remainMaxDistance = Speed</code></td><td><code>maxLength + spellCfg.speed</code>（预制体字段 + 配置）</td></tr>
+  <tr><td>寿命</td><td><code>0.2 + HoverDuration</code>（硬编码 0.2）</td><td>预制体字段 <code>duration</code></td></tr>
+  <tr><td>穿透→折射</td><td class="bad">相加，<b>穿透不清零</b></td><td class="ok"><code>remainRefractCount += penetrateTime; penetrateTime = 0</code></td></tr>
+  <tr><td>折射半径</td><td>无半径概念，直接 <code>FindReflectionTarget</code></td><td><code>RefractionInfo.radius</code>，Lv2+ 写成 <code>9999f</code></td></tr>
+  <tr><td>悬停起点</td><td>首帧结算完就可用</td><td><code>durationTimer &gt;= duration / 2f</code> 才进</td></tr>
+  <tr><td>悬停重扫</td><td><b>每帧</b></td><td><code>hoverRecheckTargetInterval</code> 定时</td></tr>
+  <tr><td>悬停命中后</td><td>截断折线，0.1s 后销毁</td><td class="warn"><b>顺手做一次折射</b>继续延伸（ECS 无此逻辑）</td></tr>
+  <tr><td>打碎敌方蝴蝶</td><td>走通用伤害（<code>HitType.Butterfly</code>）</td><td>显式调 <code>spell1003Butterfly.Break()</code></td></tr>
+  <tr><td>公转段数</td><td>硬编码 36</td><td>预制体字段 <code>circleCount</code></td></tr>
+  <tr><td>死循环护栏</td><td><code>num2 &gt; 300</code> / <code>for(36)</code></td><td><code>num &gt;= 500</code> + <code>Debug.LogError("死循环 请检查")</code></td></tr>
+</table>
+<p><strong>怪物侧反射特例：</strong><code>Monster17_Hat</code> / <code>Monster17</code> / <code>Monster39_Sword</code> 的 <code>allowRebounceType</code> 都含 <code>Laser</code>，但激光被特殊处理 —— 反射时不是「原方向取反」而是<strong>随机方向 + 从反射者身上重新生成</strong>（L96–120）。原因是 <code>Movement.Direction</code> 在折线生成中被反复改写，末值是最后一段方向，取反没有意义。反射伤害按 <code>Clamp(Damage.Base / 2, 2, 20)</code> 重算。</p>
+
+<h2>9. 与棱镜核心（4014）的差异</h2>
+<table>
+  <tr><th>项</th><th>激光 <code>1004</code></th><th>棱镜核心 / 激光束 <code>4014</code></th></tr>
+  <tr><td><code>useType</code></td><td>0（主动飞弹）</td><td>法杖核心机制符文</td></tr>
+  <tr><td>中文名</td><td>激光</td><td>棱镜核心（Prism Core）</td></tr>
+  <tr><td>伤害模型</td><td>hitscan，一帧结算</td><td>持续 DPS，<code>DPSDamageInterval = 0.08</code></td></tr>
+  <tr><td>长度</td><td><code>Speed</code>（=15）</td><td><code>7 + Speed</code></td></tr>
+  <tr><td><code>float1</code>/<code>float2</code></td><td class="bad"><b>死字段</b></td><td>每秒蓝耗基数 / <code>KeepHittingRate</code> 变化率</td></tr>
+  <tr><td>销毁落雷</td><td class="ok"><b>会触发</b></td><td>被 <code>SpellDestroyEventJob</code> 排除（自己管落雷）</td></tr>
+  <tr><td>多重施法</td><td>不被钳制</td><td><code>ShootSpellUtils</code> L757 强制 <code>count = 1</code></td></tr>
+  <tr><td><code>HaveRefractionCheck</code></td><td><code>RemainCount + Int1 + Penetrate</code></td><td>只读 <code>RemainCount</code></td></tr>
+</table>
+
+<h2>10. 构筑摘要</h2>
+<table>
+  <tr><th>行为</th><th>结果</th></tr>
+  <tr><td>裸放</td><td>一条长 15 的笔直射线，同帧结算，命中 1 个目标后终止；存活 0.2 s</td></tr>
+  <tr><td>升级</td><td>买的是<b>暴击率</b>（0→25→50%）和<b>折射次数</b>（0→1→2），伤害只涨 1.88 倍</td></tr>
+  <tr><td>插穿透</td><td>Lv1 是纯穿透；<b class="warn">Lv2+ 同一份穿透既当折射又当穿透</b>（疑似实装偏差）</td></tr>
+  <tr><td>插加速器</td><td><b>唯一的射程来源</b>；与自动导航乘性耦合；寻踪下白给</td></tr>
+  <tr><td>插时长强化</td><td class="bad"><b>完全无效</b></td></tr>
+  <tr><td>插悬停</td><td>唯一加时卡；打空时变成最长 5.2 s 的<b>绊线</b>，坠落态除外</td></tr>
+  <tr><td>插自动导航</td><td>射线被掰成弧；Lv3 几乎瞬间对准，Lv1 是长弧</td></tr>
+  <tr><td>插公转</td><td>绕自己画一整圈（36 段），无视墙、无视长度预算</td></tr>
+  <tr><td>插坠落</td><td>沿线不再检测单位，伤害全靠落点圆 —— <b class="warn">需要范围增强才有意义</b></td></tr>
+  <tr><td>插范围增强</td><td>非坠落<b class="bad">纯废槽</b>；坠落态是伤害圈与折射圈的唯一来源</td></tr>
+  <tr><td>插精准施法</td><td>散射底数已是 0，<b class="bad">单插等于废槽</b>；只在有齐射/超载散射时用来抵消</td></tr>
+  <tr><td>插齐射</td><td>容量与折扣是正收益，但 <code>int2</code> 让激光失去「笔直」这个卖点</td></tr>
+  <tr><td>插伤害强化</td><td>总收益 = 倍率 × 命中数，和折射/穿透乘起来</td></tr>
+  <tr><td>插分裂</td><td>0.2 s 后从射线尖端炸出 <code>int1</code> 条半长短激光，体感是范围爆发</td></tr>
+  <tr><td>插雷霆晶石</td><td class="ok"><b>会落雷</b>（修正既有文档），圈心在射线远端 / 命中点</td></tr>
+  <tr><td>插寒霜/毒液晶石</td><td>线上每个目标各自结算，<b>没有蝴蝶那种叠同目标的浪费</b></td></tr>
+  <tr><td>多张激光同槽</td><td>射速间隔与 CD 各自累加（−0.05 / −0.1 每张）</td></tr>
+  <tr><td>打敌方蝴蝶/脆弱物</td><td>照常造成伤害，但<b>不消耗折射/穿透、不终止射线</b></td></tr>
+  <tr><td>己方法术/己方阵营</td><td>打不到（<code>HitType</code> 过滤掉 <code>SameCamp</code>/<code>IgnoreSpell</code>）</td></tr>
+</table>
+
+<h2>11. 证据速查</h2>
+<table>
+  <tr><th>结论</th><th>位置</th></tr>
+  <tr><td><code>speed</code> 当长度、<code>Speed=0</code>、<code>totalTime</code></td><td><code>Spell1004LaserJob.cs</code> L198–211</td></tr>
+  <tr><td>Normal 单步吃满预算</td><td><code>Spell1004LaserJob.cs</code> L972–977</td></tr>
+  <tr><td>同帧结算 + 命中压回 0.2s</td><td><code>Spell1004LaserJob.cs</code> L633–651</td></tr>
+  <tr><td>命中类型过滤 / 脆弱物免费</td><td><code>Spell1004LaserJob.cs</code> L704–723、L865–868、L928–933</td></tr>
+  <tr><td>折射次数 / 优先级 / 目标选择</td><td><code>Spell1004LaserJob.cs</code> L1225–1240、L869–893、L1101–1136</td></tr>
+  <tr><td>Lv2+ 才挂折射组件</td><td><code>Spell1004LaserSystem.cs</code> L164–182（查询 L212–216）</td></tr>
+  <tr><td>墙检测与反弹</td><td><code>Spell1004LaserJob.cs</code> L733–748、L817–842</td></tr>
+  <tr><td>悬停绊线 + 折线截断</td><td><code>Spell1004LaserJob.cs</code> L652–671、L898–917</td></tr>
+  <tr><td>坠落落点圆</td><td><code>Spell1004LaserJob.cs</code> L979–1043、L1406–1427</td></tr>
+  <tr><td>公转 36 步 / 自动导航弧 / 寻踪收敛</td><td><code>Spell1004LaserJob.cs</code> L302–321、L1063–1078、L522–530</td></tr>
+  <tr><td>寿命被短路</td><td><code>SpellSystem.cs</code> L275–283、L310</td></tr>
+  <tr><td><b>销毁落雷不排除 1004</b></td><td><code>SpellDestroyEventJob.cs</code> L127–131；<code>SpellAbilityType.cs</code> L7、L107</td></tr>
+  <tr><td>不挂半途传送</td><td><code>SpellShootSystem.cs</code> L246–255</td></tr>
+  <tr><td>穿透 / 悬停时长来源</td><td><code>SpellShootData.cs</code> L383–395、L399–411</td></tr>
+  <tr><td>法杖层射速/CD 累加</td><td><code>Wand.cs</code> L595–596；<code>WandConfig.cs</code> L631–668</td></tr>
+  <tr><td>AI 射程估算 <code>5+speed</code></td><td><code>SpellGroupAttackDistanceCalculator.cs</code> L255–257</td></tr>
+  <tr><td>暴击倍率 = 2</td><td><code>GameConst.cs</code> L227</td></tr>
+  <tr><td>无发射参数后处理</td><td><code>SpellSpawnParamsProcessor.cs</code>（全文无 <code>Laser</code> 条目）</td></tr>
+  <tr><td>Mono 穿透→折射真转换</td><td><code>Spell1004Laser.cs</code> L90–102</td></tr>
+  <tr><td>Mono 悬停顺手折射（ECS 无）</td><td><code>Spell1004Laser.cs</code> L997–1011</td></tr>
+  <tr><td>怪物反射激光特例</td><td><code>Monster17_Hat.cs</code> L96–120；<code>Boss6_Stage2.cs</code> L2043–2049</td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.Laser = 1004</code>；<code>LaserBeam = 4014</code></td></tr>
+</table>
+
+<p class="note"><b>待决：</b>① <b>穿透→折射未扣减是 bug 还是刻意改动？</b>代码事实确定（ECS 只加不清零，与 Mono 及文案两边都不符），性质未定 —— 需实机验证 <code>[穿Lv3][激光Lv3]</code> 命中数是 7 还是 11。这是优先级最高项。② 坠落落点圆半径为 0 的实际后果（Unity Physics 零半径 OverlapSphere 是否仍返回包含该点的碰撞体？坠落是否通过 <code>FallRadius</code> 给出非零底数？），置信度中。③ <code>float1=4</code>/<code>float2=2</code> 是死字段（置信度高），但「曾是长度和寿命」只是推测。④ <code>FindReflectionTarget</code> 的搜索半径未展开，它决定折射「能拐多远」。⑤ <code>RotationFallRefraction</code> L1283–1350 里 <code>while</code> 后紧跟的 <code>for (j &lt; refractRemain)</code> 疑似死代码，未下结论。⑥ 悬停绊线每帧重扫整条折线，公转激光 37 个点 × 10 秒窗口的性能影响未测。⑦ 多重施法 3002 / 超载散射 3003 / 寻踪 3010 / 自我追踪 3114 / 公转 3009 尚无逆向文档，未做逐一校验。</p>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 激光逆向分析.md · 槽位解析见 伤害强化逆向分析.md · 飞弹侧第二篇（第一篇：蝴蝶）</footer>
+</body>
+</html>
