@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>奥爆术 Spell1008 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  .tl{position:relative;margin:14px 0 18px;padding:0}
+  .tl-bar{position:relative;height:34px;background:linear-gradient(90deg,#141c28,#1e2733);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .tl-seg{position:absolute;top:0;bottom:0;border-right:1px dashed var(--line)}
+  .tl-mark{position:absolute;top:0;bottom:0;width:2px;background:var(--accent)}
+  .tl-lab{position:absolute;top:38px;font-size:11px;color:var(--dim);transform:translateX(-50%);white-space:nowrap;font-family:var(--mono)}
+  .tl-wrap{height:70px;margin-bottom:6px}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>奥爆术 · Spell1008</h1>
+  <p>Missile 主动法术 · ID 10081–10083 · 枪口原地瞬爆 · 判定分 R/2 与 R 两段 · 每个敌人只挨一次 · 2/3 级击杀免费连锁</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>在<strong>法杖射击点</strong>原地瞬发一个圆形爆炸（不是鼠标位置，也没有任何飞行段）。判定分两段：生成瞬间先用 <strong>半半径 R/2</strong> 打一次，<code>0.3</code> 秒后再用 <strong>全半径 R</strong> 补一次；命中去重表保证<strong>同一敌人只挨一次伤害</strong>。实体在 <code>0.6</code> 秒后销毁。</p>
+<p>2/3 级（<code>int1=1</code>）带<strong>击杀连锁</strong>：被它打死的单位会在尸体处免费再生成一发同参数奥爆术，<strong>不扣蓝、没有递归深度上限</strong>。</p>
+<ul>
+  <li>ECS 主路径：<code>Spell1008ArcaneExplosionSystem</code> + <code>Spell1008Job</code>（视觉与伤害排程）+ <code>Spell1008TakeDamageJob</code>（执行伤害）</li>
+  <li>坠落形态另走 <code>Spell1008OnGroundJob</code> / <code>Spell1008FallEffectJob</code> / <code>Spell1008FallJob</code></li>
+  <li>击杀连锁不在 1008 文件里，挂在通用的 <code>SpellTakeDamageResultSystem</code> 上</li>
+  <li>Mono <code>Spell1008ArcaneExplosion</code> 为残留轨，只在 <code>float1</code> 一处作为对照出现</li>
+</ul>
+<p class="note">短评文案「施法处瞬间爆发的范围法术」准确但不完整——实际有 0.3 秒的第二段判定。</p>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th>Lv</th><th class="num">damage</th><th class="num">mpCost</th><th class="num">radius</th><th class="num">暴击%</th><th class="num">击退</th><th class="num">float1</th><th class="num">int1</th><th class="num">售价</th></tr>
+  <tr><td>10081</td><td>1</td><td class="num">16</td><td class="num">9</td><td class="num">3.0</td><td class="num">25</td><td class="num">6</td><td class="num">0</td><td class="num bad">0</td><td class="num">9</td></tr>
+  <tr><td>10082</td><td>2</td><td class="num">48</td><td class="num">18</td><td class="num">3.2</td><td class="num">25</td><td class="num">6</td><td class="num warn">0.7</td><td class="num ok">1</td><td class="num">27</td></tr>
+  <tr><td>10083</td><td>3</td><td class="num">144</td><td class="num">36</td><td class="num">3.5</td><td class="num">25</td><td class="num">6</td><td class="num warn">1.0</td><td class="num ok">1</td><td class="num">81</td></tr>
+</table>
+<p>伤害每级 <strong>×3</strong>，蓝耗每级 <strong>×2</strong>，半径几乎是陪跑（总共只涨 1.167 倍）。真正的质变在 Lv1→Lv2：<code>int1</code> 从 0 变 1，解锁击杀连锁。</p>
+<p>配置里 <code>speed</code>、<code>duration</code>、<code>angle</code>、<code>float2/3</code>、<code>int2/3</code> 全为 0，<code>shootCount=1</code>。<strong>25% 的基础暴击率在主动法术里属于高档</strong>（魔法弹、蝴蝶都是 0）。</p>
+
+<h2>3. 关键：两个被硬覆盖的字段</h2>
+<p>这是理解奥爆术全部符文交互的钥匙。<code>SipToSSP</code>（发射包组装）的<strong>最后一步</strong>调用处理器：</p>
+<div class="code">
+  <div class="bar"><span><b>SpellSpawnParamsProcessor.cs</b> L44–48</span><span>处理器</span></div>
+<pre>_processors.Add(SpellAbilityType.ArcaneExplosion, delegate(... ref SpellSpawnParams ssp)
+{
+    ssp.MovementComponentData.Speed = 0f;
+    ssp.ConfigComponentData.Duration = new AttributeValue(0.6f);
+});</pre>
+</div>
+<p>第二行不是「修改 Base」，而是<strong>整个赋值一个新结构体</strong>。而 <code>AttributeValue(float)</code> 的第一句就是 <code>this = default(AttributeValue)</code>：</p>
+<div class="code">
+  <div class="bar"><span><b>AttributeValue.cs</b> L16–27</span><span>构造函数清空全部修正位</span></div>
+<pre>public AttributeValue(float baseValue = 0f)
+{
+    this = default(AttributeValue);   // AddBase / AddRatio / Extra 全部归零
+    Base = baseValue;
+    MulRatio = 1f;
+}
+public readonly float Calculate()
+    => (Base + AddBase) * (1f + AddRatio) * MulRatio + Extra;</pre>
+</div>
+<p>就在 3 行代码之前，<code>SipToSSP</code> 才刚把时长强化的 <code>sip.extraDuration</code>、节能模式的 <code>sip.finalDurationRatio</code> 攒进 <code>Duration</code> 的 <code>AddBase</code> 与 <code>MulRatio</code>（L274–279）——<strong>全部被丢弃</strong>。</p>
+<div class="box"><span class="bad">净效果</span>
+  Duration.Calculate()  ≡ 0.6   任何符文都改不动
+  Speed                 ≡ 0     非坠落形态永远不移动</div>
+<p class="note">唯一的例外是坠落形态：<code>SpellInitialFallData</code> 在 L513 就已经把含加速器加成的速度落袋到 <code>CurrentFallSpeed</code> / <code>OriginalSpellHorizontalSpeed</code>，而处理器在 L517 只归零 <code>Speed</code> 一个字段。这是执行顺序上的巧合，不是专门设计。</p>
+
+<h2>4. 两段判定与去重</h2>
+<div class="code">
+  <div class="bar"><span><b>Spell1008TakeDamageJob.cs</b> L174–190</span><span>半径二选一 + 去重表</span></div>
+<pre>float radius = (current.IsFullRangeDamage ? config.Radius.Calculate()
+                                          : (config.Radius.Calculate() / 2f));
+SpellTools.GetAttackableEntitiesInRange(in hitPosition, in radius, ...,  ref entities);
+NativeArray&lt;Spell1008HitTargetsData&gt; array = SpellHitTargetLookUp[current.EffectEntity].ToNativeArray(Allocator.Temp);
+TakeDamageInfo_Dots.NewInfo(entity, CostPenetrate: false, ...);
+foreach (Entity target in entities)
+    if (array.IndexOf(target) &lt; 0)          // ← 命中去重，全生命周期不清空
+    {
+        CMD.AppendToBuffer(chunkIndex, current.EffectEntity, new Spell1008HitTargetsData { SpellEntity = target });
+        info.SetKnockbackForceIgnoreZBySpell(position - transform.Position);
+        CMD.TryAttackEntity(chunkIndex, in target, in info, ...);
+    }</pre>
+</div>
+<table>
+  <tr><th>段</th><th>时刻</th><th>IsFullRangeDamage</th><th>判定半径</th><th>入队位置</th></tr>
+  <tr><td>第一段</td><td>生成后第 2 帧</td><td><span class="bad">false</span></td><td><strong>R / 2</strong></td><td><code>Spell1008ArcaneExplosionSystem</code> L516</td></tr>
+  <tr><td>第二段</td><td><code>DurationTimer ≥ 0.3</code></td><td><span class="ok">true</span></td><td><strong>R</strong></td><td><code>Spell1008Job</code> L178–187</td></tr>
+</table>
+<div class="box"><span class="ok">最反直觉的一条性质</span>
+  内圈（&lt; R/2）的敌人 → 第一段命中，记入去重表，<span class="warn">第二段直接跳过</span>
+  外环（R/2 ~ R）的敌人 → 第一段够不着，第二段才挨打
+  ────────────────────────────────────────────
+  每个敌人对每一发奥爆术，<span class="ok">有且仅有一次伤害</span>。
+  两段判定不是「打两次」，而是「内圈的人早 0.3 秒挨打」。</div>
+<p>由此推出：<strong>元素层数只挂一层</strong>（与激光、落雷阵那种多段命中的法术有本质区别，堆叠流不适用），<code>isDPS=false</code> 也印证了这点。</p>
+
+<h2>5. 判定始终领先于表现</h2>
+<p>爆炸球的视觉半径曲线（<code>Spell1008Job</code> L157，注意 <code>num6</code> 取的是 <code>DurationTimer</code> 的<strong>原始秒数</strong>而非归一化进度）：</p>
+<div class="box">R_vis(t) = 1.2 · R · (2t − t²)</div>
+<div class="tl-wrap">
+  <div class="tl-bar">
+    <div class="tl-mark" style="left:0%"></div>
+    <div class="tl-mark" style="left:50%"></div>
+    <div class="tl-mark" style="left:100%"></div>
+    <div class="tl-seg" style="left:50%;right:0"></div>
+  </div>
+  <div class="tl-lab" style="left:2%">t=0 · 判定 0.50R · 视觉 ≈0</div>
+  <div class="tl-lab" style="left:50%">t=0.3 · 判定 1.00R · 视觉 0.61R</div>
+  <div class="tl-lab" style="left:93%">t=0.6 · 销毁 · 视觉 1.008R</div>
+</div>
+<table>
+  <tr><th>时刻</th><th class="num">视觉半径</th><th class="num">判定半径</th><th>差距</th></tr>
+  <tr><td>t = 0（第一段）</td><td class="num">≈ 0</td><td class="num ok">0.50 R</td><td>画面上什么都还没有，伤害已结算</td></tr>
+  <tr><td>t = 0.3（第二段）</td><td class="num">0.612 R</td><td class="num ok">1.00 R</td><td>判定领先 63%</td></tr>
+  <tr><td>t = 0.6（终点）</td><td class="num">1.008 R</td><td class="num">—</td><td>视觉刚好追平判定半径</td></tr>
+</table>
+<p><strong>整个生命周期里判定都跑在表现前面。</strong>玩家看到火球边缘刚扩到六成，站在最外沿的敌人就已经结算完了。这是奥爆术手感「比看起来大」的根因。<code>1.2</code> 这个系数显然是照着 <code>0.6</code> 秒寿命调的：<code>1.2 × (1.2 − 0.36) = 1.008</code>。</p>
+<p class="note">被 0.6 秒救下来的隐患：<code>Spell1008Job</code> L155 每帧把 <code>DurationTimer</code> 钳到 <code>[0,1]</code>，而销毁条件是 <code>DurationTimer ≥ Duration.Calculate()</code>。若 <code>Duration</code> 能被抬过 1 秒，计时器将永远追不上寿命，爆炸<strong>永不销毁</strong>。没出事纯粹是因为 <code>Duration</code> 恒为 0.6——两个 bug 互相抵消。</p>
+
+<h2>6. 击杀连锁（int1）</h2>
+<div class="code">
+  <div class="bar"><span><b>SpellTakeDamageResultSystem.cs</b> L281–287</span><span>触发点不在 1008 文件里</span></div>
+<pre>case SpellAbilityType.ArcaneExplosion:
+    if (spell.Config.ValueRO.Int1 != 0 &amp;&amp; info.isTargetDead &amp;&amp; info.isTriggerDeadEvent)
+    {
+        SpellSpawnParams element = SpellSingleton.SpellSpawnParamsStorage[spell.Entity]
+            .BuildArcaneExplosion(TransformLookup.GetRefRO(targetEntity).ValueRO.Position, targetEntity.Index);
+        CMD.AppendToBuffer(chunkIndex, SpellSpawnParamsBufferEntity, element);
+    }
+    break;</pre>
+</div>
+<div class="code">
+  <div class="bar"><span><b>SpellSpawnParamsStorage.cs</b> L235–243</span><span>只改三个字段，其余整包继承</span></div>
+<pre>public SpellSpawnParams BuildArcaneExplosion(float3 spawnPosition, float randomAngle)
+{
+    SpellSpawnParams ssp = Params;
+    ClearTriggerInfoAndSubGroup(ref ssp);   // 只清触发器，不碰任何数值
+    ssp.SpawnPosition = spawnPosition;      // ← 死者所在处
+    ssp.MovementComponentData.AroundAngle = randomAngle;
+    ssp.MovementComponentData.FallTargetPosition = spawnPosition;
+    return ssp;
+}</pre>
+</div>
+<div class="grid">
+  <div class="card right"><h3>完整继承</h3>
+    <ul>
+      <li>Damage（含法杖/符文全部加成）</li>
+      <li>Radius（含范围增强）</li>
+      <li>CriticalChance、元素、配色</li>
+      <li><strong>Int1</strong> → 衍生体自己也能再连锁</li>
+      <li>IsFallSpell → 连锁体也是坠落形态</li>
+    </ul>
+  </div>
+  <div class="card add"><h3>不消耗</h3>
+    <ul>
+      <li><strong>不走 ShootSpellUtils，不扣蓝</strong></li>
+      <li>不占施法次数、不吃冷却</li>
+      <li>没有连锁计数 / 递归深度字段</li>
+      <li>天然收敛靠 <code>isTriggerDeadEvent</code>（过滤尸体）与敌人总量</li>
+    </ul>
+  </div>
+</div>
+<p>三个触发条件缺一不可：<code>Int1 != 0</code>（<strong>1 级没有连锁</strong>）、<code>isTargetDead</code>、<code>isTriggerDeadEvent</code>。在高密度杂兵房里，一发 2/3 级奥爆术可以引发全屏连爆——这是它作为「普通」稀有度却强度偏高的数值根源。</p>
+
+<h3 class="bad">float1 在 ECS 路径上没有实现</h3>
+<p>机制文案 <code>7110082</code> 写着「生成一次 <strong>float1 倍半径</strong> 的奥爆术」，Lv2 的 <code>float1 = 0.7</code>。但 <code>BuildArcaneExplosion</code> 没有任何 Radius / Float1 运算，全部 20 个 <code>Spell1008*.cs</code> 里 <code>Float1</code> 也不出现在任何 gameplay 分支。只有 Mono 残留轨里有：</p>
+<div class="code">
+  <div class="bar"><span><b>Spell1008ArcaneExplosion.cs</b> L209</span><span>Mono 残留轨（玩家路径不经过）</span></div>
+<pre>spellInitialParameter.finalSizeRatio *= base.spellCfg.float1;</pre>
+</div>
+<div class="box"><span class="bad">判定</span>  迁移到 ECS 时漏掉的字段。当前 <span class="warn">2 级奥爆术的连锁爆炸半径与主爆炸等大，不是 0.7 倍</span>。
+Lv3 的 float1 = 1.0 恰好等于「不缩放」，所以 3 级看不出差异——这也是它一直没被发现的原因。
+对玩家而言这是隐藏的<span class="ok">正收益</span>。</div>
+
+<h2>7. 增强符文 × 奥爆术 矩阵</h2>
+<p>对已逆向的 21 张符文逐条核对，另附 5 张已在《落雷阵逆向分析.md》分析过的。</p>
+<table>
+  <tr><th>符文</th><th>abilityType</th><th>奥爆术实际分支</th><th>判定</th></tr>
+  <tr><td>时长强化</td><td>3103</td><td><code>new AttributeValue(0.6f)</code> 整体覆盖，修正位被清空</td><td class="bad">空转</td></tr>
+  <tr><td>加速器</td><td>3106</td><td>非坠落归零；坠落态经 <code>SpellInitialFallData</code> 提前落袋</td><td class="warn">分形态</td></tr>
+  <tr><td>齐射</td><td>3001</td><td>多发<strong>同点完全重叠</strong>，散射对 Speed=0 无意义</td><td class="ok">强生效</td></tr>
+  <tr><td>多重施法</td><td>3002</td><td><code>CalculateMultiShootEffectPosition</code> 横向铺开，不重叠</td><td class="ok">生效（铺开）</td></tr>
+  <tr><td>范围增强</td><td>3107</td><td>同时放大 R/2 与 R 两段判定</td><td class="ok">强生效</td></tr>
+  <tr><td>穿透</td><td>3006</td><td><code>NewInfo(..., CostPenetrate: false, ...)</code> 显式拒绝</td><td class="bad">空转</td></tr>
+  <tr><td>折射</td><td>3121</td><td>仅坠落形态调用；非坠落只剩伤害惩罚</td><td class="bad">分形态（负收益）</td></tr>
+  <tr><td>悬停</td><td>3008</td><td>生效，但去重表不清 → 只打新进场目标</td><td class="warn">生效（受限）</td></tr>
+  <tr><td>坠落</td><td>3119</td><td>整条路径切换，半径吃 <code>FallRadius</code> 加成</td><td class="warn">质变</td></tr>
+  <tr><td>分裂</td><td>3013</td><td>0.6s 必定销毁 → 必定分裂；子弹 Speed×0.5=0 同点叠加</td><td class="ok">生效</td></tr>
+  <tr><td>精准施法</td><td>3105</td><td>散射半边对 angle=0 无意义；暴击半边正常叠加</td><td class="warn">半生效</td></tr>
+  <tr><td>伤害强化</td><td>3102</td><td>处理器不碰 Damage</td><td class="ok">生效</td></tr>
+  <tr><td>节能模式</td><td>3104</td><td>伤害与蓝耗折扣生效；<strong>时长折扣被抹掉</strong></td><td class="warn">半生效</td></tr>
+  <tr><td>反弹</td><td>3012</td><td>Speed=0 永不撞墙；加时长也被 Duration 覆盖抹掉</td><td class="bad">空转</td></tr>
+  <tr><td>自动导航</td><td>3011</td><td>运动类型改了，但 Speed=0 使一切位移为零</td><td class="bad">空转</td></tr>
+  <tr><td>公转 / 寻踪</td><td>3009 / 3010</td><td>同上；公转的 extraDuration 走 Duration.Extra，也被抹</td><td class="bad">空转</td></tr>
+  <tr><td>寒霜 / 毒液 / 粘液晶石</td><td>3014 / 3005 / 3004</td><td>随 <code>NewInfo</code> 带入元素组件；<strong>但只挂一层</strong></td><td class="ok">生效</td></tr>
+  <tr><td>雷霆晶石</td><td>3101</td><td>0.6s 必定销毁，落雷条件必然满足</td><td class="ok">生效（置信中）</td></tr>
+  <tr><td>闪电链</td><td>3007</td><td><code>SpellShootSystem</code> L606 排除列表不含 ArcaneExplosion</td><td class="ok">生效（受寿命限制）</td></tr>
+  <tr><td>强制冷却 / 储魔之匣 / 蓄力模式</td><td>4006 / 4002 / 4004</td><td>法杖层，不进发射包</td><td class="ok">生效</td></tr>
+  <tr><td>奥术屏障</td><td>4012</td><td>独立主动法术，无共享路径</td><td class="dim">无交互</td></tr>
+</table>
+
+<h3>齐射 vs 多重施法：一个叠伤，一个铺开</h3>
+<p>两者机制看起来相似，结果完全相反。<strong>齐射</strong>抬 <code>shootCount</code>，而发射包组装的双重循环里所有 <code>InShootCountIndex</code> 共享同一个 <code>CreatePosition</code>：</p>
+<div class="code">
+  <div class="bar"><span><b>ShootSpellUtils.cs</b> L782–795</span><span>齐射：位置不变</span></div>
+<pre>for (int inShootCountIndex = 0; inShootCountIndex &lt; config.shootCount; inShootCountIndex++)
+    for (int inMultiShootIndex = 0; inMultiShootIndex &lt; multiShootCount; inMultiShootIndex++)
+        yield return new SpellShootInfo { ..., CreatePosition = position, ... };</pre>
+</div>
+<p>齐射的散射只作用于 <code>Direction</code>，而 <code>Speed = 0</code> 让方向完全失效 → <strong>N 发精确重叠在同一点</strong>。每发有独立的 <code>SpellEffectEntity</code>，也就有独立的去重表，各自完整结算一次。</p>
+<div class="code">
+  <div class="bar"><span><b>ShootSpellUtils.cs</b> L684–692</span><span>多重施法：横向平移</span></div>
+<pre>Vector3 dir = Tool2D.GetDir(lookDirection, 90f);   // 朝向的垂直方向
+float num = (e.MultiShootCount - 1) * e.MultiShootGap * -0.5f
+          + e.MultiShootGap * e.InMultiShootIndex;
+return e.CreatePosition + num * dir;</pre>
+</div>
+<div class="grid">
+  <div class="card right"><h3>齐射 = 无代价 ×N</h3>
+    <ul>
+      <li>N 发完全重叠于一点</li>
+      <li>对单个敌人也是 N 倍伤害</li>
+      <li>覆盖面积不变</li>
+      <li>散射惩罚在此完全不存在</li>
+      <li>蓝耗次线性（Pow 折扣）→ 收益超线性</li>
+      <li><strong>奥爆术的第一优先级符文</strong></li>
+    </ul>
+  </div>
+  <div class="card mul"><h3>多重施法 = 横向铺开</h3>
+    <ul>
+      <li>N 发以 gap 为间距并列排开</li>
+      <li>对单个敌人只有 1 倍（除非站在重叠区）</li>
+      <li>覆盖面积近似 N 倍</li>
+      <li>适合清成排杂兵</li>
+    </ul>
+  </div>
+</div>
+
+<h3>为什么一整类符文对它空转</h3>
+<div class="grid3">
+  <div class="card wrong"><h3>依赖位移的</h3>
+    <ul><li>反弹（不撞墙）</li><li>自动导航 / 公转 / 寻踪</li><li>加速器（非坠落）</li><li>根因：<code>Speed ≡ 0</code></li></ul>
+  </div>
+  <div class="card wrong"><h3>依赖寿命的</h3>
+    <ul><li>时长强化（100% 废槽）</li><li>节能模式的时长档</li><li>公转的 extraDuration</li><li>根因：<code>Duration ≡ 0.6</code></li></ul>
+  </div>
+  <div class="card wrong"><h3>依赖碰撞的</h3>
+    <ul><li>穿透（<code>CostPenetrate: false</code>）</li><li>折射（非坠落无法触发，<strong>只剩伤害惩罚 = 负收益</strong>）</li><li>根因：伤害走范围查询而非碰撞体</li></ul>
+  </div>
+</div>
+
+<h3>悬停：只吃新进场的敌人</h3>
+<p><code>HoverDuration</code> 是<strong>唯一能改变奥爆术时序的外部输入</strong>（处理器只覆盖 <code>Duration</code>，不碰它）。悬停期每 0.4 秒重新入队一次全半径伤害，但<strong>去重表同样不清空</strong>。</p>
+<div class="box">实际语义：把一次性爆炸变成持续 HoverDuration 秒的<span class="ok">滞留门禁区域</span>。
+  · 打站桩目标 → <span class="bad">零收益</span>（已挨过一次，之后永远跳过）
+  · 守路口 / 卡门 / 持续刷怪 → 收益显著，每 0.4s 收一次新进场的敌人</div>
+<p>视觉上悬停期间缩放块被整体跳过，爆炸球<strong>冻结</strong>在 <code>t=0.45</code> 对应的 0.837R 尺寸，直到悬停剩余不足 0.15 秒才补完动画并淡出。</p>
+
+<h2>8. 坠落形态</h2>
+<div class="code">
+  <div class="bar"><span><b>Spell1008ArcaneExplosionSystem.cs</b> L541–544</span><span>坠落参数改写</span></div>
+<pre>movement.OriginalSpellHorizontalSpeed += 8f;          // 在含加速器加成的值上再加
+movement.Gravity = 20f;
+movement.CurrentFallSpeed = OriginalSpellHorizontalSpeed * (IsSplitSpell ? -1 : 1);
+movement.Speed = CurrentFallSpeed / math.tan(1.3089969f) * (IsSplitSpell ? -1 : 1);
+//                                          ↑ 1.3089969 rad = 75°，tan ≈ 3.732</pre>
+</div>
+<p>抛射角固定 <strong>75°</strong>，水平分量约为垂直分量的 26.8%——一条又高又陡的抛物线。这里<strong>重新给 <code>Speed</code> 赋值</strong>，绕过了处理器的归零，这就是坠落形态能动起来的原因。</p>
+<ul>
+  <li><strong>落地先判折射，后爆炸</strong>：<code>Spell1008OnGroundJob</code> 的范围查询<em>不造成伤害</em>，只喂给 <code>TryRefractOrReboundWhenFall</code> 判定。参数 <code>hitUnitInThisDamage</code> 是<strong>硬编码的 true</strong>——落点周围一个敌人都没有，折射也照常消耗并弹起。</li>
+  <li><strong>地面爆炸是独立实体</strong>：实例化 <code>1008_Explosion_{颜色}</code> 预制体并挂 <code>Spell1008FallData</code>，跑和非坠落一模一样的 R/2 → R 两段曲线，但 <code>0.6f</code> / <code>0.3f</code> 在这里是<em>写死的字面量</em>，不再读 <code>Duration</code>。</li>
+  <li><strong>每个落点有独立去重表</strong>（<code>EffectEntity</code> 是地面爆炸实体自己）→ 同一个敌人会被多个落点分别命中。这是「折射 × 坠落 × 奥爆术」能打出多段伤害的机制根源。</li>
+  <li><strong>销毁握手</strong>：<code>Spell1008FallJob</code> 等所有地面爆炸 <code>FinishDamageApply</code> 后才置 <code>SpellDestroyTag</code>，避免伤害 buffer 丢失。</li>
+</ul>
+<p class="note">坠落符文还有个容易忽略的数值加成：<code>sip.fallExplosionRadius</code> 以<strong>加法</strong>形式进入 <code>(Base + FallRadius) × (1 + AddRatio)</code>，先加后乘，所以「坠落 + 范围增强」是乘法叠加，一起配收益超过各自单配之和。</p>
+
+<h2>9. 数值算例</h2>
+<p>含 25% 基础暴击（暴击 ×2），单发期望 = <code>damage × 1.25</code>：</p>
+<table>
+  <tr><th>Lv</th><th class="num">基础伤害</th><th class="num">期望伤害</th><th class="num">蓝耗</th><th class="num">单目标效率</th></tr>
+  <tr><td>1</td><td class="num">16</td><td class="num">20.0</td><td class="num">9</td><td class="num">2.22 /蓝</td></tr>
+  <tr><td>2</td><td class="num">48</td><td class="num">60.0</td><td class="num">18</td><td class="num">3.33 /蓝</td></tr>
+  <tr><td>3</td><td class="num">144</td><td class="num">180.0</td><td class="num">36</td><td class="num">5.00 /蓝</td></tr>
+</table>
+<p>圈内 <code>n</code> 人时（每人一次）Lv3 效率 = <code>180n / 36 = 5n</code> 伤害/蓝：</p>
+<table>
+  <tr><th class="num">圈内人数</th><th class="num">1</th><th class="num">3</th><th class="num">5</th><th class="num">8</th></tr>
+  <tr><td>Lv3 总伤害</td><td class="num">180</td><td class="num">540</td><td class="num">900</td><td class="num">1440</td></tr>
+  <tr><td>伤害 / 蓝</td><td class="num">5.0</td><td class="num">15.0</td><td class="num">25.0</td><td class="num">40.0</td></tr>
+</table>
+<p>作为对照，蝴蝶 Lv3 整发 170 伤害 / 15 蓝 = 11.3 伤害/蓝（且需全部命中）。<strong>奥爆术在 3 人以上就全面超过它。</strong>加上不扣蓝的击杀连锁，实际效率还要再翻。</p>
+<div class="box">击杀连锁的一阶估算（设一发打死 k 人，每具尸体周围平均还有 m 人）：
+  总伤害 ≥ 180·(n + k·m)，蓝耗仍是 36  →  效率 = 5·(n + k·m)
+  且连锁可以递归，实际会远超这个一阶值。</div>
+
+<h2>10. 构筑摘要</h2>
+<div class="grid">
+  <div class="card right"><h3>强搭配（按优先级）</h3>
+    <ul>
+      <li><strong>齐射 3001</strong> — 无代价伤害 ×N，完全重叠</li>
+      <li><strong>范围增强 3107</strong> — 面积按平方增长，同时放大两段判定；单张符文的半径增幅很可能超过两级升级的总和</li>
+      <li><strong>伤害强化 3102</strong> — 被击杀连锁完整继承</li>
+      <li><strong>精准施法 3105</strong> — 只吃暴击那一半，但基数是 25% 高起点</li>
+      <li><strong>多重施法 3002</strong> — 横向铺开，清成排杂兵</li>
+    </ul>
+  </div>
+  <div class="card wrong"><h3>废槽位 / 负收益</h3>
+    <ul>
+      <li><strong>穿透 3006</strong> — 连数字都不动</li>
+      <li><strong>时长强化 3103</strong> — 100% 无收益</li>
+      <li><strong>反弹 / 自动导航 / 公转 / 寻踪</strong> — 全依赖位移</li>
+      <li><strong>折射 3121</strong> — 非坠落形态<span class="bad">纯负收益</span>（只剩伤害惩罚）</li>
+    </ul>
+  </div>
+</div>
+<div class="box"><span class="warn">反直觉点速记</span>
+  · 每个敌人对每发奥爆术<span class="ok">只挨一次</span>伤害 → 元素只挂一层，堆叠流不适用
+  · 悬停对已命中目标<span class="bad">零收益</span>，只拦新进场的敌人
+  · <span class="bad">1 级没有击杀连锁</span>（int1=0），1→2 级是质变不是量变
+  · 2 级连锁半径<span class="ok">没有</span>按文案缩到 0.7 倍，实际与主爆炸等大
+  · 爆炸中心固定在<span class="warn">法杖枪口</span>，不是鼠标 → 只能贴脸炸，没有射程</div>
+
+<h2>11. 待决项</h2>
+<ul>
+  <li><strong>float1 未实现</strong>：静态证据充分，缺实机验证。方法——2 级炸死杂兵，对比连锁与主爆炸的特效直径。</li>
+  <li><strong>分裂子弹落点</strong>：<code>ToSplit</code> 不改 <code>SpawnPosition</code>，但未追到 <code>SpellSplitSystem</code> 是否有后续位置改写。「完全重叠」置信度中。</li>
+  <li><strong>雷霆晶石</strong>：依据「必定销毁」推断，未逐行确认落雷触发点与零速度法术上的 <code>ThunderHitRadius</code> 取值。</li>
+  <li><strong>闪电链</strong>：链建在相邻两发实体之间，而奥爆术寿命仅 0.6 秒。射速低于 1.67 发/秒时前一发已销毁，链大概率建不起来。未实测。</li>
+  <li><strong>同帧双命中竞态</strong>：ECB 延迟回放导致去重失效，正常时序不可达，未做压力验证。</li>
+  <li><strong>Mono 残留轨</strong>：按约定未展开完整对照，仅引用了 <code>float1</code> 一行。</li>
+</ul>
+
+<h2>12. 需回写的既有文档</h2>
+<table>
+  <tr><th>目标</th><th>内容</th><th>状态</th></tr>
+  <tr><td>《法术数值总表.md》L54–56</td><td>「速度」「持续」两列空白会被误读为「无此属性」，实际是运行时硬覆盖；float1 标注 ECS 未实现；int1 标注语义</td><td class="ok">已回写</td></tr>
+  <tr><td>《魔法工艺法术系统逆向报告.md》4.1</td><td>多态语义表补 ArcaneExplosion 一行——它是「配置有值但 ECS 不读」的典型案例</td><td class="ok">已回写</td></tr>
+  <tr><td>《时长强化》/《节能模式》</td><td>补例外：ArcaneExplosion 与 RedRune 的 Duration 被处理器整体替换</td><td class="dim">建议</td></tr>
+  <tr><td>《折射》/《加速器》</td><td>补形态说明：折射非坠落无法触发；加速器仅坠落形态生效（执行顺序所致）</td><td class="dim">建议</td></tr>
+</table>
+
+</main>
+<footer>奥爆术 Spell1008 逆向分析 · 完整正文见《奥爆术逆向分析.md》 · 数值来源 SpellConfig.json / 反编译 Assembly-CSharp</footer>
+</body>
+</html>
