@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>黑洞 Spell1007 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>黑洞 · Spell1007</h1>
+  <p>Missile 主动法术 · ID 10071–10073 · isDPS 驻场圈 · 每 0.25s 圈伤 + 向圆心拉人 · Lv2/3 胀圈</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>一颗 <code>1.2 m/s</code> 的慢速圈。每 <strong>0.25 秒</strong>对 <code>Radius.Calculate()</code> 内全部可攻击目标打一刀（单次 = 表伤 × 0.25），并按 <code>float2 × 0.25</code> 把<strong>玩家阵营</strong>打中的单位拉向圆心。Lv1 不胀圈；Lv2/3 按 <code>float1/2</code> m/s 胀大底数。</p>
+<p>文案：机制栏 Lv1 为空，Lv2「缓慢增长」、Lv3「增长」。风味「吸引 + 伤害 + 升级提升体积」三句都能在代码里落地。</p>
+<ul>
+  <li>ECS 主路径：<code>Spell1007Job</code>（胀圈 / DPS）+ <code>SpellTakeDamageResultSystem</code>（牵引）+ 通用 <code>Normal_Common</code>（位移）</li>
+  <li>Mono <code>Spell1007BlackHole</code> 为残留轨。它的拉力抄的是 <code>knockback=0</code>，<strong>整段是死的</strong></li>
+  <li><code>float3=25</code> 是死字段；旧工具把 <code>float2</code> 也标成未读，<strong>过期</strong></li>
+  <li><code>CalculateSpellComplexity</code> 记 4 分；自动填槽推荐当后槽触发器扔</li>
+</ul>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">每秒伤</th><th class="num">单 tick</th><th class="num">5s 单目标</th><th class="num">蓝</th><th class="num">伤/蓝</th><th class="num">float1</th><th class="num">float2</th><th class="num">售价</th></tr>
+  <tr><td>10071</td><td class="num">1</td><td class="num"><b>22</b></td><td class="num">5.5</td><td class="num"><b>110</b></td><td class="num">27</td><td class="num">4.07</td><td class="num">0</td><td class="num">25</td><td class="num">14</td></tr>
+  <tr><td>10072</td><td class="num">2</td><td class="num"><b>56</b></td><td class="num">14</td><td class="num"><b>280</b></td><td class="num">36</td><td class="num">7.78</td><td class="num">0.4</td><td class="num">30</td><td class="num">42</td></tr>
+  <tr><td>10073</td><td class="num">3</td><td class="num"><b>140</b></td><td class="num">35</td><td class="num"><b>700</b></td><td class="num">54</td><td class="num">13.0</td><td class="num">0.8</td><td class="num">40</td><td class="num">126</td></tr>
+</table>
+<ul>
+  <li>三级共用 <code>prefab="10071"</code>；<code>speed=1.2</code>、<code>duration=5</code>、<code>radius=2.25</code>、<code>isDPS=true</code>、<code>interval=0.25</code>、<code>knockback=0</code>、<code>recoil=1.2</code>、<code>CD+0.1s</code></li>
+  <li>表 <code>damage</code> 是<strong>每秒伤</strong>。单 tick = <code>Calculate() × 0.25</code>。满 5 s ≈ 20 次</li>
+  <li>多目标<strong>不封顶</strong>——和落雷阵 <code>int1</code> 上限是本质差别</li>
+  <li>稀有，售价 14 / 42 / 126</li>
+</ul>
+
+<div class="box">float1 = 0 / 0.4 / 0.8    胀圈     Base += float1/2 · dt · TimeScale
+float2 = 25 / 30 / 40     拉力     TakeKnockback(向圆心 × float2 × 0.25)
+float3 = 25               死字段   专属路径零引用
+radius = 2.25             底数     伤害圈 / 特效 / 落地圈都读 Calculate()
+knockback = 0             空链     NewInfo 那条击退乘完仍是 0
+
+· Lv1 不胀，和机制栏空白一致
+· 牵引只在成功出伤的 tick 上拉，不是每帧场
+· 只认玩家阵营施法者</div>
+
+<h2>3. 核心机制：胀圈 → 圈伤 → 牵引</h2>
+<div class="code">
+  <div class="bar"><b>Spell1007Job.Execute</b><span>L173–239 · 每渲染帧 1 次</span></div>
+<pre>config.DamageTimer += DeltaTime;
+float num = config.Float1 * DeltaTime / 2f * TimeScale;
+config.Radius.Base += num;                    // 坠落也胀
+if (movement.IsFallSpell) return;             // ← 关掉 DPS / 拖尾
+
+if (config.DamageTimer &lt; config.DamageInterval) return;
+GetAttackableEntitiesInRange(..., Radius.Calculate(), containsBrittleness: true);
+NewInfo(..., CostPenetrate: false);           // 伤 = damage × 0.25
+// 每个目标 TryAttackEntity
+config.DamageTimer -= config.DamageInterval;</pre>
+</div>
+
+<div class="code">
+  <div class="bar"><b>SpellTakeDamageResultSystem.OnMakeDamage</b><span>L274–279</span></div>
+<pre>case SpellAbilityType.BlackHole:
+    if (DTool.IsSameCamp(ShooterType, UnitType.Player))
+    {
+        float3 dir = DTool.IgnoreZDir(spell.Position, hitPosition);  // 指向圆心
+        unit.TakeKnockback(dir * Float2 * DamageInterval);
+    }</pre>
+</div>
+
+<div class="grid">
+  <div class="card right">
+    <h3>Job 不设生命周期门</h3>
+    <ul>
+      <li>不读 <code>DurationTimer</code> / <code>HoverTimer</code></li>
+      <li>实体还在，DPS / 拉 / 胀就转</li>
+      <li>悬停期继续满速输出（已核验）</li>
+      <li><code>CostPenetrate=false</code>，打不完自己</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>不是这样</h3>
+    <ul>
+      <li>不是每帧连续引力场</li>
+      <li>不是配置 <code>knockback</code>（那条是 0）</li>
+      <li>不是落地变成地面光环</li>
+      <li>己方蝴蝶不会被自己的圈打碎</li>
+    </ul>
+  </div>
+</div>
+
+<h3>胀圈</h3>
+<table>
+  <tr><th>槽位</th><th class="num">t=0</th><th class="num">胀速（底）</th><th class="num">t=5 最终</th></tr>
+  <tr><td><code>[黑洞Lv1]</code></td><td class="num">2.25</td><td class="num">0</td><td class="num"><b>2.25</b></td></tr>
+  <tr><td><code>[黑洞Lv2]</code></td><td class="num">2.25</td><td class="num">0.20 m/s</td><td class="num"><b>3.25</b></td></tr>
+  <tr><td><code>[黑洞Lv3]</code></td><td class="num">2.25</td><td class="num">0.40 m/s</td><td class="num"><b>4.25</b></td></tr>
+  <tr><td><code>[范Lv1] [黑洞Lv3]</code></td><td class="num">2.925</td><td class="num">0.40（再乘 1.3）</td><td class="num"><b>5.525</b></td></tr>
+</table>
+<p class="note">Lv3 满寿面积 15.9 → 56.7（3.56 倍）。范围增强同时放大「出生圈」和「之后胀出来的每一米」。</p>
+
+<h3>System 执行顺序</h3>
+<table>
+  <tr><th>System</th><th>所属组</th><th>频率</th></tr>
+  <tr><td><code>SpellMoveSystem</code>（通用位移）</td><td><code>SpellPhysicsSystemGroup</code> ⊂ FixedStep</td><td>固定步长</td></tr>
+  <tr><td><code>Spell1007BlackHoleSystem</code>（胀圈 / DPS / 落地）</td><td><code>SpacialSpellSystemGroup</code> ⊂ SpellSimulation</td><td>每渲染帧 1 次</td></tr>
+  <tr><td><code>SpellTakeDamageResultSystem</code>（牵引）</td><td><code>UnitTakeDamageGroup</code></td><td>每渲染帧 1 次</td></tr>
+</table>
+<p class="note">一帧内：物理位移 → 胀圈 / DPS → 伤害结果里的牵引。</p>
+
+<h2>4. 弹道：没有专属位移</h2>
+<table>
+  <tr><th>运动类型</th><th>由谁写入</th><th>黑洞走哪个函数</th></tr>
+  <tr><td><code>Normal</code></td><td>—</td><td><code>Normal_Common</code></td></tr>
+  <tr><td><code>ChaseMouse</code></td><td>寻踪 3010</td><td><code>Normal_Mouse</code></td></tr>
+  <tr><td><code>Rotation</code></td><td>公转 3009</td><td><code>Normal_Rotation</code></td></tr>
+  <tr><td><code>ChaseEnemy</code></td><td>自动导航 3011</td><td class="warn"><b>Normal_ChaseTarget</b>（无 case）</td></tr>
+  <tr><td><code>ChaseOwner</code></td><td>自我追踪 3114</td><td>同上</td></tr>
+</table>
+<p>和蝴蝶相反：蝴蝶插导航是把更好的专属转向换掉；黑洞本来就没有追踪，导航是纯增量。但 <code>Speed=1.2</code> 的路程型转向约 14 °/s（导 Lv1），肉眼几乎看不出来。</p>
+
+<h2>5. 坠落：×6 不是主要影响</h2>
+<div class="code">
+  <div class="bar"><b>SpellSpawnParamsProcessor</b><span>L33–40</span></div>
+<pre>if (ssp.MovementComponentData.IsFallSpell)
+{
+    Speed *= 6f;  CurrentFallSpeed *= 6f;  OriginalSpellHorizontalSpeed *= 6f;
+}</pre>
+</div>
+<ul>
+  <li>水平 <code>1.2 × 6 = 7.2</code>，几乎是砸下去</li>
+  <li><code>Spell1007Job</code> 遇 <code>IsFallSpell</code> 提前 return → <b>途中不 DPS、不牵引</b>，圈还在胀</li>
+  <li>落地走同一个 <code>NewInfo</code>，<b>仍 ×0.25</b>，不是满额（Mono 才是满额）</li>
+  <li>落地即销毁，不会变成地面光环</li>
+</ul>
+<p class="note">「坠落 + 黑洞」= 放弃这张卡几乎全部的持续输出。玩家看到的是「不吸人了、砸一下就没」。</p>
+
+<h2>6. 增强符文 × 黑洞（21 张）</h2>
+<table>
+  <tr><th>符文</th><th>type</th><th>黑洞实际分支</th><th>判定</th></tr>
+  <tr><td>自动导航</td><td>3011</td><td>补上追敌，但 1.2 m/s 几乎转不动</td><td class="warn"><b>需回写</b></td></tr>
+  <tr><td>坠落</td><td>3119</td><td>×6 成立；另关掉 DPS / 牵引，落地仍 ×0.25</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>悬停</td><td>3008</td><td>Job 不读 HoverTimer，第二段满速输出</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>范围增强</td><td>3107</td><td>伤害圈 / 特效读 Calculate()，不是本体 Scale</td><td class="warn">需回写</td></tr>
+  <tr><td>加速器</td><td>3106</td><td>1.2+12=13.2，驻场圈被送走</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>精准施法</td><td>3105</td><td>散射空转；每 tick 独立掷骰</td><td class="warn">需回写</td></tr>
+  <tr><td>毒液晶石</td><td>3005</td><td>单目标 20×int2 层；拉力帮留圈</td><td class="warn">需回写</td></tr>
+  <tr><td>时长强化</td><td>3103</td><td>每多 1 秒 +4 tick；Lv2/3 还多胀</td><td class="ok">一致</td></tr>
+  <tr><td>反弹</td><td>3012</td><td>墙弹加时 = 多 tick</td><td class="ok">一致</td></tr>
+  <tr><td>齐射</td><td>3001</td><td>多颗独立圈；int2 让它们不再重叠</td><td class="ok">一致</td></tr>
+  <tr><td>伤害强化</td><td>3102</td><td>每 tick、每个目标都吃 AddRatio</td><td class="ok">一致</td></tr>
+  <tr><td>节能模式</td><td>3104</td><td>伤和时长一起 MulRatio，少活就少 tick</td><td class="ok">一致</td></tr>
+  <tr><td>分裂</td><td>3013</td><td>复印发射快照，不复印已胀的圈</td><td class="ok">一致</td></tr>
+  <tr><td>寒霜晶石</td><td>3014</td><td>每个目标只有第一 tick 冻结过门</td><td class="ok">一致</td></tr>
+  <tr><td>粘液晶石</td><td>3004</td><td>减的是被命中单位</td><td class="ok">一致</td></tr>
+  <tr><td>雷霆晶石</td><td>3101</td><td>销毁落雷</td><td class="ok">一致</td></tr>
+  <tr><td>闪电链</td><td>3007</td><td>每个 tick 的每个目标都是链源</td><td class="ok">一致</td></tr>
+  <tr><td>奥术屏障 / 蓄力 / 强制冷却 / 储魔</td><td>—</td><td>法杖层或盾不飞</td><td class="ok">一致</td></tr>
+</table>
+
+<h3>6.1 加速器 / 悬停 —— 一对反例</h3>
+<table>
+  <tr><th>槽位</th><th class="num">Speed</th><th class="num">5s 位移</th></tr>
+  <tr><td><code>[黑洞]</code></td><td class="num">1.2</td><td class="num">6 m</td></tr>
+  <tr><td><code>[加Lv3] [黑洞]</code></td><td class="num">13.2</td><td class="num bad">66 m</td></tr>
+  <tr><td><code>[悬停Lv3] [黑洞Lv1]</code></td><td class="num">1.2 → 0</td><td class="num">6 m 后原地再打 5 s（40 tick / 220 伤）</td></tr>
+</table>
+<p>加速器和落雷阵是同一类负收益：驻场圈被送出交战区。缓解也一样——配悬停「推到位再停」。悬停是这张卡最干净的增幅之一。</p>
+
+<h3>6.2 毒液 —— 和落雷阵并列的 tick 载体</h3>
+<table>
+  <tr><th>载体</th><th class="num">单目标命中次数</th><th class="num">毒 Lv3 层数</th></tr>
+  <tr><td>普通单发弹</td><td class="num">1</td><td class="num">4</td></tr>
+  <tr><td>蝴蝶 Lv3（5 只全中）</td><td class="num">5</td><td class="num">20</td></tr>
+  <tr><td>落雷阵 5 s</td><td class="num">20（钳 int1 人数）</td><td class="num">80</td></tr>
+  <tr><td class="ok"><b>黑洞 5 s</b></td><td class="num">20（人数不封顶）</td><td class="num"><b>80</b></td></tr>
+</table>
+<p>单目标叠层两者持平；多目标和会走的敌人上，黑洞的拉力和无上限更占便宜。</p>
+
+<h2>7. Mono 残留轨：拉力是死的</h2>
+<div class="code">
+  <div class="bar"><b>Spell1007BlackHole.InitializeCallback</b><span>L46–48</span></div>
+<pre>pullForce = base.spellCfg.knockback;   // 表值 0
+base.spellCfg.knockback = 0f;</pre>
+</div>
+<table>
+  <tr><th>项</th><th>ECS</th><th>Mono</th></tr>
+  <tr><td>拉力来源</td><td class="ok"><code>float2 × interval</code></td><td class="bad"><code>knockback=0</code>，整段空转</td></tr>
+  <tr><td>拉力时机</td><td>伤害 tick 上、被打中的单位</td><td>每帧、圈内所有 CanTouch（即便活着也是 ×0）</td></tr>
+  <tr><td>坠落落地伤</td><td>仍 ×0.25</td><td class="warn">满额 <code>damage</code></td></tr>
+  <tr><td>非坠落 tick</td><td>浮点 ×0.25</td><td><code>Ceil(damage × 0.25)</code></td></tr>
+</table>
+
+<h2>8. 构筑速查</h2>
+<div class="grid3">
+  <div class="card add">
+    <h3>正收益</h3>
+    <ul>
+      <li>悬停（第二段满速）</li>
+      <li>时长强化（+tick，Lv2/3 还多胀）</li>
+      <li>伤害强化 / 精准暴击</li>
+      <li>毒液晶石（20×int2，还拉人）</li>
+      <li>范围增强（出生圈 + 膨胀段）</li>
+      <li>分裂（结束再铺一圈小黑洞）</li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>要权衡</h3>
+    <ul>
+      <li>齐射（多圈，但 int2 打散）</li>
+      <li>自动导航（有追踪，但转不动）</li>
+      <li>聚爆（Lv1 只缩不转伤）</li>
+      <li>寒霜（只有第一 tick 过门）</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>负收益</h3>
+    <ul>
+      <li><b>坠落</b>：关掉 DPS + 牵引</li>
+      <li><b>加速器</b>：驻场圈飞走</li>
+    </ul>
+  </div>
+</div>
+
+<h2>9. 关键文件与待决</h2>
+<table>
+  <tr><td>胀圈 + DPS + 坠落短路</td><td><code>Spell1007Job.cs</code> L173–239</td></tr>
+  <tr><td>状态组件 / 烘焙</td><td><code>Spell1007BlackHoleData.cs</code>；Authoring L11–15</td></tr>
+  <tr><td>牵引</td><td><code>SpellTakeDamageResultSystem.cs</code> L274–279</td></tr>
+  <tr><td>单 tick 伤公式</td><td><code>TakeDamageInfo_Dots.cs</code> L153；<code>ShootSpellUtils.cs</code> L286</td></tr>
+  <tr><td>坠落三速 ×6</td><td><code>SpellSpawnParamsProcessor.cs</code> L33–43</td></tr>
+  <tr><td>落地炸</td><td><code>Spell1007FallJob.cs</code> L181–255</td></tr>
+  <tr><td>搜敌</td><td><code>SpellTools.cs</code> L2862–2888</td></tr>
+  <tr><td>特效按半径缩放</td><td><code>SpellEffectSystem.cs</code> L188–196</td></tr>
+  <tr><td>分裂快照</td><td><code>SpellSpawnParamsStorage.cs</code> L36–58</td></tr>
+  <tr><td>Mono 死拉力 / 坠落满额</td><td><code>Spell1007BlackHole.cs</code> L46–48、L175–185</td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.BlackHole = 1007</code></td></tr>
+</table>
+<p class="note"><b>待决：</b>① 满寿第 20 刀是否赶上销毁当帧。② ECS 预制体是否还留了物理碰撞盒（若有，Enter 可能再打一记不乘 interval 的满额伤）。③ Mono <code>radius×2</code> 与 ECS <code>Calculate()</code> 的视觉直径是否对齐。④ 牵引在抗击退 / 冰冻下的手感未验算。⑤ 公转 / 寻踪 / 自我追踪 / 多重施法 / 超载散射尚无独立文档。</p>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 黑洞逆向分析.md · 槽位解析见 伤害强化逆向分析.md · isDPS 管线见 落雷阵逆向分析.md 2.3</footer>
+</body>
+</html>

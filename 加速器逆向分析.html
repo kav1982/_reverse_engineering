@@ -286,6 +286,7 @@ case ThunderAura:
     num2 = Mathf.Max(spellEffectRadius.Result, spellMoveSpeed.Result * spellDuration.Result);
 // 裸装 max(2.8, 0×5) = 2.8   ·   加Lv1 max(2.8, 3×5) = 15</pre>
 <div class="note"><strong>缓解方案：配悬停。</strong><code>SpellSystem.UpdateDuration</code>（<code>SpellSystem.cs</code> L287）在 <code>duration</code> 用尽后<strong>先把 <code>Speed</code> 压 0</strong> 再进悬停段，而落雷阵在悬停期仍全速结算 → <code>[加速器] [悬停] [落雷阵]</code> 是「推进到位再驻扎」。同一条 <code>AddBase</code> 上的寻踪 <code>3010</code>（1/2/4，方向跟鼠标）在这个需求上通常优于加速器。详见 落雷阵逆向分析.md 7.6。</div>
+<p><strong>同类：黑洞 <code>1007</code>。</strong> 底数不是 0，是 <code>1.2</code>，但判定完全一样——价值在把人留在圈里。<code>[加Lv3] [黑洞]</code> = 13.2 m/s × 5 s = 66 m，基本等于把圈丢掉。缓解同样是配悬停。详见 黑洞逆向分析.md 7.5。</p>
 
 <h2 id="s4">4. 和其它法术的关系</h2>
 <p>只写会改这份速度怎么叠、怎么被读的交互。伤害强化 / 范围增强 / 穿透只改别的通道，不列。</p>

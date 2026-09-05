@@ -404,7 +404,7 @@ return true;</pre>
   <tr><td>火球非坠落</td><td>走 <code>TrickMine_Fall</code>，不走 <code>Normal_Fall</code></td></tr>
   <tr><td>蝴蝶 <code>1003</code></td><td>坠落时三速 ×0.35，<strong>并且核心机制整个关掉</strong>（见表下）</td></tr>
   <tr><td>落雷阵 <code>1018</code></td><td><b>换掉整个法术</b>：光环 Job 被 <code>[WithNone(SpellFallTag)]</code> 排除，改走 <code>Spell1018FallJob</code>。<strong>无 duration</strong>（寿命改由 <code>ReboundCount</code> 决定）、0.1 s 一跳、<b>满额伤害</b>（绕过 <code>isDPS</code> 的 ×0.25）、每目标挨 <code>totalCount</code> 下的 N² 多段。反弹/折射只在坠落态才对它生效，折射还不扣 <code>ReboundCount</code></td></tr>
-  <tr><td>黑洞</td><td>坠落时三速 ×6</td></tr>
+  <tr><td>黑洞 <code>1007</code></td><td>三速 ×6 <b>不是主要影响</b>。<code>Spell1007Job</code> 遇 <code>IsFallSpell</code> 立刻 return：途中不 DPS、不牵引；落地 <code>NewInfo</code> 仍 ×0.25，砸一下就销毁。见 黑洞逆向分析.md 5 / 7.3</td></tr>
   <tr><td>巨型泡泡</td><td><code>CurrentFallSpeed += 2</code>，<code>Speed += |2 / tan(75°)|</code></td></tr>
   <tr><td>霰弹</td><td>坠落时不走散射偏角</td></tr>
   <tr><td>奥爆</td><td>生成时 <code>Speed=0</code>、时长改 0.6s</td></tr>

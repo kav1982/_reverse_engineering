@@ -337,7 +337,7 @@ CurrentAddBase  = Σ(增强卡 crit/100)     // 不含主动自身</pre>
 </table>
 <p>单张 Lv3、或 Lv1+Lv2，就能让一发 3~5 只蝴蝶<strong>初始方向完全相同</strong>。但这<strong>不等于叠成一发</strong>：实体仍各自独立，蝴蝶减速段结束后各锁各自的最小夹角目标很快散开。实际效果是把前约 0.38 秒压成一束。</p>
 <p class="note">多发弹的暴击是<b>每只独立掷骰</b>（各实体带自己的 <code>CriticalChance</code> 快照）。Lv3 蝴蝶 5 只 × 40% 期望 2 只暴击，方差小于单发弹——多发弹吃暴击率的期望值而非运气。详见 蝴蝶逆向分析.md 7.2。</p>
-<p class="note">反面极端：落雷阵 <code>1018</code>（<code>angle=0</code>、<code>shootCount=1</code>、<code>speed=0</code>）钳零前后都是 0，<b>没有扇形可塌，<code>angle</code> 段彻底空转</b>，精准施法只剩暴击率。但它的暴击是<b>每 tick 每目标各掷一次</b>：Lv3 满命中 5 秒 = 7 × 20 = <b>140 次掷骰</b>，期望值利用率全表最高。详见 落雷阵逆向分析.md 7.8。</p>
+<p class="note">反面极端：落雷阵 <code>1018</code>、黑洞 <code>1007</code> 都是 <code>angle=0</code>、<code>shootCount=1</code>，钳零前后都是 0，<b>没有扇形可塌，<code>angle</code> 段彻底空转</b>，精准施法只剩暴击率。暴击按 tick 独立掷骰：落雷阵 Lv3 满命中 7 × 20 = <b>140</b> 次；黑洞单目标 20 次、圈里 N 人则 ×N（不封顶）。详见 落雷阵逆向分析.md 7.8、黑洞逆向分析.md 7.6。</p>
 
 <h2 id="s3">3. 谁吃得到这张卡</h2>
 <h3>3.1 只强化自己右边、同一段</h3>

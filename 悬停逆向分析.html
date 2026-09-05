@@ -377,7 +377,8 @@ valueRW.DurationTimer += DeltaTime;   // 坠落 / 激光族：只加 Duration，
   <tr><td>通用导弹（魔法弹等）</td><td><strong>走</strong></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code></td><td>命中且穿透耗尽会直接销毁</td></tr>
   <tr><td>回旋之刃 <code>1022</code></td><td><strong>走</strong></td><td>同通用导弹。<code>Spell1022Job</code> 只在回收时读 <code>HoverDuration</code> 决定后坐力，然后把 <code>DurationTimer</code> 拉满，位移仍走 4.1 原地锁死</td><td>公转不回收；坠落回收只停脑不停掉。详见《回旋之刃逆向分析.md》7.4</td></tr>
   <tr><td>蝴蝶 <code>1003</code></td><td><strong>走</strong></td><td>同通用导弹。悬停前置分支在 <code>switch (movement.Type)</code> 之前，专属 <code>Butterfly_Common</code> 悬停期根本不被调用——原地不动、不追踪</td><td>与自身减速 Job 有一处理论竞态，见 4.3</td></tr>
-  <tr><td>落雷阵 <code>1018</code></td><td><strong>走</strong>，且<b>悬停期继续全速输出</b></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code>，实体不销毁；而 <code>Spell1018Job</code> 的查询与 <code>Execute</code> <strong>都不读生命周期</strong>，照样每 0.25 s 劈一次、伤害不减</td><td>全表唯一「悬停 ≡ 时长强化」；与 3103 可叠加，蓝耗不变。Lv3 裸 3080 → 悬Lv3 6160 → 时Lv3+悬Lv3 <b>9856</b></td></tr>
+  <tr><td>落雷阵 <code>1018</code></td><td><strong>走</strong>，且<b>悬停期继续全速输出</b></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code>，实体不销毁；而 <code>Spell1018Job</code> 的查询与 <code>Execute</code> <strong>都不读生命周期</strong>，照样每 0.25 s 劈一次、伤害不减</td><td>「悬停 ≡ 时长强化」的已核验例之一（黑洞是另一例）；与 3103 可叠加，蓝耗不变。Lv3 裸 3080 → 悬Lv3 6160 → 时Lv3+悬Lv3 <b>9856</b></td></tr>
+  <tr><td>黑洞 <code>1007</code></td><td><strong>走</strong>，且<b>悬停期继续全速输出</b></td><td><code>Spell1007Job</code> 不读 <code>DurationTimer</code> / <code>HoverTimer</code>；DPS、牵引、胀圈、聚爆转伤全部继续</td><td><code>[悬停Lv3] [黑洞Lv1]</code> = 5+5 s、40 tick / 220 伤。见 黑洞逆向分析.md 7.4</td></tr>
   <tr><td>坠落 <code>IsFallSpell</code></td><td><strong>不走</strong></td><td>只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因时长销毁</td><td>秒数仍写入快照；通用坠落活到落地再决定死活</td></tr>
   <tr><td>激光 / 符文锤 / 激光束 / 彼岸致命刃 / 保护伞 / 高压水枪 / 戴夫鱼叉</td><td><strong>通用路径不走</strong></td><td><code>UpdateDuration</code> 把它们和坠落一起短路</td><td>各专属 Job 自己读 <code>HoverDuration</code></td></tr>
   <tr><td>高压水枪 <code>1019</code>、诡雷 <code>1012</code>（非坠落）</td><td><strong>折进 Duration</strong></td><td><code>Duration.Extra += HoverDuration</code>，然后 <code>HoverDuration = 0</code></td><td>继续喷 / 继续活，不是停在原地</td></tr>
@@ -420,7 +421,7 @@ Spell1003Job      覆写    @ SpellSimulationSystemGroup（每帧晚于 MoveJob�
 <table>
   <tr><th>情况</th><th>悬停阶段</th></tr>
   <tr><td>普通弹（<code>Enter</code> 命中）</td><td>新走进碰撞盒的单位仍吃 <code>Enter</code>；已经重叠的 <code>Stay</code> <strong>不会</strong>再结算</td></tr>
-  <tr><td><code>isDPS</code> / 自带 <code>DamageInterval</code>（如黑洞）</td><td>实体还在，DPS 计时器通常继续转</td></tr>
+  <tr><td><code>isDPS</code> / 自带 <code>DamageInterval</code>（黑洞 <code>1007</code>）</td><td><b>确证继续转</b>。<code>Spell1007Job</code> 不读 <code>HoverTimer</code>，悬停期 DPS / 牵引 / 胀圈全继续。<code>[悬停Lv3] [黑洞Lv1]</code> = 5+5 s、40 tick。见 黑洞逆向分析.md 7.4</td></tr>
   <tr><td>奥爆 <code>1008</code></td><td>自带 <code>HoverDamageTimer</code>，<code>HoverTimer &gt; 0</code> 后约每 0.4s 再全范围结算一次</td></tr>
   <tr><td>带 <code>SpellHoverDamageData</code> 的预制体</td><td>独立 Job：<code>Stay</code> 重叠满 <code>Interval</code> 后对 <code>Radius.Calculate()</code> 内单位打一圈</td></tr>
   <tr><td>命中已死的弹</td><td>没有实体，无悬停</td></tr>

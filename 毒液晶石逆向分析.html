@@ -396,7 +396,7 @@ stacks += applyCount;</pre>
   <tr><td><code>[毒Lv3] [落雷阵1018]</code></td><td>每 0.25 s 再 +4 层，5 秒共 20 次结算 → <b>80 层</b></td><td>跳字每秒 = 当前层数，随结算一路攀升</td></tr>
 </table>
 <p>同一发穿透打两个敌人：各加一份层数，互不分享。同一敌人被两发各带 1 层的弹打中：2 层，时长按较长的那发刷新。</p>
-<div class="note"><b>叠层载体对比</b>：<code>SetVenom</code> 没有「已中毒则跳过」的门，单目标总层数 = <code>int2</code> × 命中次数。单发弹 1 次、Lv3 蝴蝶 5 只 = 5 次（毒 Lv3 共 20 层）、<b>落雷阵 <code>1018</code></b> 一个实体活 5 秒每 0.25 s 结算一次 = 20 次（毒 Lv1/2/3 分别 <b>20 / 40 / 80 层</b>），再配时长强化 Lv3 + 悬停 Lv3 可到 <b>256 层</b>，是全表最强的毒液叠层载体。另：<code>SpellTools.GetSpellElementDataWithTimeScale</code>（<code>SpellTools.cs</code> L3250–3258）在低帧时乘 <code>VenomApplyCount</code>，是元素包里唯一被低帧改写的字段。详见 落雷阵逆向分析.md 7.14。</div>
+<div class="note"><b>叠层载体对比</b>：<code>SetVenom</code> 没有「已中毒则跳过」的门，单目标总层数 = <code>int2</code> × 命中次数。单发弹 1 次、Lv3 蝴蝶 5 只 = 5 次（毒 Lv3 共 20 层）、<b>落雷阵 <code>1018</code></b> 与 <b>黑洞 <code>1007</code></b> 都是 5 秒 / 20 tick（毒 Lv3 = <b>80 层</b>）。落雷阵同时打几人钳在 <code>int1</code>，黑洞不封顶且每 tick 拉人。tick 类并列最强，场景不同。另：<code>GetSpellElementDataWithTimeScale</code> 在低帧时乘 <code>VenomApplyCount</code>。详见 落雷阵逆向分析.md 7.14、黑洞逆向分析.md 7.10。</div>
 
 <h2 id="s7">7. 证据索引</h2>
 <table>

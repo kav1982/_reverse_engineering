@@ -252,6 +252,7 @@ else
 <table>
   <tr><th>法术</th><th>插上导航之后</th></tr>
   <tr><td>蝴蝶 <code>1003</code></td><td><code>ChaseEnemy</code> 的 switch <b>没有 Butterfly case</b> → <code>default → Normal_ChaseTarget</code>。专属 <code>Butterfly_Common</code>（硬编码 <code>lerp(Direction, 敌向, 5f·dt)</code>，时间型、与速度无关）完全不再被调用</td></tr>
+  <tr><td>黑洞 <code>1007</code></td><td>同样没有 case → <code>Normal_ChaseTarget</code>。和蝴蝶不同：本来就没有专属追踪，导航是纯增量。但 <code>Speed=1.2</code>，Lv1 约 14.4 °/s，肉眼几乎看不出来。真正留人的是 <code>float2</code> 拉力。见 黑洞逆向分析.md 7.1</td></tr>
 </table>
 <div class="box">Spell1003ButterFlySystem 的查询不看 movement.Type → 减速照旧跑到 InitialSpeed × 0.15
   maxDelta = 2.25 × float1 × dt
@@ -273,7 +274,7 @@ velocity.Linear = Direction * Speed;
 
 Speed = 0 → maxDelta = 0（不转） 且 velocity = 0（不动）  ← 两处都被归零
 配加速器才活：[加Lv1(+3)] [导Lv3(38)] [落雷阵] → 3 × 38 = 114 °/s</div>
-<p class="note">这张卡的效果挂在<strong>路程</strong>上（路程 = <code>Speed</code> × 时间），而它自己既不加速度也不加时长 → 强度和载体速度是<strong>乘性</strong>的：<code>Speed=0</code> 必然空转、速度极低是降级（蝴蝶）、速度高才划算。<code>[加Lv1] [导Lv3] [落雷阵]</code> 能救回来，但占两槽，且加速器单插对落雷阵本身是负收益（见 加速器逆向分析.md 3.4）。<code>[坠落] [反弹] [导航] [落雷阵]</code> = 会自动追着敌人跳的连锁落雷。详见 落雷阵逆向分析.md 7.10。</p>
+<p class="note">这张卡的效果挂在<strong>路程</strong>上（路程 = <code>Speed</code> × 时间），而它自己既不加速度也不加时长 → 强度和载体速度是<strong>乘性</strong>的：<code>Speed=0</code> 必然空转、速度极低要么是降级（蝴蝶：顶替了更好的原生转向）要么弱到可以忽略（黑洞：补上了追踪但 14 °/s 转不动）、速度高才划算。<code>[加Lv1] [导Lv3] [落雷阵]</code> 能救回来，但占两槽，且加速器单插对落雷阵 / 黑洞本身是负收益（见 加速器逆向分析.md 3.4）。<code>[坠落] [反弹] [导航] [落雷阵]</code> = 会自动追着敌人跳的连锁落雷。详见 落雷阵逆向分析.md 7.10、黑洞逆向分析.md 7.1。</p>
 
 <p class="note">持续施法距离：自动导航不加额外秒数；只有公转会折进部分持续法术。蝴蝶是全表唯一把 <code>float2</code> 乘进距离估算的法术（<code>速度 × 时长 × 0.15</code>），与导航无关。详见 蝴蝶逆向分析.md 7.1。</p>
 

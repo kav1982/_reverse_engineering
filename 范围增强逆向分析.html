@@ -315,7 +315,7 @@ Calculate() = (Base + FallRadius) * (1 + AddRatio) * MulRatio + Extra</pre>
   <tr><td>坠落附加圈</td><td>吃</td><td><code>FallRadius</code> 先加进 <code>Base</code> 再乘加算</td><td>多张坠落 <code>float1</code> <strong>求和</strong></td></tr>
   <tr><td>硬编码圈（部分召唤自爆 / 撞击 / 探测）</td><td>吃</td><td>基数写死，再乘 <code>(1+AddRatio)*MulRatio</code></td><td>表 <code>radius=0</code> 也能变大</td></tr>
   <tr><td>公转半径</td><td><strong>基本不吃</strong></td><td><code>AroundRadius</code> 来自公转 <code>float3</code>，烘焙时不乘</td><td>AI 距离估算会乘；个别法术用半径比做偏移</td></tr>
-  <tr><td>弹体碰撞盒</td><td><strong>不自动吃</strong></td><td>预制体碰撞体，不读 <code>Calculate()</code></td><td>除非该法术把 <code>Scale</code> 设成 <code>Calculate()</code></td></tr>
+  <tr><td>弹体碰撞盒</td><td><strong>不自动吃</strong></td><td>预制体碰撞体，不读 <code>Calculate()</code></td><td>奥爆 / 冲刺等会把本体 <code>Scale</code> 写成 <code>Calculate()</code>；<b>黑洞不是这种</b>——伤害圈和特效读 <code>Calculate()</code>，本体 Scale 不改</td></tr>
   <tr><td>虚胖体积</td><td><strong>另一条</strong></td><td><code>FatSpell</code> → <code>SpellNeedResize.ExtraSizeRatio</code></td><td>和 <code>Radius.AddRatio</code> 不是同一个字段</td></tr>
   <tr><td>引力晶石牵引</td><td><strong>不吃</strong></td><td><code>PullRange</code> 原样写入</td><td>不乘半径比</td></tr>
   <tr><td>半途传送半径</td><td><strong>不吃</strong></td><td>读传送自己的 <code>float1</code></td><td>与 3107 无关</td></tr>
