@@ -552,6 +552,7 @@ struct BreakLightningChain : IComponentData { } // tag</pre>
   <tr><td>多张闪电链在同一主动前</td><td><code>int1</code> 各自经强化后<strong>求和</strong></td></tr>
   <tr><td>闪电链左侧放伤害%强化</td><td>提高链伤害（<code>stopTarget</code> 截断规则）</td></tr>
   <tr><td>同段加穿透</td><td>提高链可伤害的敌人数（<code>1+Σ穿透int1</code>）</td></tr>
+  <tr><td>静止法术（落雷阵 <code>1018</code>）</td><td>两端不动 → 链是<b>固定线段</b>；<code>shootCount=1</code>，另一端要靠多重 / 齐射 / 下一发。预算几乎不浪费，但 <code>PenetrateCount</code> 基础只有 1，<b>第一次打到人链就消失</b>，当墙用必须叠穿透</td></tr>
   <tr><td>分裂弹</td><td>ECS：链伤害 ×0.35；Mono：平均伤害 + LineRenderer 链</td></tr>
   <tr><td>彼岸刀/伞/符文锤/激光束</td><td>默认自动建链被排除；刀类走 CreateRequest</td></tr>
   <tr><td>低帧优化</td><td>可能跳过生成，或抬高单次 Damage 补偿</td></tr>

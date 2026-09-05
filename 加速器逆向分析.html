@@ -270,6 +270,23 @@ Speed = speedAttribute.Calculate();</pre>
 </table>
 <p>持续仍是 0.5 秒。飞得更快，同一寿命里走得更远。</p>
 
+<h3>3.4 <code>speed = 0</code> 的法术：改的是形态，不是数值</h3>
+<p><code>Calculate()</code> 里 <code>Base</code> 和 <code>AddBase</code> 简单相加，没有「<code>Base</code> 为 0 就短路」的保护：<code>Speed = (0 + Σfloat1) × … = Σfloat1</code>。<strong>加速器会把静止法术变成移动法术</strong>，这是形态改变，不能套 3.3 那张「越快越远越好」的表。</p>
+<p>实例：落雷阵 <code>1018</code>（<code>speed = 0</code>、<code>duration = 5</code>、半径 2.8/3.0/3.2）。裸装是钉在枪口、每 0.25 s 结算一次的静止光环；<code>SpellMoveJob</code> 里没有专属分支，走 <code>Normal_Common</code>，一插加速器就变成匀速直线漂移的雷云。</p>
+<table>
+  <tr><th>槽位</th><th><code>Movement.Speed</code></th><th>5 秒漂移</th><th>结果</th></tr>
+  <tr><td><code>[落雷阵]</code></td><td>0</td><td>0 m</td><td>钉在枪口</td></tr>
+  <tr><td><code>[加Lv1(+3)] [落雷阵]</code></td><td><strong>3</strong></td><td>15 m</td><td>横穿大半个房间</td></tr>
+  <tr><td><code>[加Lv2(+6)] [落雷阵]</code></td><td><strong>6</strong></td><td>30 m</td><td>撞墙前就飞出交战区</td></tr>
+  <tr><td><code>[加Lv3(+12)] [落雷阵]</code></td><td><strong>12</strong></td><td>60 m</td><td>基本等于把光环丢掉</td></tr>
+</table>
+<p><strong>判定：对落雷阵是负收益，等级越高越差</strong>——它的价值是封锁一小片区域，匀速飘走会大幅缩短停留时间。这是全表少见的「加速器插了变弱」的场景。</p>
+<pre class="code">// SpellGroupAttackDistanceCalculator L283–285：设计内行为，不是漏网
+case ThunderAura:
+    num2 = Mathf.Max(spellEffectRadius.Result, spellMoveSpeed.Result * spellDuration.Result);
+// 裸装 max(2.8, 0×5) = 2.8   ·   加Lv1 max(2.8, 3×5) = 15</pre>
+<div class="note"><strong>缓解方案：配悬停。</strong><code>SpellSystem.UpdateDuration</code>（<code>SpellSystem.cs</code> L287）在 <code>duration</code> 用尽后<strong>先把 <code>Speed</code> 压 0</strong> 再进悬停段，而落雷阵在悬停期仍全速结算 → <code>[加速器] [悬停] [落雷阵]</code> 是「推进到位再驻扎」。同一条 <code>AddBase</code> 上的寻踪 <code>3010</code>（1/2/4，方向跟鼠标）在这个需求上通常优于加速器。详见 落雷阵逆向分析.md 7.6。</div>
+
 <h2 id="s4">4. 和其它法术的关系</h2>
 <p>只写会改这份速度怎么叠、怎么被读的交互。伤害强化 / 范围增强 / 穿透只改别的通道，不列。</p>
 

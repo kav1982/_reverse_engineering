@@ -375,6 +375,7 @@ valueRW.DurationTimer += DeltaTime;   // 坠落 / 激光族：只加 Duration，
   <tr><th>机制族</th><th>走不走 4.1</th><th>怎么走</th><th>边界</th></tr>
   <tr><td>通用导弹（魔法弹等）</td><td><strong>走</strong></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code></td><td>命中且穿透耗尽会直接销毁</td></tr>
   <tr><td>蝴蝶 <code>1003</code></td><td><strong>走</strong></td><td>同通用导弹。悬停前置分支在 <code>switch (movement.Type)</code> 之前，专属 <code>Butterfly_Common</code> 悬停期根本不被调用——原地不动、不追踪</td><td>与自身减速 Job 有一处理论竞态，见 4.3</td></tr>
+  <tr><td>落雷阵 <code>1018</code></td><td><strong>走</strong>，且<b>悬停期继续全速输出</b></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code>，实体不销毁；而 <code>Spell1018Job</code> 的查询与 <code>Execute</code> <strong>都不读生命周期</strong>，照样每 0.25 s 劈一次、伤害不减</td><td>全表唯一「悬停 ≡ 时长强化」；与 3103 可叠加，蓝耗不变。Lv3 裸 3080 → 悬Lv3 6160 → 时Lv3+悬Lv3 <b>9856</b></td></tr>
   <tr><td>坠落 <code>IsFallSpell</code></td><td><strong>不走</strong></td><td>只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因时长销毁</td><td>秒数仍写入快照；通用坠落活到落地再决定死活</td></tr>
   <tr><td>激光 / 符文锤 / 激光束 / 彼岸致命刃 / 保护伞 / 高压水枪 / 戴夫鱼叉</td><td><strong>通用路径不走</strong></td><td><code>UpdateDuration</code> 把它们和坠落一起短路</td><td>各专属 Job 自己读 <code>HoverDuration</code></td></tr>
   <tr><td>高压水枪 <code>1019</code>、诡雷 <code>1012</code>（非坠落）</td><td><strong>折进 Duration</strong></td><td><code>Duration.Extra += HoverDuration</code>，然后 <code>HoverDuration = 0</code></td><td>继续喷 / 继续活，不是停在原地</td></tr>

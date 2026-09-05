@@ -235,7 +235,7 @@ else
   <tr><td>激光 / 分解射线 / 高压水枪</td><td>自己画线 / 喷流</td></tr>
   <tr><td>奥爆</td><td>非坠落关掉；坠落才开</td></tr>
   <tr><td>滚球 / 诡雷 / 巨型泡泡</td><td>关掉</td></tr>
-  <tr><td>死亡蝰蛇 / 雷光环</td><td>关掉</td></tr>
+  <tr><td>死亡蝰蛇 / 落雷阵 <code>1018</code></td><td>关掉（<b>仅 Mono</b>；ECS 侧没关，是 <code>Speed=0</code> 空转，见下）</td></tr>
   <tr><td>龙息 / 超新星 / 宾箭</td><td>阶段开关</td></tr>
   <tr><td>审判之刃 / 符文锤 / 激光晶石</td><td>自管朝向</td></tr>
   <tr><td>融合召唤 / 召唤1</td><td>关掉</td></tr>
@@ -259,6 +259,22 @@ else
 
 StartTraceTargets 仍置真但无人读取，成为空转状态位
 → 对速度极低的弹，路程型转向是「降级」，不是增益</div>
+
+<h3>第四类：<code>Speed = 0</code>，通用公式整体空转</h3>
+<table>
+  <tr><th>法术</th><th>插上导航之后</th></tr>
+  <tr><td>落雷阵 <code>1018</code> 光环态（<code>speed = 0</code>）</td><td><code>Type</code> 确实写成 <code>ChaseEnemy</code>，但 switch 里没有 <code>ThunderAura</code> case → <code>Normal_ChaseTarget</code>。<code>maxDelta = 0</code>、<code>velocity.Linear = 0</code>，一度不转、一米不动。<b>单插是废符文</b></td></tr>
+  <tr><td>落雷阵 <code>1018</code> 坠落态</td><td class="ok"><b>例外，有效</b>：<code>Spell1018FallJob.CalcFallTargetPosition</code>（<code>Spell1018ThunderAuraSystem.cs</code> L849–864）自己实现一套 <code>ChaseEnemy</code>，<code>DirMoveTowardsIgnoreZ(..., ChaseRotateSpeed × 3f)</code> <b>不乘 Speed</b></td></tr>
+</table>
+<div class="box">// SpellMoveJob.Normal_ChaseTarget L541–545
+num = IsFallSpell ? OriginalSpellHorizontalSpeed : Speed;
+Direction = DirMoveTowardsIgnoreZ(Direction, 敌向, num * ChaseRotateSpeed * dt);
+velocity.Linear = Direction * Speed;
+
+Speed = 0 → maxDelta = 0（不转） 且 velocity = 0（不动）  ← 两处都被归零
+配加速器才活：[加Lv1(+3)] [导Lv3(38)] [落雷阵] → 3 × 38 = 114 °/s</div>
+<p class="note">这张卡的效果挂在<strong>路程</strong>上（路程 = <code>Speed</code> × 时间），而它自己既不加速度也不加时长 → 强度和载体速度是<strong>乘性</strong>的：<code>Speed=0</code> 必然空转、速度极低是降级（蝴蝶）、速度高才划算。<code>[加Lv1] [导Lv3] [落雷阵]</code> 能救回来，但占两槽，且加速器单插对落雷阵本身是负收益（见 加速器逆向分析.md 3.4）。<code>[坠落] [反弹] [导航] [落雷阵]</code> = 会自动追着敌人跳的连锁落雷。详见 落雷阵逆向分析.md 7.10。</p>
+
 <p class="note">持续施法距离：自动导航不加额外秒数；只有公转会折进部分持续法术。蝴蝶是全表唯一把 <code>float2</code> 乘进距离估算的法术（<code>速度 × 时长 × 0.15</code>），与导航无关。详见 蝴蝶逆向分析.md 7.1。</p>
 
 <h2>7. 开发注意事项</h2>
@@ -285,6 +301,7 @@ StartTraceTargets 仍置真但无人读取，成为空转状态位
       <li>激光族 / 喷流不走通用路径</li>
       <li>流星会把角速度放大</li>
       <li><b>蝴蝶：导航是覆盖，结果变钝</b></li>
+      <li><b>落雷阵：<code>Speed=0</code>，纯空转</b></li>
       <li>「对召唤无效」运行时不读</li>
     </ul>
   </div>
@@ -304,7 +321,7 @@ StartTraceTargets 仍置真但无人读取，成为空转状态位
   <tr><td>Lv1 无目标</td><td>ChaseEnemy</td><td class="num">12</td><td class="num">0</td></tr>
   <tr><td>导Lv1 + 悬Lv1</td><td>ChaseEnemy</td><td class="num">12</td><td class="num">96°</td></tr>
 </table>
-<p class="note">Lv1 转不满 180°。命中且无穿透会销毁，走不到把角度转完。悬停阶段速度 0，不再转。</p>
+<p class="note">Lv1 转不满 180°。命中且无穿透会销毁，走不到把角度转完。悬停阶段速度 0，不再转——而 <code>speed = 0</code> 的法术（落雷阵 <code>1018</code>）从第一帧起就是这个状态，整段寿命都转不了，见第 6 节第四类。</p>
 
 <h2>9. 关键文件</h2>
 <table>
@@ -312,7 +329,8 @@ StartTraceTargets 仍置真但无人读取，成为空转状态位
   <tr><td>运动类型右优先</td><td><code>SpellShootDataExtend.GetSpellMovementType</code></td></tr>
   <tr><td>发射包角速度</td><td><code>ShootSpellUtils</code>（<code>ChaseEnemy</code> 才写）</td></tr>
   <tr><td>Mono 转向</td><td><code>SpellBase.SpellFollowTarget</code>；<code>Tool2D.DirMoveTowards</code></td></tr>
-  <tr><td>ECS 转向 / 锁敌</td><td><code>SpellMoveJob.Normal_ChaseTarget</code> / <code>GetValidChasePosition</code>；<code>DTool.DirMoveTowards</code></td></tr>
+  <tr><td>ECS 转向 / 锁敌</td><td><code>SpellMoveJob.Normal_ChaseTarget</code>（L541–545）/ <code>GetValidChasePosition</code>；<code>DTool.DirMoveTowards</code></td></tr>
+  <tr><td>坠落落雷阵专属 <code>ChaseEnemy</code>（不乘 Speed）</td><td><code>Spell1018ThunderAuraSystem.CalcFallTargetPosition</code>（L849–864）</td></tr>
   <tr><td>蝴蝶专用锁敌（另一支）</td><td><code>SpellMoveJob.GetValidChaseEnemyPosition</code>（L1081）</td></tr>
   <tr><td>最小夹角</td><td><code>GetMinimalAngleTargetablePpt</code> / <code>FindMinAngleTarget</code></td></tr>
   <tr><td>洗牌死代码</td><td><code>SpellBase.ApplyShootGroupV2EnhanceEffect</code></td></tr>

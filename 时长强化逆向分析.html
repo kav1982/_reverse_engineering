@@ -366,6 +366,7 @@
   <tr><td>高压水枪 <code>1019</code></td><td>吃 Extra / 折算</td><td>专属初始化：<code>Duration.Extra += HoverDuration</code>，然后清悬停</td><td>继续喷，不是停在原地</td></tr>
   <tr><td>分解射线 / 龙息 / 冲刺</td><td><strong>吃施法锁</strong></td><td><code>GetMaxKeepCastSpellDuration</code> 用 <code>GetSpellDuration().Result</code></td><td>冲刺再加 Σ悬停；有坠落则整句不进</td></tr>
   <tr><td>黑洞等 <code>isDPS</code></td><td><strong>吃</strong></td><td>实体还在，DPS 间隔继续转</td><td>黑洞 Lv1 表持续 5s，+2 变成 7s</td></tr>
+  <tr><td>落雷阵 <code>1018</code></td><td><strong>吃，且收益严格线性</strong></td><td><code>duration = 5</code>，每 0.25s 一次结算；加的每一秒原样换成 4 次结算。Lv3 满命中：+2s → <b>+40%</b>、+3.5s → <b>+70%</b>、+6s → <b>+120%</b>，蓝耗不变</td><td>坠落形态下<strong>完全无效</strong>（<code>!IsFallSpell</code> 守卫不跑 duration，寿命由 <code>ReboundCount</code> 决定）</td></tr>
   <tr><td>奥爆 <code>1008</code></td><td><strong>写入，行为怪</strong></td><td>表 <code>duration=0</code>；Job 把 <code>DurationTimer</code> 夹到 1 做缩放</td><td><code>Calculate()&gt;1</code> 时通用寿命能否走完，需实机确认</td></tr>
   <tr><td>召唤</td><td><strong>部分吃 AddBase</strong></td><td>不读 <code>Calculate()</code> 当通用寿命；个别用 <code>AddBase</code> / <code>MulRatio</code></td><td>表标了召唤无效，运行时不读这个旗标</td></tr>
   <tr><td>元素 DoT / 冰冻</td><td><strong>不吃</strong></td><td>各晶石自己的 <code>float1</code> / <code>int</code></td><td>燃烧、毒、粘液、冰冻都不走 <code>GetSpellDuration</code></td></tr>

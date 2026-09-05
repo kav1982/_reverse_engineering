@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>落雷阵 Spell1018 · 要点</title>
+<style>
+  :root{
+    --bg:#0f1218; --panel:#1a212c; --line:#2b3644;
+    --txt:#e6ecf3; --dim:#8b9bb0; --accent:#4ea1ff; --accent2:#7ee0c0; --warn:#e0b05a;
+    --bad:#e07a7a; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  code{font-family:var(--mono);font-size:12px;color:var(--accent2);background:#121820;padding:.05em .3em;border-radius:3px}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);background:#151a22}
+  header h1{margin:0 0 4px;font-size:20px}
+  header p{margin:0;color:var(--dim);font-size:12.5px}
+  main{max-width:860px;margin:0 auto;padding:20px 24px 48px}
+  h2{margin:28px 0 10px;font-size:15px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2:first-child{margin-top:0}
+  h3{margin:16px 0 8px;font-size:13px;color:var(--dim)}
+  p,ul{margin:0 0 10px}
+  ul{padding-left:18px}
+  li{margin:3px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#1e2733;color:var(--dim);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .num{text-align:right;font-family:var(--mono)}
+  .box{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent2);
+    border-radius:8px;padding:10px 12px;margin:8px 0 14px;font-family:var(--mono);font-size:12.3px;
+    white-space:pre-wrap;color:#d6e4f5;line-height:1.5}
+  .box.alert{border-left-color:var(--bad)}
+  .note{color:var(--warn);font-size:12.5px;margin:6px 0 12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:8px 0 14px}
+  @media(max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .card h3{margin:0 0 6px;font-size:13px}
+  .card.add h3{color:var(--accent2)}
+  .card.mul h3{color:var(--warn)}
+  .card.wrong h3{color:var(--bad)}
+  .card.right h3{color:var(--accent2)}
+  .card ul{margin:0;color:var(--dim);font-size:12.5px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 8px;font-size:12.5px}
+  .chip{padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:#121820;font-family:var(--mono);font-size:11.5px}
+  .chip.en{border-color:#2a6b58;color:var(--accent2);background:#12241e}
+  .chip.sp{border-color:#3a5a8a;color:var(--accent);background:#141c28}
+  .chip.orb{border-color:#6b5a2a;color:var(--warn);background:#241e12}
+  .chip.dim{color:var(--dim)}
+  .arrow{color:var(--dim);font-size:12px}
+  .code{margin:8px 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1117}
+  .code .bar{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;
+    background:#161b22;border-bottom:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .code .bar b{font-family:var(--mono);color:var(--accent2);font-weight:500}
+  .code pre{margin:0;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono);color:#d6deea}
+  .ok{color:var(--accent2)}
+  .bad{color:var(--bad)}
+  .warn{color:var(--warn)}
+  footer{padding:12px 24px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>落雷阵 · Spell1018 ThunderAura</h1>
+  <p>Missile 主动法术 · ID 10181–10183 · <code>speed=0</code> 原地光环 · <code>isDPS</code> 每 0.25 s 结算 · 单次最多劈 <code>int1</code> 个目标 · 面板 damage 实为「每秒伤害」</p>
+</header>
+<main>
+
+<h2>1. 是什么</h2>
+<p>在<strong>法杖枪口</strong>放下一个完全静止的 5 秒雷雨区（<code>speed=0</code>，玩家不能选点）。每约 0.25 秒结算一次，在 <code>radius</code> 内挑<strong>最多 <code>int1</code> 个</strong>异阵营目标同时劈。圈内人数不足 <code>int1</code> 时，从 <strong>1.5 倍半径的环带</strong>随机补人——这就是面板说的「传导」。只劈到 1 个目标时整发伤害 ×<code>float1%</code>。</p>
+<div class="box"><span class="warn">isDPS = true</span>  →  DamageInterval = DPSDamageInterval = 0.25
+                →  单次伤害 = damage × 0.25
+                →  <b>面板 damage 字段的真实语义是「每目标每秒伤害」</b>
+                →  面板给伤害数字挂 "(秒伤)" 后缀（文本 14000302）
+
+这是本套文档第一篇 isDPS 法术，持续伤害模型见 md 第 2.3 节。</div>
+<ul>
+  <li>ECS 主路径：<code>Spell1018ThunderAuraSystem</code> 内两个互斥 Job —— <code>Spell1018Job</code>（光环，<code>WithNone&lt;SpellFallTag&gt;</code>）/ <code>Spell1018FallJob</code>（坠落，<code>WithAll&lt;SpellFallTag&gt;</code>）</li>
+  <li><code>SpellMoveJob.cs</code> 里<strong>一处 ThunderAura 都没有</strong>，走 <code>Normal_Common</code>，<code>Speed=0</code> → 不动</li>
+  <li>Mono <code>Spell1018ThunderAura</code> 为残留轨，<strong>传导实现与 ECS 完全不同</strong>，见第 7 节</li>
+  <li><code>CalculateSpellComplexity</code> 记 3 分（与滚球、蝴蝶、激光同档）</li>
+</ul>
+<p class="note">风味文案「<b>划定一片区域</b>，落雷会攻击区域内的目标，区域外的敌人也可能会被牵连」——后半句准确（1.5 倍环带补位），前半句言过其实：<b>玩家无法划定位置，只能落在枪口</b>。</p>
+
+<h2>2. 数值</h2>
+<table>
+  <tr><th>ID</th><th class="num">Lv</th><th class="num">damage<br><span class="chip dim">=每秒伤害</span></th><th class="num">每tick</th><th class="num">int1<br><span class="chip dim">命中上限</span></th><th class="num">float1<br><span class="chip dim">单体加伤</span></th><th class="num">radius</th><th class="num">蓝耗</th><th class="num">单目标5s</th><th class="num">满命中5s</th></tr>
+  <tr><td>10181</td><td class="num">1</td><td class="num"><b>22</b></td><td class="num">5.5</td><td class="num"><b>3</b></td><td class="num">100<span class="chip dim">无效</span></td><td class="num">2.8</td><td class="num">33</td><td class="num">110</td><td class="num"><b>330</b></td></tr>
+  <tr><td>10182</td><td class="num">2</td><td class="num"><b>44</b></td><td class="num">11</td><td class="num"><b>5</b></td><td class="num">130</td><td class="num">3.0</td><td class="num">43</td><td class="num">286</td><td class="num"><b>1100</b></td></tr>
+  <tr><td>10183</td><td class="num">3</td><td class="num"><b>88</b></td><td class="num">22</td><td class="num"><b>7</b></td><td class="num">160</td><td class="num">3.2</td><td class="num">56</td><td class="num">704</td><td class="num"><b>3080</b></td></tr>
+</table>
+<ul>
+  <li>三级共用 <code>prefab="10181"</code>；<code>duration=5</code>、<code>speed=0</code>、<code>knockback=0</code>、<code>angle=0</code>、<code>shootCount=1</code>、<code>float2=0.6</code>、<code>DPSDamageInterval=0.25</code> <strong>三级完全不变</strong></li>
+  <li><code>float3</code>、<code>int2/3</code>、<code>gravity</code>、<code>upSpeed</code>、<code>criticalChance</code> 全 0</li>
+  <li>升级同时抬 <b>damage(×2)</b> + <b>int1(+2)</b> + <b>float1(+30)</b> 三个乘数 → 满命中总伤 Lv1→Lv3 涨 <b>9.3 倍</b>，蓝耗只涨 1.7 倍（比蝴蝶 5.67 倍还陡）</li>
+  <li><code>mpCost</code> 是<strong>施放时一次性扣</strong>，与 tick 数、命中数、时长全部无关 → 落雷阵是全表蓝耗方差最大的法术</li>
+  <li>单目标伤/蓝仅 3.33~12.57（下游），满命中 10.0~55.0（上游）——<strong>强烈偏向多目标</strong>，<code>float1</code> 的 +0/+30/+60% 远不足以补平 3~4.4 倍的差距</li>
+</ul>
+
+<div class="box">float1 = 100/130/160  单目标加伤 %   仅当本次结算命中数 num == 1
+float2 = 0.6          间隔抖动比       抖动 = 0.25 × 0.6 = ±0.15
+int1   = 3/5/7        <b>单次结算命中上限</b>（不是「额外传导次数」）
+1.5f                  传导环带系数     <b>硬编码字面量</b>，不在配置里
+
+死代码三连（同一个 1.5，只有字面量那处生效）：
+  GameConst.ThunderAuraOutRangeEnemyDetectRangeRatio = 1.5f   零引用
+  Spell1018ThunderAuraAuthoring.LightningChainMaxConductRangeRatio  Baker 不读
+  GameConst.ThunderAuraLowFPSThreshold / MaxTimeScale          仅 Mono 用</div>
+
+<h2>3. 核心机制：光环结算循环</h2>
+<div class="code">
+  <div class="bar"><b>Spell1018ThunderAuraSystem.Spell1018Job.Execute</b><span>L157–237 · 每渲染帧 1 次</span></div>
+<pre>valueRW.DamageTimer += DeltaTime;
+if (!(valueRW.DamageTimer &gt;= valueRW.DamageInterval)) return;      // 0.25
+
+SpellTools.GetAttackableEntitiesInRange(position, radius, ...);    // 三道过滤
+SpellTools.RemoveCannotAttackSpell(...);                           // 只留异阵营滚球/蝴蝶
+RemoveSameCampUnitAndNotAttackUnit(...);                           // 剔同阵营/NotAttack/Brittleness
+
+if (entities.Length &lt; valueRW.Int1)
+    GetLightningLineAttackTargets(ref entities, spell);            // 「传导」= 补位
+int num = math.min(valueRW.Int1, entities.Length);
+...
+if (num == 1) damage.damage *= valueRW.Float1 / 100f;              // 单体加伤
+...
+valueRW.DamageTimer -= valueRW.DamageInterval + GetRandomDamageInterval(spell);</pre>
+</div>
+
+<div class="grid">
+  <div class="card right">
+    <h3>已核验的性质</h3>
+    <ul>
+      <li>查询<b>无任何生命周期条件</b>（不看 DurationTimer / HoverTimer）→ 悬停白送输出的根因</li>
+      <li><code>Radius.Calculate()</code> 每 tick 现算 → 运行期改半径立刻生效</li>
+      <li>候选列表每 tick 重建，<b>无命中记忆、无冷却、无去重</b></li>
+      <li><code>MakeDamageInfo(costPenetrate: false)</code> → <b>穿透完全无效</b></li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>不是这样</h3>
+    <ul>
+      <li>不是链式扩散（ECS 补位中心是<b>光环自己</b>）</li>
+      <li>不是「1 主目标 + int1 次传导」（总共就 int1 个）</li>
+      <li>不是挑最近的（<code>Random.NextInt</code> 随机补位）</li>
+      <li>不能打可破坏物（Brittleness 被过滤两次）</li>
+    </ul>
+  </div>
+</div>
+
+<h3>3.1 抖动间隔：均值不变，只改节奏</h3>
+<div class="box">GetRandomDamageInterval = Random(−0.25×0.6, +0.25×0.6) = U(−0.15, +0.15)
+每次扣减 = 0.25 + U(−0.15, 0.15)  ∈ [0.10, 0.40]
+
+<b>E[扣减] = 0.25 恰等于触发阈值 → 长期平均精确 4 次/秒，抖动不改 DPS</b>
+5 秒窗口结算次数：均值 20，标准差 √20 × 0.0866/0.25 ≈ 1.55（约 ±8% 一西格玛）
+
+float2 的用途是表现层：多个光环同场时打散雷击节拍，它<b>不是伤害系数</b>。</div>
+
+<h3>3.2 「传导」的真相 —— 它是补位，不是链</h3>
+<div class="code">
+  <div class="bar"><b>GetLightningLineAttackTargets</b><span>L258–293 · 关键在 L273–274</span></div>
+<pre>if (startTargets.Length == 0) return;                    // ① 圈内没人 → 一个都不补
+while (startTargets.Length &lt; spell.Config.ValueRO.Int1)  // ② 只在人不够时才跑
+{
+    if (++num &gt;= spell.Config.ValueRO.Int1) break;
+    ref readonly float3 position = ref spell.Transform.ValueRO.Position;   // ③ 中心是光环自己！
+    float radius = spell.Config.ValueRO.Radius.Calculate() * 1.5f;         //    硬编码 1.5
+    SpellTools.GetAttackableEntitiesInRange(...);                          // ④ 每轮重做物理查询
+    ... entities[Random.random.NextInt(0, entities.Length)] ...            //    随机挑一个</pre>
+</div>
+<table>
+  <tr><th>直觉理解</th><th>实际行为</th></tr>
+  <tr><td>雷从一个敌人跳到下一个</td><td class="bad">全部从光环圆心向外做同心圆搜索</td></tr>
+  <tr><td>「传导 3 次」= 打 4 个</td><td class="bad">总共只打 3 个（<code>min(Int1, count)</code>，<b>口径差 1</b>）</td></tr>
+  <tr><td>环带里的敌人也会挨打</td><td class="bad">只有圈内人数 &lt; int1 时才补；圈内满员 → 环带敌人<b>完全打不到</b></td></tr>
+  <tr><td>站在环带就会被牵连</td><td class="bad">圈内必须<b>先有人</b>当种子，否则一个都不打</td></tr>
+</table>
+<p class="note">性能：最坏一次结算做 <code>int1</code> 次 <code>OverlapSphere</code>。Lv3 = 7 次/tick × 4 tick/s = <b>28 次物理查询/秒/光环</b>，且系统对两个 Job 都紧跟 <code>state.Dependency.Complete()</code>（L1416/L1437）打断并行。叠很多落雷阵时它是性能热点。</p>
+
+<h3>3.3 单目标加伤的陷阱</h3>
+<div class="box">判定的是<b>本次结算的最终命中数 num</b>，不是「场上敌人数」。
+
+Boss 战里飘进来一只小怪（哪怕在 1.5 倍环带被补进来）：
+   num: 1 → 2   ⇒   Lv3 单体伤害 ×1.6 → ×1.0  =  <b>瞬间掉 37.5%</b>
+
+float1 是最后一道乘算，<b>不进 AttributeValue，任何符文都改不了它</b>。
+Lv1 的 float1=100 让这条机制在一级不存在
+   ⇒ Lv1→Lv2 实际单体提升 = 44×1.3 / 22×1.0 = <b>2.6 倍</b>，高于 damage 字段的 2 倍。</div>
+
+<h2>4. 坠落态 = 换了一个法术</h2>
+<p>插坠落符文 → <code>spellIsFall = fallExplosionRadius &gt; 0</code> → 加 <code>SpellFallTag</code> → 第 3 节整套逻辑被 <code>[WithNone]</code> 排除，改走 <code>Spell1018FallJob</code>。</p>
+<table>
+  <tr><th>项</th><th>光环形态</th><th>坠落形态</th></tr>
+  <tr><td>存活</td><td>duration 5 s（+悬停）</td><td class="bad"><b>无 duration</b>，只靠 ReboundCount 耗尽</td></tr>
+  <tr><td>节奏</td><td>0.25 s / tick</td><td>0.1 s / 跳</td></tr>
+  <tr><td>单次伤害</td><td><code>damage × 0.25</code></td><td class="bad"><b><code>damage</code> 满额</b>（显式覆写，绕过 ×0.25）</td></tr>
+  <tr><td>传导补位</td><td>有（1.5× 环带）</td><td class="bad"><b>无</b>（坠落 Job 没有对应实现）</td></tr>
+  <tr><td>每目标挨几下</td><td>1 下</td><td class="bad"><b><code>totalCount</code> 下</b>（N² 双循环）</td></tr>
+  <tr><td>半径</td><td><code>Base</code></td><td><code>Base + fallExplosionRadius</code>（+1.0/1.5/2.3）；同时是每跳步长</td></tr>
+</table>
+
+<div class="code">
+  <div class="bar"><b>Spell1018FallJob.TryAttack</b><span>L764–780 · <span class="bad">N² 双循环</span></span></div>
+<pre>for (int i = 0; i &lt; totalCount; i++)
+    for (int j = 0; j &lt; totalCount; j++)          // ← 外层 i 只用于 if (j != i) 的<b>表现</b>判断
+    {
+        Entity target = hitList[j];
+        TakeDamageInfo_Dots damage = spell.MakeDamageInfo(costPenetrate: false);
+        damage.damage = config.Damage.Calculate();          // ← 覆盖掉 ×0.25，<b>满额伤害</b>
+        if (totalCount == 1) damage.damage *= config.Float1 / 100f;
+        CMD.TryAttackEntity(chunkIndex, in target, in damage, ...);
+    }</pre>
+</div>
+<div class="box alert">TryAttackEntity 只是往目标的 DynamicBuffer&lt;TakeDamageInfo_Dots&gt; 里 append，
+TakeDamageInfoPreProcessSystem 逐条遍历整个 buffer，<b>同帧无去重、无命中冷却</b>
+⇒ totalCount² 次结算<b>全部生效</b>，每个目标各挨 totalCount 下
+
+Lv3 落雷阵 + 坠落，一次打击：
+  1 人场  totalCount=1  → 1 次结算   88×1.6 = 140.8
+  4 人场  totalCount=4  → 16 次结算  每人 352      合计 1408
+  7 人场  totalCount=7  → 49 次结算  每人 616      合计 <b>4312</b>
+                                    （光环形态打满 5 秒才 3080）
+
+对照 Mono OnFallingLightingOnGround（L258–271）：每目标各调一次，是标准 O(N)。
+<b>平方项是 ECS 重写独有的，几乎可以确定是 bug。</b></div>
+
+<h3>4.1 反弹 / 折射在坠落态才活</h3>
+<div class="box">ReboundCount 在坠落 Job 里被挪用成「还能再跳几次」
+  不插反弹 → ReboundCount=0 → 打 1 下就销毁
+  反弹 Lv3（int1 求和 = 8）→ <b>9 跳，总时长 0.9 s</b>
+
+折射走 TryGetRefractionPos，成功时直接落到 FindReflectionTarget 找到的敌人身上
+  <b>且不消耗 ReboundCount</b> ⇒ 纯增量的自动索敌跳跃
+
+下一跳落点（CalcFallTargetPosition，L841–888）：
+  Normal      = 当前位置 + Direction × Radius.Calculate()   每跳前进一个半径
+  ChaseEnemy  = DirMoveTowardsIgnoreZ(..., ChaseRotateSpeed × 3f)  ← <b>不乘 Speed</b>
+                ⇒ 自动导航在坠落态<b>有效</b>（光环态无效，见 5.3）</div>
+
+<h2>5. 增强符文 × 落雷阵 逐一校验（21 张）</h2>
+<table>
+  <tr><th>符文</th><th>type</th><th>落雷阵实际分支</th><th>判定</th></tr>
+  <tr><td>坠落</td><td>3119</td><td><b>整个法术形态被替换</b>：无 duration、0.1 s 一跳、满额伤害、N² 多段</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>悬停</td><td>3008</td><td>结算 Job 不看悬停状态 → <b>白送 2/3/5 秒满速输出</b></td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>节能模式</td><td>3104</td><td>伤害 × 时长<b>双重打折</b>（0.5625），Lv1 效率比 0.94</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>加速器</td><td>3106</td><td><code>Speed.Base=0 + AddBase</code> → 静止光环<b>变成飘走的雷云</b></td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>反弹</td><td>3012</td><td>光环态<b>完全无效</b>（不产生新碰撞）；坠落态 = 跳跃次数</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>自动导航</td><td>3011</td><td><code>Speed=0</code> → <code>maxDelta=0</code>，<b>完全空转</b>；坠落态才有效</td><td class="bad"><b>需回写</b></td></tr>
+  <tr><td>时长强化</td><td>3103</td><td>光环态<b>严格线性</b> +40/70/120%；坠落态完全无效</td><td class="warn">需回写</td></tr>
+  <tr><td>范围增强</td><td>3107</td><td>面积平方增长，但收益在 <code>int1</code> 上限处<b>截断</b></td><td class="warn">需回写</td></tr>
+  <tr><td>分裂</td><td>3013</td><td>半径圈上环形铺 N 个 80% 半径子光环，<b>各跑满 5 秒</b></td><td class="warn">需回写</td></tr>
+  <tr><td>毒液晶石</td><td>3005</td><td>单目标 5 s <b>20/40/80 层</b>，堆时长可到 256 层（全表上限）</td><td class="warn">需回写</td></tr>
+  <tr><td>闪电链</td><td>3007</td><td>静止锚点 → <b>一条固定 5 秒的伤害线段</b>（全表唯一）</td><td class="warn">需回写</td></tr>
+  <tr><td>精准施法</td><td>3105</td><td>偏角写进 <code>Direction</code> 后<b>无人消费</b>，只剩暴击率；但 140 次掷骰 → 期望利用率全表最高</td><td class="warn">需回写</td></tr>
+  <tr><td>齐射</td><td>3001</td><td>容量与蓝耗折扣照拿，<b>散射恶化落空</b> → 纯正收益（<span class="warn">仅光环态</span>，坠落态会抖落点）</td><td class="warn">需回写</td></tr>
+  <tr><td>寒霜晶石</td><td>3014</td><td>20 次上冻尝试只生效 1~2 次（冻结门 + 2 s 免疫）</td><td class="ok">一致</td></tr>
+  <tr><td>雷霆晶石</td><td>3101</td><td>单实体只落 <b>1 次</b>雷，且需先过 <b>15/20/30% 染色骰</b>；落雷打满额伤害且能打可破坏物</td><td class="warn">需回写</td></tr>
+  <tr><td>伤害强化</td><td>3102</td><td><code>Damage.AddRatio</code>，光环/坠落通吃，最干净的收益</td><td class="ok">一致</td></tr>
+  <tr><td>粘液晶石</td><td>3004</td><td>每 0.25 s 刷新减速，圈内 debuff 几乎恒定</td><td class="ok">一致</td></tr>
+  <tr><td>奥术屏障</td><td>4012</td><td>独立法术，无交互</td><td class="ok">一致</td></tr>
+  <tr><td>蓄力模式</td><td>4004</td><td><code>IsChargingSpell()</code> 只认 1026/1027</td><td class="ok">一致</td></tr>
+  <tr><td>强制冷却</td><td>4006</td><td>法杖层，不进发射包</td><td class="ok">一致</td></tr>
+  <tr><td>储魔之匣</td><td>4002</td><td>法杖层，不进发射包</td><td class="ok">一致</td></tr>
+</table>
+
+<h3>5.1 悬停 3008 —— 白送的第二份时长</h3>
+<div class="code">
+  <div class="bar"><b>SpellSystem.UpdateDuration</b><span>L275–307 · 1018 <b>不在</b>例外名单</span></div>
+<pre>if (valueRW.DurationTimer &lt; valueRW.Duration.Calculate())
+{ valueRW.DurationTimer += DeltaTime; return; }
+spell.Movement.ValueRW.Speed = 0f;                       // ① duration 用尽先把速度压 0
+if (valueRW.HoverTimer &lt; valueRW.HoverDuration)
+    valueRW.HoverTimer += DeltaTime;                     // ② 悬停期<b>不置 SpellDestroyTag</b></pre>
+</div>
+<div class="box">而 Spell1018Job 的查询（L57–61）= Spell1018ThunderAuraData + SpellAspect + WithNone&lt;SpellFallTag&gt;
+Execute 里<b>既不读 DurationTimer 也不读 HoverTimer</b>
+
+⇒ <b>悬停期的落雷阵以完全相同的频率、完全相同的伤害继续结算。</b>
+
+对飞弹，悬停是纯亏（停止推进）；对落雷阵，悬停 ≈ 第二张时长强化，且可叠加。</div>
+<table>
+  <tr><th>槽位</th><th class="num">有效结算时长</th><th class="num">tick</th><th class="num">满命中总伤(Lv3)</th><th class="num">蓝耗</th></tr>
+  <tr><td><span class="chip sp">雷Lv3</span></td><td class="num">5.0 s</td><td class="num">20</td><td class="num">3080</td><td class="num">56</td></tr>
+  <tr><td><span class="chip en">悬Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">10.0 s</td><td class="num">40</td><td class="num">6160</td><td class="num">56</td></tr>
+  <tr><td><span class="chip en">时Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">11.0 s</td><td class="num">44</td><td class="num">6776</td><td class="num">56</td></tr>
+  <tr><td><span class="chip en">时Lv3</span><span class="chip en">悬Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">16.0 s</td><td class="num">64</td><td class="num"><b>9856</b></td><td class="num">56</td></tr>
+  <tr><td><span class="chip orb">公Lv3</span><span class="chip en">时Lv3</span><span class="chip en">悬Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">27.0 s</td><td class="num">108</td><td class="num"><b>16632</b></td><td class="num">56</td></tr>
+</table>
+<p class="note">蓝耗一分不涨。落雷阵没有「减速段」「飞行段」这类固定开销 → <b>时长收益严格线性</b>，是全表时长堆叠最干净的载体（蝴蝶有 0.379 s 固定开销，边际收益偏高；一次性飞弹时长只延长命中窗口）。</p>
+
+<h3>5.2 节能模式 3104 —— DPS 法术的双重打折</h3>
+<table>
+  <tr><th>作用点</th><th>代码</th><th class="num">Lv1</th><th class="num">Lv2</th><th class="num">Lv3</th></tr>
+  <tr><td>伤害 <code>Damage.MulRatio</code> ← <code>float3/100</code></td><td><code>CanShootSpellUtils.cs</code> L24</td><td class="num">×0.75</td><td class="num">×0.75</td><td class="num">×0.80</td></tr>
+  <tr><td>时长 <code>Duration.MulRatio</code> ← <code>float2/100</code></td><td><code>SpellShootData.cs</code> L139</td><td class="num">×0.75</td><td class="num">×0.75</td><td class="num">×0.80</td></tr>
+  <tr><td>蓝耗 <code>mpCostMulDivCorrection/100</code></td><td><code>SpellShootData.cs</code> L639</td><td class="num">×0.60</td><td class="num">×0.50</td><td class="num">×0.40</td></tr>
+</table>
+<div class="box">一次性飞弹：只砍伤害      效率比 = 0.75 / 0.60 = <span class="ok">1.25</span>（划算）
+落雷阵（总伤 = 伤害 × 时长）：<b>两项都砍，乘法叠加</b>
+
+  节Lv1  总伤 ×0.5625  蓝耗 ×0.60  →  效率比 <span class="bad">0.94</span>  <b>负收益</b>
+  节Lv2  总伤 ×0.5625  蓝耗 ×0.50  →  效率比 1.13   勉强打平
+  节Lv3  总伤 ×0.64    蓝耗 ×0.40  →  效率比 <span class="ok">1.60</span>   明显划算
+
+判据不是 isDPS 旗标本身，而是<b>总伤是否与 Duration 成正比</b>：
+  高压水流 1019 / 激光晶石 4014 在 UpdateDuration 例外名单里（SpellSystem L278），不读 Duration
+  龙息 1025 的耗蓝底数本身含 GetSpellDuration().Result，时长因子分子分母抵消
+  → 这三个都回到飞弹的 1.25 / 1.50 / 2.00 档
+<b>目前确证适用「双重打折」的只有落雷阵一个。</b></div>
+
+<h3>5.3 加速器 3106 / 自动导航 3011 —— <code>Speed=0</code> 的两个后果</h3>
+<div class="grid">
+  <div class="card wrong">
+    <h3>加速器 · 静止光环变雷云</h3>
+    <ul>
+      <li><code>Calculate() = (0 + float1) × ... = float1</code></li>
+      <li>Lv1 3 m/s → 5 秒漂 15 m（横穿房间）</li>
+      <li>Lv2 6 → 30 m ／ Lv3 12 → <b>60 m</b></li>
+      <li>落雷阵的价值是区域封锁 → <b>默认负收益，等级越高越差</b></li>
+      <li>佐证：AI 射程算 <code>max(半径, 速度×时长)</code>，策划知道这个组合</li>
+      <li>配悬停可缓解：duration 用尽后 Speed 被压 0，「推进到位再驻扎」</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>自动导航 · 完全空转</h3>
+    <ul>
+      <li>只把 <code>Type</code> 改成 <code>ChaseEnemy</code>，落到通用 <code>Normal_ChaseTarget</code></li>
+      <li><code>num = Speed = 0</code> ⇒ <code>maxDelta = 0</code>，Direction 不转</li>
+      <li><code>velocity.Linear = Direction × 0 = 0</code>，<b>光环仍完全不动</b></li>
+      <li>单插 = <b>废符文</b>；配加速器才活（Lv1加+Lv3导 ≈ 114 °/s）</li>
+      <li>坠落态<b>例外</b>：<code>ChaseRotateSpeed × 3f</code> 不乘速度 → 自动追踪下一跳</li>
+    </ul>
+  </div>
+</div>
+
+<h3>5.4 分裂 3013 —— 一个光环变一圈光环</h3>
+<div class="code">
+  <div class="bar"><b>SpellSpawnParamsStorage.ToSplit</b><span>L44–57 · DamageRatio 0.33 硬编码</span></div>
+<pre>ssp.ConfigComponentData.Damage.MulRatio *= splitData.DamageRatio;   // 0.33（不读配置）
+ssp.ConfigComponentData.Radius.Base     *= 0.8f;
+ssp.ConfigComponentData.Radius.Extra    *= 0.8f;
+ssp.ConfigComponentData.Knockback       *= 0.5f;
+else ssp.MovementComponentData.Speed    *= 0.5f;                    // 对 Speed=0 无意义</pre>
+</div>
+<div class="box">生成位置（SpellDestroySystem.Split L522–539）：
+  角度 = 随机基角 + 360° × (i / N)
+  位置 = 母体位置 + Direction × Radius.Calculate()
+
+⇒ <b>母光环消失瞬间，在它半径圈的边缘均匀铺开 N 个子光环</b>
+   子光环：半径 3.2×0.8 = 2.56 ·  每 tick 每目标 88×0.33×0.25 = 7.26
+           <b>duration 满额重开 5 秒，int1 不打折仍是 7</b>
+
+雷Lv3 + 分裂Lv3(8 个) 满命中理论总伤 = 8 × 20 × 7 × 7.26 = <b>8131</b>（母体 3080 的 2.6 倍）
+覆盖从一个 32 m² 的圆 → 半径 3.2 圈上 8 个 2.56 m 圆（总直径约 11.5 m）
+
+<b>分裂是落雷阵最强的面积扩张手段</b>，且时长/悬停延长母体不会与它冲突。</div>
+
+<h3>5.5 范围增强 3107 —— 平方增长，但被 int1 截断</h3>
+<table>
+  <tr><th>槽位（雷Lv3，base 3.2）</th><th class="num">半径</th><th class="num">面积</th><th class="num">传导环外径</th></tr>
+  <tr><td><span class="chip sp">雷Lv3</span></td><td class="num">3.20</td><td class="num">32.2 m²</td><td class="num">4.80</td></tr>
+  <tr><td><span class="chip en">范Lv1</span> <span class="chip sp">雷Lv3</span></td><td class="num">4.16</td><td class="num">54.4 m² <span class="chip dim">×1.69</span></td><td class="num">6.24</td></tr>
+  <tr><td><span class="chip en">范Lv2</span> <span class="chip sp">雷Lv3</span></td><td class="num">5.12</td><td class="num">82.4 m² <span class="chip dim">×2.56</span></td><td class="num">7.68</td></tr>
+  <tr><td><span class="chip en">范Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">7.04</td><td class="num">155.7 m² <span class="chip dim">×4.84</span></td><td class="num">10.56</td></tr>
+  <tr><td><span class="chip en">范Lv3</span><span class="chip en">范Lv3</span> <span class="chip sp">雷Lv3</span></td><td class="num">10.88</td><td class="num">371.9 m² <span class="chip dim">×11.6</span></td><td class="num">16.32</td></tr>
+</table>
+<p><code>AddRatio</code> 是加算池（多张相加再一次乘），不是连乘。<strong>但 <code>int1</code> 不动</strong>——半径扩到 7 米、圈里站 15 个敌人，一 tick 仍只打 7 个。真实收益只有三条：① 把「凑满 int1」的概率推向 1（对 Lv1 价值最高，Lv3 边际衰减快）；② 敌人难走出圈 ≈ 变相延长时长；③ 顺带放大坠落步长与分裂铺开半径。<span class="bad">它不提高单目标 DPS，也不能突破 7 目标上限。</span></p>
+<p class="note">半径在落雷阵身上是<b>四重身份</b>：结算半径 · 传导环带底数(×1.5) · 坠落每跳步长 · 分裂子弹生成环半径。全表独一份。</p>
+
+<h3>5.6 元素层的两极分化</h3>
+<div class="box">[毒Lv3] [雷Lv3]   VenomApplyCount <b>无「已中毒则跳过」的门</b>
+                  每 tick 每目标各叠 int2 层 × 20 tick
+                  → 单目标 <b>80 层</b>；配时Lv3+悬Lv3 → <b>256 层</b>（全表上限，远超蝴蝶一发 20 层）
+
+[霜Lv3] [雷Lv3]   SetFrozen 有 FronzenState == Normal 的门 + 冻结后 2 s 免疫
+                  5 秒内 20 次上冻尝试：Lv1 最多生效 2 次，Lv3 <b>只生效 1 次</b>
+                  → 「高频命中 × 寒霜」的浪费率被放大到 20 倍
+
+[粘Lv3] [雷Lv3]   每 0.25 s 刷新减速 → 圈内 debuff 几乎恒定生效
+
+[雷霆晶石] [雷Lv3] <b>两道闸门</b>：① float3=15/20/30 是<b>染成雷霆色的概率</b>（取 Max 不叠加，
+                  SpellTools L1643–1650）② CheckFallThunderDamage 首行按颜色 return（L2256）
+                  ⇒ <b>每次施放只有 30% 会落雷</b>，其余 70% 这张符文一点伤害都不出
+
+                  过闸后：半径 = float1 = 2.8；伤害 = <b>Damage.Calculate() × float2/100</b>（L2269）
+                  <b>这行直接覆写、不乘 DamageInterval</b> ⇒ Lv3 落雷 = 88 × 3.2 = <b>281.6 满额</b>
+                  containsBrittleness: true ⇒ <b>落雷能打碎木桶，而光环本体不能</b>（见下方阵营表）
+
+                  落雷阵是<b>一个实体活 5 秒</b>，不是 20 个实体 → 只落 1 次
+                  裸装期望增伤 = 30% × 281.6 = 84.5，对单目标 5 s 的 704 只有 <b>+12%</b>
+                  分裂Lv3 → 母 1 + 子 8 = 9 次，但 ColorType 由 ToSplit 复制快照<b>不重掷</b>
+                  ⇒ 「30% 九发全响 / 70% 一发不响」，方差极大</div>
+
+<h3>5.7 散射类：不是「算不出锥角」，是「方向没有消费方」</h3>
+<div class="box">开火锥角走 CalculateRandomAngle（ShootSpellUtils L631–636）：
+    cone = (主动法术.angle + extraScatter) × mul
+
+<b>齐射 Lv1、N=3 时落雷阵确实拿到了 20° 锥角并随机出了偏角</b>——免疫不是发生在这里。
+精准施法的 −30/−60/−100 加进去为负，才被钳成 0（L282 快照 + L632–635 锥角各钳一次）。
+
+真正的原因在下游：
+  偏角 → shootDirection → MovementComponentData.Direction
+  而落雷阵 <b>Direction × Speed = 0</b>，光环结算只读 Position 和 Radius（系统 L167–168）
+  ⇒ <b>方向这个量在光环形态下没有任何消费方</b>
+
+（常见误解：SipToSSP 写的 Config.Scatter 快照是另一码事，只有激光 1004 / 分解射线 1011 /
+  破法者 1021 / 龙息 1025 / 彼岸刃 4019 / 鱼叉 4024 等自己的 Job 读它，1018 不读。）</div>
+<div class="grid">
+  <div class="card mul">
+    <h3>精准施法 · 只剩一半功能</h3>
+    <ul>
+      <li><code>angle</code> 部分<b>纯空转</b></li>
+      <li>只剩暴击率 +10/20/40%（1018 基础值为 0）</li>
+      <li>但预处理对 buffer <b>每条 TakeDamageInfo 独立掷骰</b>，落雷阵每 tick 每目标各写一条</li>
+      <li>Lv3 满命中 5 s = <b>140 次掷骰</b>，方差极小 → <b>期望值利用率全表最高</b></li>
+      <li>×2 乘在已 ×0.25 的单 tick 上，总量 ≡ 整段乘 (1+暴击率)</li>
+    </ul>
+  </div>
+  <div class="card add">
+    <h3>齐射 · 纯正收益</h3>
+    <ul>
+      <li><code>int1</code> 加组容量 ✔</li>
+      <li><code>Pow(float1/100, N−1)</code> 蓝耗折扣 ✔</li>
+      <li>唯一副作用 <code>int2</code> 散射恶化<b>落空</b>（方向无人消费）</li>
+      <li>与它在蝴蝶（<code>angle=90</code>）身上的两面性形成直接对照</li>
+      <li class="warn"><b>仅光环态成立</b>：坠落态 Direction 变成第一跳方向，且 <code>ApplyScatterAngleToSpellSIP</code>（L708–714）改抖瞄准点 <code>Target += 随机单位向量 × 锥角×0.06</code> —— 齐射 20° 锥 ≈ 最多 1.2 单位落点抖动</li>
+    </ul>
+  </div>
+</div>
+
+<h2>6. 尚无逆向文档但影响极大的 5 张</h2>
+<table>
+  <tr><th>符文</th><th>type</th><th>对落雷阵</th><th class="num">判定</th></tr>
+  <tr><td><b>公转</b></td><td>3009</td><td><code>Type=Rotation</code>，<code>Normal_Rotation</code> <b>按位置驱动</b>每帧从 AroundCenter 重算。Lv1 <code>extraSpeed=0</code> → 角速度 0 = <b>挂在玩家身侧 3 m 的固定卫星</b>；同时 <code>extraDuration</code> +4/+7/+11 s；Rotation 还忽略墙体碰撞</td><td class="ok"><b>很可能最优单张</b></td></tr>
+  <tr><td><b>寻踪</b></td><td>3010</td><td>三池齐进：<code>Speed.AddBase</code> +1/2/4、<code>Duration.AddBase</code> +1/2/4 s、<code>Type=ChaseMouse</code>。<b>鼠标推着走的雷云</b>，比加速器温和且可控</td><td class="ok">优于加速器</td></tr>
+  <tr><td><b>多重施法</b></td><td>3002</td><td>同时放 2/3/5 个光环。<code>int1</code> 是<b>每实体各自的</b>上限 → 重叠区同一敌人被各打一次，是<b>单目标 DPS 的唯一线性乘数</b>；也解开闪电链需要第二个实体的前提</td><td class="ok">强正收益</td></tr>
+  <tr><td><b>折射</b></td><td>3121</td><td>光环态：<code>TryRefract</code> 改的是 Direction，<code>Speed=0</code> 不动 → <b>折射次数白扔，只留 −20/15/10% 全局伤害</b>。坠落态：不消耗 ReboundCount 的免费跳跃</td><td class="bad">光环态<b>纯负收益</b></td></tr>
+  <tr><td><b>穿透</b></td><td>3006</td><td>两个 Job 都 <code>costPenetrate: false</code>，穿透值<b>不被读取也不被消耗</b></td><td class="bad">零效果</td></tr>
+</table>
+<p class="note">折射（光环纯亏／坠落纯赚）与反弹（光环无效／坠落核心）构成一对<b>镜像</b>：同一张符文在同一法术的两个形态下判定完全相反。</p>
+
+<h3>6.1 闪电链 3007 —— 静止锚点不增伤，但让预算不浪费</h3>
+<div class="box">TrySpawnLightningChain（SpellShootSystem L606–656）把链建在
+<b>相邻两次生成的法术实体之间</b>（SourceEntity=本次, TargetEntity=_lastSpellEntity）
+两端存的是<b>实体引用不是坐标</b>，Spell3007Job 每帧重取 LocalTransform（L179–189）
+→ 链的形状完全由两端法术自己的运动决定
+
+落雷阵 shootCount=1 → 需要多重施法 / 齐射同帧另一法术 / 法杖里下一发 提供另一端
+一旦成立，就得到全表最干净的「两端都不动」的链。
+
+<span class="bad">但它不是一堵能一直打的墙：</span>Spell3007Job L233–262 每完成一次伤害结算就 PenetrateCount--，
+归零立刻 DestroyEntity，而 <b>PenetrateCount = 1 + BonusPenetrate</b>
+⇒ 没插穿透时基础只有 1，<b>线段第一次打到人就消失</b>，整条链一共只结算一次（Lv3 = 48 点）
+
+所以静止锚点真正改变的<b>不是伤害量，而是这份预算不会被浪费</b>：
+  飞弹的链要靠「此刻正好扫过敌人」才兑现；落雷阵的链守在原地等人走进来，5 秒内必然兑现。
+  想当墙用 <b>必须叠穿透</b>去抬 PenetrateCount。</div>
+
+<h2>7. Mono 残留轨对照 —— 传导的实现完全不同</h2>
+<div class="code">
+  <div class="bar"><b>Spell1018ThunderAura.GetLightningLineAttackTargets</b><span>L151–177 · <span class="ok">真链式</span></span></div>
+<pre>while (result.Count &lt; base.spellCfg.int1)
+{
+    if (++num &gt;= 100) break;
+    List&lt;Collider&gt; list = result;
+    Collider[] array = (from t in GetAroundTargets(
+            <b>list[list.Count - 1].transform.position</b>,          // ← 从<b>上一个目标</b>出发！
+            base.spellCfg.radius * longRangeDetectSizeRatio)
+        where !result.Contains(t) select t).ToArray();</pre>
+</div>
+<table>
+  <tr><th>项</th><th>ECS（玩家主路径）</th><th>Mono 残留轨</th></tr>
+  <tr><td>补位搜索中心</td><td class="bad"><b>光环自己</b>（同心圆扩大）</td><td class="ok"><b>上一个目标</b>（真链式扩散）</td></tr>
+  <tr><td>补位半径系数</td><td>硬编码 <code>1.5f</code></td><td><code>longRangeDetectSizeRatio</code>（预制体序列化）</td></tr>
+  <tr><td>循环上限</td><td><code>num &gt;= Int1</code></td><td><code>num &gt;= 100</code></td></tr>
+  <tr><td>起手半径</td><td><code>Radius.Calculate()</code>（含范围增强）</td><td><code>spellCfg.radius</code>（<b>不含</b>运行期修正）</td></tr>
+  <tr><td>结算间隔</td><td>固定阈值 0.25，随机<b>扣减量</b> ±0.15</td><td>随机<b>阈值</b> U(0.10,0.40) 并缓存，触发后重掷</td></tr>
+  <tr><td>低帧补偿</td><td class="bad"><b>无</b>（只补 <code>VenomApplyCount</code>）</td><td class="ok"><30 FPS 时 <code>timeScale</code> 同时乘 DurationTimer <b>和伤害本身</b>（上限 10）</td></tr>
+  <tr><td>取整</td><td>纯浮点</td><td><code>Mathf.Ceil(damage × 0.25)</code></td></tr>
+  <tr><td>坠落伤害</td><td class="bad"><b>O(N²)</b></td><td class="ok">O(N)，每目标各调一次</td></tr>
+  <tr><td>接触伤害</td><td><span class="warn">未确认</span>（依赖预制体 <code>DisableTriggerDamage</code>）</td><td><code>TriggerIn</code> 覆写为空，<b>明确关闭</b></td></tr>
+</table>
+<p class="note"><b>面板文案「传导」和风味文案「区域外的敌人也可能会被牵连」都是照 Mono 版写的</b>，ECS 重写后文案没跟着改。<code>GameConst.ThunderAuraLowFPSThreshold=30f</code> / <code>MaxTimeScale=10f</code> 在 ECS 侧已成死代码。</p>
+
+<h2>8. 构筑摘要</h2>
+<div class="grid3">
+  <div class="card add">
+    <h3>正收益</h3>
+    <ul>
+      <li><b>悬停</b>（白送满速输出，落雷阵独有）</li>
+      <li><b>时长强化</b>（严格线性，蓝耗不涨）</li>
+      <li><b>分裂</b>（最强面积扩张，子体满额时长）</li>
+      <li><b>毒液晶石</b>（全表最强叠层载体）</li>
+      <li><b>齐射</b>（散射恶化被 angle=0 免疫）</li>
+      <li>伤害强化（每 tick 线性，双形态通吃）</li>
+      <li>粘液晶石（0.25 s 刷新，debuff 恒定）</li>
+      <li>公转 / 寻踪 / 多重施法<span class="chip dim">未逆向</span></li>
+    </ul>
+  </div>
+  <div class="card mul">
+    <h3>要权衡</h3>
+    <ul>
+      <li><b>坠落</b>（换成瞬发爆发，放弃全部区域控制）</li>
+      <li><b>节能模式</b>（Lv1 负收益 / Lv2 打平 / Lv3 才划算）</li>
+      <li><b>范围增强</b>（面积平方涨，但 int1 截断收益）</li>
+      <li>精准施法（只剩暴击率，但利用率全表最高）</li>
+      <li>雷霆晶石（只落 1 次 + 30% 染色骰，期望仅 +12%）</li>
+      <li>闪电链（需第二个实体；预算必然兑现，但打中一次就断，想当墙要叠穿透）</li>
+    </ul>
+  </div>
+  <div class="card wrong">
+    <h3>负收益 / 无效</h3>
+    <ul>
+      <li><b>折射</b>：光环态纯亏（次数白扔 + 全局减伤）</li>
+      <li><b>加速器</b>：把区域封锁变成飘走的雷云</li>
+      <li><b>反弹</b>：光环态完全无效（无新碰撞事件）</li>
+      <li><b>自动导航</b>：Speed=0 → maxDelta=0，纯空转</li>
+      <li><b>穿透</b>：costPenetrate:false，零效果</li>
+      <li>寒霜晶石（20 次尝试只生效 1~2 次）</li>
+    </ul>
+  </div>
+</div>
+
+<h3>阵营与目标特例</h3>
+<table>
+  <tr><td>敌方蝴蝶 / 敌方滚球</td><td class="ok"><b>会被打</b>（<code>RemoveCannotAttackSpell</code> 白名单只有这两个）</td></tr>
+  <tr><td>可破坏物（木桶/罐子）</td><td class="bad"><b>打不到</b>（<code>Brittleness</code> 被过滤两次）</td></tr>
+  <tr><td>己方单位 / 己方蝴蝶 / 己方滚球</td><td>无事发生（两道 <code>IsSameCamp</code> 守卫）</td></tr>
+  <tr><td>落雷阵本体被攻击</td><td>不可能——不在白名单里，无生命值，5 秒内不可摧毁</td></tr>
+  <tr><td>Boss6 二阶段</td><td class="warn">对 1018 有专属免伤冷却（<code>normalSpellClearTime</code>），N² 多段与 4 次/秒都会被节流</td></tr>
+</table>
+
+<h2>9. 关键文件与待决</h2>
+<table>
+  <tr><td>光环结算主循环 / 抖动 / 命中上限 / 单体加伤</td><td><code>Spell1018ThunderAuraSystem.cs</code> L157–237、L252–256</td></tr>
+  <tr><td>结算 Job 查询<b>不含生命周期条件</b></td><td><code>Spell1018ThunderAuraSystem.cs</code> L25、L57–61</td></tr>
+  <tr><td>「传导」= 同心圆补位，硬编码 1.5</td><td><code>Spell1018ThunderAuraSystem.cs</code> L258–293</td></tr>
+  <tr><td><b>坠落 N² 双循环 + 满额伤害</b></td><td><code>Spell1018ThunderAuraSystem.cs</code> L764–780（尤其 L772）</td></tr>
+  <tr><td>坠落主循环 / 折射不消耗 ReboundCount / 落点计算</td><td><code>Spell1018ThunderAuraSystem.cs</code> L638–691、L709–762、L841–888</td></tr>
+  <tr><td>阵营三道过滤</td><td>同上 L295–309；<code>SpellTools.cs</code> L2862–2888、L2967–2981</td></tr>
+  <tr><td><code>isDPS</code> → <code>DamageInterval</code> → 单次伤害 ×0.25</td><td><code>ShootSpellUtils.cs</code> L286；<code>TakeDamageInfo_Dots.cs</code> L153</td></tr>
+  <tr><td>面板「(秒伤)」后缀</td><td><code>SlotData.cs</code> L384–388；<code>SpellConfig.cs</code> L281–287</td></tr>
+  <tr><td>duration / 悬停 / 销毁（1018 不在例外名单）</td><td><code>SpellSystem.cs</code> L266–311</td></tr>
+  <tr><td><code>Speed.Base=0</code> 可被 AddBase 抬起</td><td><code>AttributeValue.cs</code> L24–27；<code>SpellShootData.cs</code> L79–98</td></tr>
+  <tr><td>分裂：0.33 硬编码 / 80% 半径 / 环形铺开</td><td><code>SpellSpawnParamsStorage.cs</code> L36–59；<code>SpellDestroySystem.cs</code> L485–540</td></tr>
+  <tr><td>分裂子弹重力清零（1018 专属）</td><td><code>SpellDestroySystem.cs</code> L568–571</td></tr>
+  <tr><td>伤害缓冲区<b>无去重</b></td><td><code>SpellTools.cs</code> L2733–2760；<code>TakeDamageInfoPreProcessSystem.cs</code> L164–186</td></tr>
+  <tr><td>AI 射程 <code>max(半径, 速度×时长)</code></td><td><code>SpellGroupAttackDistanceCalculator.cs</code> L283–285</td></tr>
+  <tr><td>Boss6 免伤冷却</td><td><code>Boss6_Stage2.cs</code> L2063–2068、L2101–2109</td></tr>
+  <tr><td>Mono 真链式 / 低帧补偿 / 关接触伤害</td><td><code>Spell1018ThunderAura.cs</code> L151–177、L105–110、L407–409</td></tr>
+  <tr><td>枚举</td><td><code>SpellAbilityType.ThunderAura = 1018</code>；<code>IDMgr.Spell_ThunderAura = 10181</code></td></tr>
+</table>
+<p class="note"><b>待决：</b>① <span class="bad">坠落 N² 双循环是否有意设计未实测</span>——外层 <code>i</code> 只服务表现分支，强烈提示是 bug；若修复，坠落多目标数字要除以 <code>totalCount</code>（7 人场 38808 → 5544）。<b>实测优先级最高。</b>② <code>SpellDisableTriggerDamageTag</code> 是否挂在 1018 预制体上未确认（反编译读不到预制体，Mono 空 <code>TriggerIn</code> 是间接证据）。③ <code>Boss6_Stage2.normalSpellClearTime</code> 具体值未知。④ <code>OverlapSphere</code> 返回顺序未确认——圈内人多于 <code>int1</code> 时打谁完全取决于 broadphase 树序，既不是最近也不是随机，直接影响扩圈后的手感。⑤ 5 秒内实际 tick 数按连续域给均值 20，未做离散仿真。⑥ 公转 3009 / 寻踪 3010 / 多重施法 3002 / 折射 3121 / 穿透 3006 尚无逆向文档，第 6 节只做机制判定；<b>公转 Lv1 的「零角速度跟随」需实测确认</b>。⑦ 闪电链 + 落雷阵实际 DPS 未计算（需连 <code>PenetrateCount</code> 预算与每目标冷却一起展开）。⑧ 坠落态为何吃不到通用 <code>SpellFallDamageSystem</code> 未坐实——推测是首帧清零 <code>CurrentFallSpeed</code>（L1376–1378）让 <code>Normal_Fall</code> 落地判定恒假，而非靠 <code>DisableDefaultFallDamage</code>。</p>
+
+</main>
+<footer>精简对照 + 关键代码 · 详见 落雷阵逆向分析.md · 17 处回写已完成，清单见 md 第 13 节 · <b>isDPS 持续伤害模型第一篇</b></footer>
+</body>
+</html>

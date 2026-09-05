@@ -299,6 +299,7 @@ return (num, num2);</pre>
 <p><code>SpellMoveJob</code> 明确排除常驻施法黏连、龙息、符文锤、魔法盾、鱼叉、自爆虫等。这些实体不走这套墙撞。</p>
 <p>冲刺（<code>Dash = 1016</code>）会同步方向、播特效，但<strong>不扣次、不加时</strong>。次数不会被墙撞耗尽。</p>
 <p>次数用尽后，墙弹体已关。若触发器再碰到 <code>HitType.Unknown</code>（墙 / 非单位），且没有 <code>CanThroughWall</code>，<code>SpellSystem</code> 会销毁——这是「最后一次弹完再撞墙就死」的来源。<code>ReboundCount &gt; 0</code> 时同一条判定会 <code>continue</code>，不因 Unknown 触发器销毁。</p>
+<div class="note"><strong>前提是实体在动。</strong>这六步全挂在 <code>StatefulCollisionEvent</code> 上，碰撞事件只在产生<strong>新</strong>接触时生成。<code>Speed = 0</code> 的静止法术（落雷阵 <code>1018</code>）位置不变，永远没有下一个 <code>Enter</code> → 反弹在常规形态下是彻底的空槽位，见 4.10。</div>
 
 <h2 id="s4">4. 和其它法术的关系</h2>
 <p>只写会改反弹行为的交互。齐射 / 多重 / 伤害强化等只改发射或数值，不改墙弹，不列。</p>
@@ -368,14 +369,28 @@ return (num, num2);</pre>
 </ul>
 <p>折射仍走单位命中，和墙折线分开。这里不展开完整射线算法。龙息火线会把 <code>ReboundCount + 折射剩余</code> 加成额外段数，属于坠落专用，不是普通墙弹。</p>
 
-<h3>4.9 冲刺 / 召唤 / 常驻施法</h3>
+<h3>4.9 适用性表：冲刺 / 召唤 / 常驻施法 / 静止法术</h3>
 <table>
   <tr><th>对象</th><th>反弹怎么变</th></tr>
   <tr><td>冲刺 <code>1016</code></td><td>墙撞仍同步方向、播特效；<strong>不扣次、不加时</strong></td></tr>
   <tr><td>召唤（配置 <code>haveEffecforSummonSpell=false</code>）</td><td>自动填槽不插。手动插仍会烘焙次数。带 <code>TeammateData</code> 的实体撞墙时 <code>SpellMoveJob</code> 直接 <code>continue</code>，不弹</td></tr>
   <tr><td>破法者 <code>Summon4</code></td><td>非寻踪撞墙会把 <code>ReboundCount</code> 清 0；追敌时又把 <code>ReboundCount</code> 写成 1，当「还能沿当前方向飞」的旗标，不是墙弹次数</td></tr>
   <tr><td>龙息 / 符文锤 / 鱼叉 / 魔法盾 / 常驻黏连</td><td>不进 <code>SpellMoveJob</code>，没有这套墙撞</td></tr>
+  <tr><td>落雷阵 <code>1018</code> 光环态（<code>speed=0</code>）</td><td>次数照样烘焙进快照，但静止实体不产生新的碰撞事件 → <code>ReboundCount</code> 永不减、<code>ReboundAddTime</code> 永不加。<strong>完全无效</strong></td></tr>
+  <tr><td>落雷阵 <code>1018</code> 坠落态</td><td class="ok"><code>ReboundCount</code> 被 <code>Spell1018FallJob</code> 挪用成「还能再跳几次」，跳数 = <code>ReboundCount + 1</code>，是<b>主要伤害乘数</b></td></tr>
 </table>
+
+<h3>4.10 落雷阵 1018：同一张卡两个形态判定相反</h3>
+<p><code>speed = 0</code> 的静止法术。<strong>光环态零效果</strong>：走 <code>Normal_Common</code>，<code>velocity.Linear = Direction × Speed = 0</code>，位置不变 → 没有新的 <code>Enter</code> 事件 → 3.3 那六步一步都不执行。失效原因和 4.2 不同（那里是碰撞过滤器被改写，这里是实体压根不动）。</p>
+<p><strong>坠落态是核心乘数</strong>：<code>Spell1018FallJob</code> 把 <code>ReboundCount</code> 读成跳跃次数（<code>Spell1018ThunderAuraSystem.cs</code> L641 <code>&gt;= 0</code> 才跳 / L668 每跳减 1 / L688 <code>&lt; 0</code> 销毁）。门槛是 <code>&gt;= 0</code>，所以<strong>不插反弹也能打 1 下</strong>。</p>
+<table>
+  <tr><th>槽位</th><th><code>ReboundCount</code></th><th>跳数</th><th>总时长（间隔恒 0.1 s）</th></tr>
+  <tr><td><code>[坠落] [落雷阵]</code></td><td>0</td><td><strong>1</strong></td><td>≈ 0.1 s</td></tr>
+  <tr><td><code>[坠落] [反Lv1] [落雷阵]</code></td><td>2</td><td><strong>3</strong></td><td>≈ 0.3 s</td></tr>
+  <tr><td><code>[坠落] [反Lv2] [落雷阵]</code></td><td>4</td><td><strong>5</strong></td><td>≈ 0.5 s</td></tr>
+  <tr><td><code>[坠落] [反Lv3] [落雷阵]</code></td><td>8</td><td><strong>9</strong></td><td>≈ 0.9 s</td></tr>
+</table>
+<div class="note">通用限定：①<code>speed = 0</code> 且无专属移动 Job 的法术，反弹在常规形态下无效（不产生新碰撞事件）。②凡是某法术的 Job 里出现 <code>ReboundCount</code>，语义就被那个 Job 重定义了——已知三类：激光折线段数（4.8）、<code>Summon4</code> 方向旗标（4.9）、落雷阵坠落跳数（本节）。③判符文对静止法术是否有效，先看它挂在哪个事件上：挂碰撞 / 位移的空转，挂时间 / 伤害结算的照常生效。详见 落雷阵逆向分析.md 7.7。</div>
 
 <h2 id="s5">5. Mono 残留轨对照</h2>
 <p><code>SpellBase</code> 扫 Enhance 时同样：<code>rebounceTime += int1</code>，<code>reboundAddTime = Max(float1)</code>。和 ECS 叠加规则一致。</p>

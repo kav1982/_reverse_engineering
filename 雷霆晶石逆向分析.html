@@ -325,7 +325,7 @@ return Player;</pre>
 
 <h3>3.2 销毁时：只认颜色</h3>
 <p><code>SpellDestroyEventJob</code> 在带 <code>SpellDestroyTag</code> 的法术实体上调用 <code>CheckFallThunderDamage</code>。名字带 Fall，实际是<strong>通用销毁</strong>，不是坠落专用。</p>
-<p>排除三种自己管落雷的法术：<code>LaserBeam</code>（1004）、<code>DaveHarpoons</code>（4024）、<code>BiAnLethalBlade</code>（4019）。</p>
+<p>排除三种自己管落雷的法术：<code>LaserBeam</code>（<b>4014</b>，激光晶石 / 棱镜核心，<b>不是</b>主动飞弹「激光」1004）、<code>DaveHarpoons</code>（4024）、<code>BiAnLethalBlade</code>（4019）。见 <code>SpellDestroyEventJob.cs</code> L127–131。</p>
 <pre class="code">if (ColorType != Thunder) return;
 GetEnemyEntityInRange(pos, ThunderHitRadius, containsBrittleness: true);
 Append Spell3101NewThunderHitData;          // 特效，没搜到敌人也播
@@ -336,6 +336,7 @@ foreach enemy: Append TakeDamageInfo;</pre>
   <li>门闩只有 <code>ColorType</code>。<strong>不读</strong> <code>ThunderHitChance</code>，也不看伤害比是否 &gt; 0。</li>
   <li><code>containsBrittleness: true</code> 里的「脆弱物」<strong>包含法术实体</strong>：<code>RemoveCannotAttackSpell</code> 只保留<b>异阵营</b>的滚球 <code>1002</code> 与蝴蝶 <code>1003</code>，其余法术实体一律剔除。所以落雷会打掉敌方的滚球/蝴蝶，但<b>打不到自己的</b>（<code>DTool.IsSameCamp</code> 守卫；Mono 侧 <code>SpellBase</code> L1636 同样有 <code>!IsSameCamp(this)</code>）。</li>
   <li>一发多弹的法术是<b>每个实体销毁时各落一次雷</b>——Lv3 蝴蝶 5 只就是 5 次。见 蝴蝶逆向分析.md 7.10。</li>
+  <li>反过来，<b>落雷次数只看实体数，不看命中次数</b>：落雷阵 <code>1018</code> 每 0.25 s 结算一次、5 秒约 20 次命中，但整发只有<b>一个</b>实体，只落 <b>1 次</b>雷；配分裂 Lv3（8 个子光环）才有 1+8 = <b>9 次</b>（子体 <code>ColorType</code> 由 <code>ToSplit</code> 复制快照<b>不重掷</b>，是「30% 九发全响 / 70% 一发不响」）。叠上染色骰后，Lv3 裸装期望增伤 <code>30% × (88×3.2) = 84.5</code>，对单目标 5 s 的 704 只有 <b>+12%</b>。两个 1018 特有细节：落雷用 <code>Damage.Calculate() × ThunderHitDamageRatio</code> 直接覆写，<b>不乘 DamageInterval</b>（Lv3 = 281.6 满额）；且走 <code>containsBrittleness: true</code>，<b>落雷能打碎木桶而光环本体不能</b>。见 落雷阵逆向分析.md 7.15。</li>
   <li>伤害：<code>Damage.Calculate()</code> × 伤害比。这是发射快照里的最终伤害（含伤害强化加算、法杖乘算），<strong>不是</strong>表 <code>damage</code> 原值。DPS 间隔伤不会再乘 <code>DamageInterval</code>。</li>
   <li><code>CostPenetrate = false</code>。<code>CostRefraction</code> 走默认 <strong>true</strong>：销毁当帧实体若还在，圈内每个目标都可能尝试折射。</li>
   <li><code>info</code> 带着原弹的整包 <code>ElementEffect</code>。<code>UnitPropertyJob</code> 在 <code>damage &gt; 0</code> 时会<strong>再挂</strong>粘/毒/冰/烧/虚空。圈里没被母弹打到的敌人，也可能被这记落雷上元素。</li>
@@ -353,7 +354,7 @@ foreach enemy: Append TakeDamageInfo;</pre>
   <tr><td>坠落落地后销毁</td><td>落地点（坠落附加圈是另一套伤）</td></tr>
   <tr><td>召唤物实体销毁</td><td>死亡位置（配置允许挂到召唤上）</td></tr>
 </table>
-<p>穿透还没耗尽时实体还活着，<strong>不会</strong>提前落雷。激光 1004 被 Job 排除，槽位上的 3101 <strong>不会</strong>走这套销毁落雷。</p>
+<p>穿透还没耗尽时实体还活着，<strong>不会</strong>提前落雷。<b>更正</b>：激光 1004 <b>不在</b>排除名单（名单里是 <code>LaserBeam</code> 4014），槽位上的 3101 <strong>会</strong>走这套销毁落雷，且激光 0.2 s 后必然销毁 → 雷色激光 100% 触发。见 激光逆向分析.md §7.10。</p>
 
 <h2 id="s4">4. 和其它法术的关系</h2>
 <p>只写会改雷霆行为的交互。齐射 / 多重 / 伤害强化只改发射或 <code>Damage.Calculate()</code> 底数，不改门闩，不列。</p>
@@ -408,7 +409,7 @@ foreach enemy: Append TakeDamageInfo;</pre>
 <h3>4.8 旁路：复用同一包数据，不走销毁 Job</h3>
 <table>
   <tr><th>对象</th><th>是否复用 <code>ThunderHit*</code></th><th>触发</th></tr>
-  <tr><td>激光 1004</td><td>烘焙了，但销毁 Job <strong>排除</strong> <code>LaserBeam</code></td><td>这套圈伤基本不触发。有 Chance 且颜色不是 Player 时会强行涂雷（<code>Random.Range(0,1)==0</code> 对整数恒真），只改外观</td></tr>
+  <tr><td>激光 1004</td><td>复用 <code>CheckFallThunderDamage</code>，<strong>不是</strong>旁路</td><td><b>更正</b>：排除项是 <code>LaserBeam</code> <b>4014</b>，激光 1004 不在名单里，走 3.2 的通用销毁路径；0.2 s 后必然销毁 → 雷色时 100% 触发，圈心在折线远端 / 命中点</td></tr>
   <tr><td>激光晶石 4014</td><td>半径 / 伤害比用 Element；概率用整杖 <code>Max(float3)</code> 写入 <code>ThunderStoneRate</code></td><td>命中帧 <code>NextInt(100) &lt; Rate</code> 时 <code>GenerateThunderDamage</code>（<strong>不看</strong> <code>ColorType</code>）</td></tr>
   <tr><td>鱼叉 4024 / 彼岸刃 4019</td><td>复用 <code>CheckFallThunderDamage</code></td><td>销毁 Job 排除它们，改在自己的捕捉 / 斩击 Job 里调</td></tr>
   <tr><td>符文锤 4013</td><td>复用同一函数</td><td><strong>不在</strong>排除列表：落地和命中（0.5s CD）自己调一次，实体销毁时通用 Job 可能再来一次</td></tr>
@@ -451,7 +452,7 @@ foreach enemy: Append TakeDamageInfo;</pre>
   <tr><td><code>SpellTools.GetSpellColor</code> / <code>ToSpellColor</code> / <code>ToSpellId</code></td><td>雷色先判定；雷晶石不进随机色池；雷色映射 <code>31010+level</code></td></tr>
   <tr><td><code>ShootSpellUtils.SipToSSP</code></td><td>快照半径（含范围三层）/ 伤害比；丢掉 Chance</td></tr>
   <tr><td><code>ShootSpellUtils.ApplyElementSpell</code></td><td>彩虹 / 随机色再灌一张晶石</td></tr>
-  <tr><td><code>SpellDestroyEventJob</code></td><td>通用销毁调 <code>CheckFallThunderDamage</code>；排除 1004 / 4024 / 4019</td></tr>
+  <tr><td><code>SpellDestroyEventJob</code></td><td>通用销毁调 <code>CheckFallThunderDamage</code>（L127–131）；排除 <b>4014</b> / 4024 / 4019（<b>不含</b>激光 1004）；每实体各调一次</td></tr>
   <tr><td><code>SpellTools.CheckFallThunderDamage</code></td><td>只认雷色；搜敌；改 AbilityType；<code>Damage.Calculate×比</code></td></tr>
   <tr><td><code>SpellTools.GenerateThunderDamage</code></td><td>旁路：不认颜色，底数由调用方给</td></tr>
   <tr><td><code>Spell3101ThunderCrystalSystem</code></td><td>消费 <code>Spell3101NewThunderHitData</code>，粒子 + SE</td></tr>

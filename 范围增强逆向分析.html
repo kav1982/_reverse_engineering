@@ -322,6 +322,7 @@ Calculate() = (Base + FallRadius) * (1 + AddRatio) * MulRatio + Extra</pre>
   <tr><td>闪电链牵引</td><td>间接吃</td><td>从宿主抄半径比</td><td>链自己不重算</td></tr>
   <tr><td>遗物自己的圈</td><td><strong>不吃这张卡</strong></td><td><code>ExtraRadiusOfInfluence(isSpell: false)</code></td><td>远程射击遗物也不进这条</td></tr>
   <tr><td>弹道射程</td><td><strong>不吃</strong></td><td><code>speed × duration</code></td><td>文案是影响半径，不是飞行距离</td></tr>
+  <tr><td>有「单次命中上限」的法术（落雷阵 <code>1018</code>）</td><td><strong>吃，但收益在上限处截断</strong></td><td>圈照常放大，可 <code>int1</code>（3/5/7）限死一次结算最多打几个：<code>min(Int1, count)</code></td><td>圈里站 15 个也只打 <code>int1</code> 个，且取 <code>OverlapSphere</code> 返回顺序的前几个。<b>不提高单目标 DPS</b></td></tr>
   <tr><td>激光 / 分解射线</td><td>看用法</td><td>部分折线 / 落地探测用 <code>Calculate()</code></td><td><code>radius=0</code> 时这段仍是 0</td></tr>
   <tr><td>龙息 / 超新星</td><td>吃，卡面可能不显示</td><td>龙息自己用 <code>AddRatio</code> 算火线最长距和落地圈</td><td>提示框对这两种跳过半径行</td></tr>
 </table>

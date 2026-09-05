@@ -492,9 +492,10 @@
   <tr><td>魔力金币</td><td>抄活体 <code>CoinUseCount</code>、<code>BuffRatio</code></td></tr>
   <tr><td>次元旅行者</td><td>重力清 0，抄活体坠落速度与加成伤 / 持续</td></tr>
   <tr><td>破法者</td><td>抄 <code>Int3</code>；非坠落把 <code>AroundCenter</code> 设为母弹位置</td></tr>
-  <tr><td>雷霆光环</td><td>重力与坠落速度清 0</td></tr>
+  <tr><td>落雷阵 <code>1018</code></td><td>重力与坠落速度清 0（旧表作「雷霆光环」，已更正为游戏内名）</td></tr>
 </table>
 <p>分裂发生在母弹销毁当帧。悬停法术要等 <code>HoverTimer</code> 走完才销毁，因此「悬停 + 分裂」的分裂点在悬停结束，不是飞行刚停（见《悬停逆向分析.md》）。</p>
+<p class="note"><b>落雷阵 <code>1018</code>：母光环消失的瞬间，在它半径圈的边缘均匀铺开 N 个子光环。</b>子体半径 <code>3.2 × 0.8 = 2.56</code>、每 tick 每目标 <code>88 × 0.33 × 0.25 = 7.26</code>，<code>Duration</code> 满额重开 5 秒、<code>Int1</code> 不打折仍是 7。Lv3 + 分裂 Lv3（8 个）满命中理论总伤 <code>8 × 20 × 7 × 7.26 = 8131</code>，母体 3080 的 2.6 倍。另：雷霆晶石在销毁时落雷，所以「分裂 Lv3 + 雷霆晶石」= 母体 1 次 + 子体 8 次 = <b>9 次落雷</b>。</p>
 
 <h2 id="s11">11. Mono 残留轨对照</h2>
 <p><code>SpellBase.TrySplit</code> / <code>CreateSplitSpell</code> 仍可能被分裂弹或旧路径走到。与 ECS 的差异：</p>

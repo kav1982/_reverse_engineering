@@ -418,6 +418,16 @@ affect_FrozenTime = time * frozenTimeRatio;</pre>
 Lv3 蝴蝶 5 只全中一个目标 → 只有 1 份生效，另外 4 份白给</div>
 <p class="note">不是 bug，是 <code>FronzenState == Normal</code> 这道门的必然结果。构筑含义：寒霜晶石配<b>单发高伤</b>弹优于配多发弹；多发弹应改配毒液（层数按只数倍增）。见 毒液晶石逆向分析.md 与 蝴蝶逆向分析.md 8.2。</p>
 
+<h3>高频结算法术：落雷阵 1018 是极端案例</h3>
+<p>落雷阵是 <code>isDPS</code> 的原地光环（<code>DPSDamageInterval = 0.25</code>、<code>duration = 5</code>），一个实体对同一目标发起 <b>20 次</b>上冻尝试，其中只有 1~2 次能过 <code>Normal</code> 门：</p>
+<table>
+  <tr><th>寒霜</th><th>小怪实际冻结</th><th>周期（冻结 + 2 秒免疫）</th><th>5 秒内生效次数</th><th>浪费率</th></tr>
+  <tr><td>Lv1</td><td>1.5</td><td>3.5</td><td><b>2</b></td><td>90%</td></tr>
+  <tr><td>Lv2</td><td>3</td><td>5</td><td><b>1</b></td><td>95%</td></tr>
+  <tr><td>Lv3</td><td>6</td><td>8</td><td><b>1</b></td><td>95%</td></tr>
+</table>
+<p>同一个载体上毒液晶石是 20 次全叠（Lv3 = 80 层），寒霜是 20 次废 18~19 次，两张晶石结论完全相反。免疫期那 2 秒<b>不乘</b> <code>frozenTimeRatio</code>，所以 <code>ratio</code> 低的 Boss 周期反而更短、次数更多，但每次只冻零点几秒。详见 落雷阵逆向分析.md 7.13 / 7.14。</p>
+
 <h2 id="s7">7. 证据索引</h2>
 <table>
   <tr><th>文件</th><th>作用</th></tr>

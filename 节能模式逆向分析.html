@@ -242,6 +242,21 @@
 </table>
 <p>合成 Lv1→Lv2：<strong>伤 / 持续不变</strong>，只把耗蓝从 ×60% 换成 ×50%，并省 1 格。合成 Lv2→Lv3：伤 / 持续惩罚变轻，耗蓝再降。两张低级卡连乘会把伤 / 持续打得比一张 Lv3 狠得多。</p>
 
+<h3>2.4 效率比：三轴里有几项砍到总伤</h3>
+<p>效率比 = <strong>总伤系数 ÷ 耗蓝系数</strong>，大于 1 才划算。伤害和持续<strong>都可能砍到总伤</strong>，所以要先判「总伤是否与 <code>Duration</code> 成正比」。</p>
+<table>
+  <tr><th>法术类型</th><th>吃几项</th><th>总伤系数（Lv1 / Lv2 / Lv3）</th><th>耗蓝系数</th><th>效率比</th></tr>
+  <tr><td>一次性飞弹（<code>duration</code> 只是命中窗口）</td><td>只吃伤害</td><td>×0.75 / ×0.75 / ×0.80</td><td>×0.60 / ×0.50 / ×0.40</td><td class="ok"><b>1.25 / 1.50 / 2.00</b></td></tr>
+  <tr><td><code>isDPS</code> 且靠 <code>duration</code> 计时（总伤 = 每秒伤害 × 时长）</td><td><strong>伤害 + 时长，乘法叠加</strong></td><td><strong>×0.5625 / ×0.5625 / ×0.64</strong></td><td>×0.60 / ×0.50 / ×0.40</td><td><b>0.94</b> / 1.13 / 1.60</td></tr>
+</table>
+<p><strong>Lv1 插在 DPS 法术上是负收益</strong>（效率比 0.94：总伤掉 44%，蓝只省 40%），Lv2 勉强打平，只有 Lv3 明显划算。这是节能模式全表唯一会算出效率比 &lt; 1 的场景。</p>
+<ul>
+  <li>取证实例：<strong>落雷阵 <code>1018</code></strong>（<code>isDPS=true</code>、<code>DPSDamageInterval=0.25</code>、<code>duration=5</code>）。Lv3 满命中总伤 3080，插 <code>[节Lv1]</code> 后时长 5→3.75 s、结算 20→15 次，总伤 <strong>1733</strong>，蓝耗只从 56 降到 33.6。详见 落雷阵逆向分析.md 7.9</li>
+  <li>吃不到持续那一项的：<code>SpellSystem.UpdateDuration</code> 的例外名单（激光 <code>1004</code> / 符文锤 <code>4013</code> / 激光晶石 <code>4014</code> / 彼岸刃 / 奥术屏障 / 高压水流 <code>1019</code> / 鱼叉）不读 <code>Duration</code>，回到 1.25 / 1.50 / 2.00</li>
+  <li>坠落形态同样只吃伤害：<code>UpdateDuration</code> 有 <code>!IsFallSpell</code> 守卫</li>
+  <li>龙息 <code>1025</code> 单独算：耗蓝底数本身含 <code>GetSpellDuration()</code>，时长因子在分子分母抵消，效率比回到 1.25 / 1.50 / 2.00（总伤是否与时长成正比未核实）</li>
+</ul>
+
 <h2 id="s3">3. 三轴怎么叠（核心）</h2>
 <p>三轴都是 <code>MulRatio</code>，内部 <code>mulRatio *= val</code>，初值 1。同 <code>abilityType</code> 出现几次乘几次。无上限、无「只取最高级」。</p>
 
@@ -278,6 +293,7 @@ case AroundMouse:              AddBase(float2);      // 寻踪</pre>
   <tr><th>误解</th><th>实际</th></tr>
   <tr><td>两张 Lv1 伤变成 ×0.75+0.75</td><td>连乘成 ×0.5625</td></tr>
   <tr><td>Lv2 比 Lv1 伤更低</td><td>伤 / 持续相同，只是更省蓝</td></tr>
+  <tr><td>节能一定省蓝，插了不亏</td><td>对 <code>isDPS</code> 且靠 <code>duration</code> 计时的法术，总伤 ×0.5625 而蓝只 ×0.60，Lv1 效率比 <strong>0.94</strong> 是负收益（见 2.4）</td></tr>
   <tr><td>持续也会打折悬停第二段</td><td>悬停走 <code>HoverDuration</code>，不进 <code>GetSpellDuration</code></td></tr>
   <tr><td>耗蓝打折会进快照、子弹再扣一次</td><td>只在开火扣蓝用</td></tr>
   <tr><td><code>float1</code> / <code>int1</code> 是隐藏的速度或冷却</td><td>配置非零，运行时无引用</td></tr>
@@ -323,6 +339,8 @@ case AroundMouse:              AddBase(float2);      // 寻踪</pre>
 <table>
   <tr><th>机制</th><th>吃不吃</th><th>怎么吃</th></tr>
   <tr><td>弹幕寿命（<code>DurationTimer >= Calculate()</code>）</td><td>吃</td><td>表持续 + AddBase 后乘 <code>MulRatio</code></td></tr>
+  <tr><td><code>isDPS</code> 法术的<strong>总伤</strong>（落雷阵 <code>1018</code> 等）</td><td><strong>双吃</strong></td><td>结算次数随时长被砍，再乘伤害轴折扣，两个 <code>MulRatio</code> 相乘；见 2.4</td></tr>
+  <tr><td>寿命被 Job 短路的法术（激光 / 符文锤 / 激光晶石 / 高压水流 等）</td><td><strong>不吃</strong></td><td><code>UpdateDuration</code> 例外名单，不读 <code>Duration</code>，只被砍伤害</td></tr>
   <tr><td>时长强化 <code>3103</code></td><td>吃</td><td><code>AddBase</code> 先加秒，再被节能乘</td></tr>
   <tr><td>寻踪 <code>3010</code> 的 <code>float2</code></td><td>吃</td><td><code>GetSpellDuration</code> <code>AddBase</code></td></tr>
   <tr><td>自由公转 <code>3117</code> 的 <code>float3</code></td><td>吃</td><td>同上</td></tr>
@@ -366,6 +384,8 @@ case AroundMouse:              AddBase(float2);      // 寻踪</pre>
   <tr><td>公转 <code>3009</code></td><td>自己的 <code>float1</code> 进 Extra，不乘</td></tr>
   <tr><td>寻踪 <code>3010</code> / 自由公转 <code>3117</code></td><td>进 AddBase 的秒要乘</td></tr>
   <tr><td>主观缓时 <code>3128</code></td><td>换来的秒进 AddBase，要乘</td></tr>
+  <tr><td>落雷阵 <code>1018</code> 等 <code>isDPS</code> 主动法术</td><td>伤害轴 × 持续轴 = 总伤双重打折，Lv1 效率比 0.94（见 2.4）</td></tr>
+  <tr><td>坠落 <code>3119</code></td><td>坠落实体不跑 <code>UpdateDuration</code>，持续那一项作废，只剩伤害折扣</td></tr>
   <tr><td>多重 <code>3002</code> / 分裂 <code>3013</code> / 过载 <code>3123</code></td><td>耗蓝同开关连乘</td></tr>
   <tr><td>闪电链 <code>3007</code> / 生命线 <code>3110</code></td><td>只吃自己左边的节能</td></tr>
   <tr><td>魔能升阶 <code>3126</code></td><td>抬这张卡的等级（Lv1→Lv2 伤/持续不变）</td></tr>

@@ -281,6 +281,7 @@ return int2 * (N - 1);</pre>
 <p>开火锥角：<code>cone = (主动.angle + extraScatter) × finalScatterRatio</code>。默认每发独立随机 <code>±cone/2</code>；法杖均分被动则按本枪全部 <code>SpellShootInfo</code> 均分最大锥角。</p>
 <p><code>SipToSSP</code> 另写一份快照 <code>Config.Scatter</code>（再加法杖、再乘「站定专注」一类遗物），<strong>小于 0 钳成 0</strong>。发射方向用的是 <code>extraScatter</code> 锥，不是事后改这份快照。</p>
 <p>同一组 <code>N=3</code>、齐射 Lv1：散射 <strong>+20°</strong>。魔法弹自身 <code>angle=0</code> 时，随机锥是 ±10°。</p>
+<p class="note">偏角只写进 <code>shootDirection</code> → <code>MovementComponentData.Direction</code>，所以<strong>方向没意义的法术对散射恶化免疫</strong>。落雷阵 <code>1018</code>（<code>angle=0</code>、<code>shootCount=1</code>、<code>speed=0</code>）锥角照算，但 <code>Direction × Speed = 0</code>、结算只读 <code>Position</code> 与 <code>Radius</code>，齐射对它是<strong>纯正收益</strong>（容量 + 蓝耗折扣照拿）；蝴蝶 <code>1003</code>（<code>angle=90</code>）则是 110° 锥、每只 ±55°，散布明显恶化。例外：落雷阵插坠落后 <code>Direction</code> 变成第一跳方向，且坠落分支改的是瞄准点（<code>Target += 随机方向 × 锥角 × 0.06</code>），免疫只对光环形态成立。</p>
 
 <h3>3.4 开火：一组同时打，无间隔</h3>
 <p><code>TryShoot</code>：蓝够 → 扣一组蓝 → <code>Shoot</code> → <code>EnterNextGroup</code>。组内每张卡各自 <code>ApplySpellShootDataEffect</code> + <code>SipToSSP</code>。齐射<strong>不写</strong> <code>multiShootGap</code>，几发在同一帧生成。</p>
