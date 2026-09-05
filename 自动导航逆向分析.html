@@ -62,7 +62,7 @@
 <body>
 <header>
   <h1>自动导航 · Spell3011</h1>
-  <p>Enhance 符文 · ID 30111–30113 · 以 float1°/米跟踪目标 · 轨道类右优先，卡面「随机」与代码不符</p>
+  <p>Enhance 符文 · ID 30111–30113 · 以 float1°/米跟踪目标 · 轨道类右优先，卡面「随机」与代码不符 · 回旋镖 33% 只覆盖 ChaseEnemy，见《回旋之刃逆向分析.md》</p>
 </header>
 <main>
 
@@ -243,7 +243,7 @@ else
 <table>
   <tr><th>ECS 另有分支</th><th>和通用的差别</th></tr>
   <tr><td>流星</td><td><code>max(速度, 50) × 角速度 × dt × 5</code></td></tr>
-  <tr><td>回旋镖</td><td>寿命前 33% 才追敌，之后回施法者</td></tr>
+  <tr><td>回旋镖</td><td><strong>只覆盖 ChaseEnemy。</strong> <code>Boomerang_ChaseTarget</code>：寿命前 33% 追敌，之后 lerp 回射击者。ChaseMouse 同样 33% 切鼠标→主人；ChaseOwner 前 33% 也朝主人（转向公式不同）；<strong>Normal 无 33%，第 0 帧就开始弯回</strong>。详见《回旋之刃逆向分析.md》3.1–3.3</td></tr>
   <tr><td>审判之刃 / 彼岸刃 / 鬼火 / 召唤4</td><td>自管何时调用追敌</td></tr>
   <tr><td>维度旅者</td><td>生成时 <code>ChaseRotateSpeed × 0.3</code></td></tr>
   <tr><td>诡雷</td><td>生成后 <code>ChaseRotateSpeed × 0.5</code></td></tr>

@@ -166,6 +166,7 @@
     <p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
     <p>玩家施法主路径是 ECS。Mono <code>SpellBase</code> 叠加上限与 ECS 一致，个别法术把秒数折进 <code>duration</code>，文末单独对照。</p>
     <p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》，槽位解析骨架见《伤害强化逆向分析.md》，坠落短路见《坠落逆向分析.md》，第二段结束才分裂见《分裂逆向分析.md》，悬停圈乘半径见《范围增强逆向分析.md》。</p>
+    <p>第 8 节已更正：回旋之刃不是「自管悬停段」，回收后走 4.1 原地锁死。详见《回旋之刃逆向分析.md》3.5 / 7.4。</p>
   </div>
 </header>
 
@@ -374,6 +375,7 @@ valueRW.DurationTimer += DeltaTime;   // 坠落 / 激光族：只加 Duration，
 <table>
   <tr><th>机制族</th><th>走不走 4.1</th><th>怎么走</th><th>边界</th></tr>
   <tr><td>通用导弹（魔法弹等）</td><td><strong>走</strong></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code></td><td>命中且穿透耗尽会直接销毁</td></tr>
+  <tr><td>回旋之刃 <code>1022</code></td><td><strong>走</strong></td><td>同通用导弹。<code>Spell1022Job</code> 只在回收时读 <code>HoverDuration</code> 决定后坐力，然后把 <code>DurationTimer</code> 拉满，位移仍走 4.1 原地锁死</td><td>公转不回收；坠落回收只停脑不停掉。详见《回旋之刃逆向分析.md》7.4</td></tr>
   <tr><td>蝴蝶 <code>1003</code></td><td><strong>走</strong></td><td>同通用导弹。悬停前置分支在 <code>switch (movement.Type)</code> 之前，专属 <code>Butterfly_Common</code> 悬停期根本不被调用——原地不动、不追踪</td><td>与自身减速 Job 有一处理论竞态，见 4.3</td></tr>
   <tr><td>落雷阵 <code>1018</code></td><td><strong>走</strong>，且<b>悬停期继续全速输出</b></td><td><code>Duration</code> 用尽 → <code>Speed=0</code> → 加 <code>HoverTimer</code>，实体不销毁；而 <code>Spell1018Job</code> 的查询与 <code>Execute</code> <strong>都不读生命周期</strong>，照样每 0.25 s 劈一次、伤害不减</td><td>全表唯一「悬停 ≡ 时长强化」；与 3103 可叠加，蓝耗不变。Lv3 裸 3080 → 悬Lv3 6160 → 时Lv3+悬Lv3 <b>9856</b></td></tr>
   <tr><td>坠落 <code>IsFallSpell</code></td><td><strong>不走</strong></td><td>只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因时长销毁</td><td>秒数仍写入快照；通用坠落活到落地再决定死活</td></tr>
@@ -527,7 +529,7 @@ Spell1003Job      覆写    @ SpellSimulationSystemGroup（每帧晚于 MoveJob�
 
 <h2 id="s8">8. 待决 / 局限</h2>
 <ol>
-  <li><strong>各法术专属 Job</strong>：流星停高、审判之刃落地伤、龙息淡出、回旋镖悬停段等，是该法术自己读 <code>HoverDuration</code> 的层，不在此穷尽。结论停在「不走 4.1 的，不要按原地锁死来做」。</li>
+  <li><strong>各法术专属 Job</strong>：流星停高、审判之刃落地伤、龙息淡出等，是该法术自己读 <code>HoverDuration</code> 的层，不在此穷尽。结论停在「不走 4.1 的，不要按原地锁死来做」。<strong>回旋之刃不在这一类</strong>：<code>Spell1022Job</code> 只在回收时读 <code>HoverDuration</code> 决定要不要后坐力，随后把 <code>DurationTimer</code> 拉满，位移走本文 4.1 原地锁死。详见《回旋之刃逆向分析.md》3.5 / 7.4。</li>
   <li><strong>巨型泡泡 ECS</strong>：只确认 Mono 把秒数加进 <code>duration</code>。ECS 侧未找到对等的 <code>Duration.Extra += HoverDuration</code>。</li>
   <li><strong>召唤物逐条</strong>：只确认 <code>Teammate3</code> / <code>Teammate51</code> / <code>SpellWorm</code> 会抄 <code>SpellHoverTime</code>，不逐召唤对寿命公式。</li>
   <li><strong>维度旅者</strong>：<code>UpdateDuration</code> 在悬停走完后，若 <code>CurrentFallSpeed &gt; 0</code> 会按下销毁。属于该法术自己的例外，未展开。</li>

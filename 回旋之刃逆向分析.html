@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回旋之刃（Spell1022 / Boomerang）逆向分析</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --paper: #fffdf8;
+    --ink: #1f2328;
+    --muted: #5c6570;
+    --line: #ddd6c8;
+    --accent: #6b3fa0;
+    --code-bg: #efeae0;
+    --note-bg: #f3eef8;
+    --th: #f0e9dc;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font: 16px/1.7 "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 28px;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 12px; line-height: 1.35; }
+  h2 { font-size: 1.28rem; margin: 2.2em 0 .7em; padding-bottom: .25em; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6em 0 .5em; }
+  p, li { color: var(--ink); }
+  a { color: var(--accent); }
+  .meta {
+    color: var(--muted);
+    font-size: .92rem;
+    border-left: 3px solid var(--accent);
+    padding: .2em 0 .2em 1em;
+    margin: 0;
+  }
+  .meta p { margin: .35em 0; }
+  nav.toc {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 0 0 28px;
+  }
+  nav.toc strong { display: block; margin-bottom: .4em; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; }
+  nav.toc li { margin: .15em 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-size: .92rem;
+    margin: .6em 0 1.2em;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: .45em .65em;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--th); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbf8f2; }
+  code {
+    font-family: Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    font-size: .88em;
+    background: var(--code-bg);
+    padding: .08em .35em;
+    border-radius: 4px;
+  }
+  .note {
+    background: var(--note-bg);
+    border: 1px solid #d8cce8;
+    border-radius: 8px;
+    padding: .7em 1em;
+    margin: .8em 0 1.2em;
+  }
+  .quote {
+    color: var(--muted);
+    border-left: 3px solid var(--line);
+    margin: .6em 0 1em;
+    padding-left: 1em;
+  }
+  pre.code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .8em 1em;
+    overflow-x: auto;
+    font: .82rem/1.5 Consolas, "Sarasa Mono SC", "Cascadia Mono", monospace;
+    margin: .6em 0 1.2em;
+  }
+  .code-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: .78rem;
+    color: var(--muted);
+    margin-bottom: .35em;
+  }
+  footer { margin-top: 3em; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <h1>回旋之刃（Spell1022 / Boomerang）逆向分析</h1>
+  <div class="meta">
+    <p>范围：仅玩家主动法术「回旋之刃」（<code>abilityType = 1022</code>，配置 ID <code>10221–10223</code>）。怪物侧 <code>Monster17</code> / <code>Monster17_Hat</code> / <code>Monster39_Sword</code> / <code>Elite6</code> 只把 <code>Boomerang</code> 列入可捕捉或可反射名单，各自是独立脚本，不在本文范围。</p>
+<p>方法：<code>SpellConfig.json</code> + 反编译 <code>Assembly-CSharp</code> 交叉验证。未标注「推测」的结论均有代码/数据直接证据。</p>
+<p>主路径：玩家施法走 <strong>ECS</strong>。位移在 <code>SpellMoveJob</code> 的四套 <code>Boomerang_*</code>；回收 / 出界 / 后坐力在 <code>Spell1022Job</code>；回收特效在 <code>Spell1022BoomerangDestroySystem</code>。Mono <code>Spell1022Boomerang</code> 为残留轨，第 9 节单独对照。</p>
+<p>配套：总览见《魔法工艺法术系统逆向报告.md》，原始数值见《法术数值总表.md》。离线可开见 <code>回旋之刃逆向分析.html</code>。</p>
+<p>本文修正了既有文档的 <strong>2 处不完整 / 偏差</strong>：《自动导航逆向分析.md》把回旋镖写成「寿命前 33% 才追敌」，漏了 Normal / ChaseMouse / ChaseOwner 三套；《悬停逆向分析.md》把「回旋镖悬停段」列成自管位移、并得出「不要按原地锁死来做」，与 ECS 实装不符。第 7 节对已逆向的 21 张增强符文做了逐一校验。</p>
+
+  </div>
+</header>
+
+<nav class='toc'><strong>目录</strong><ol><li><a href="#s1">1. 身份与定位</a></li><li><a href="#s2">2. 数值结构</a></li><li><a href="#s7">3. 核心机制：四种运动，一个回家</a></li><li><a href="#s13">4. 回收、出界、后坐力</a></li><li><a href="#s18">5. 命中与穿透</a></li><li><a href="#s22">6. 墙壁、反弹、坠落</a></li><li><a href="#s23">7. 增强符文 × 回旋之刃 逐一校验矩阵</a></li><li><a href="#s34">8. 数值算例</a></li><li><a href="#s40">9. Mono 残留轨对照</a></li><li><a href="#s41">10. 怪物侧（不展开）</a></li><li><a href="#s42">11. 与构筑相关的行为摘要</a></li><li><a href="#s43">12. 证据索引</a></li><li><a href="#s44">13. 待决 / 局限</a></li></ol>
+</nav>
+
+<h2 id="s1">1. 身份与定位</h2>
+<table><thead><tr><th>项</th><th>值</th></tr></thead><tbody><tr><td>中文名</td><td>回旋之刃</td></tr><tr><td>英文名</td><td>Boomerang Blade</td></tr><tr><td><code>abilityType</code></td><td><code>1022</code> / <code>SpellAbilityType.Boomerang</code></td></tr><tr><td>配置 ID</td><td><code>10221</code>（Lv1）/ <code>10222</code>（Lv2）/ <code>10223</code>（Lv3）</td></tr><tr><td>文案 ID</td><td>名 <code>701022x</code> / 机制 <code>711022x</code>（三级都写穿透）/ 风味 <code>7210221</code> / 短评 <code>7310221</code></td></tr><tr><td>稀有度</td><td>普通（<code>dropType=1</code>）</td></tr><tr><td><code>useType</code></td><td><code>0</code>（Missile 主动飞弹）</td></tr><tr><td><code>needActivate</code></td><td><strong>true</strong>（角色图鉴解锁后才进掉落池，见 <code>BattleData</code>）</td></tr><tr><td>槽位 / 蓝耗</td><td><code>slotCost=1</code>；<code>mpCost</code> = 9 / 11 / 15（<code>shootCount=1</code>，不均摊）</td></tr><tr><td>伤害</td><td><code>damage</code> = 16 / 32 / 64</td></tr><tr><td>自带暴击率</td><td><code>criticalChance</code> = <strong>20 / 20 / 20</strong>（<code>criticalDamageMultiplier = 2</code>）</td></tr><tr><td>自带穿透</td><td><code>int1</code> = <strong>5 / 8 / 12</strong>（总命中次数 = <code>int1 + 1</code>，见 5.2）</td></tr><tr><td>弹道</td><td><code>speed=26</code>、<code>duration=5</code>、<code>angle=0</code>、<code>knockback=7</code>、<code>recoil=1</code></td></tr><tr><td>死字段</td><td><code>float2=30</code>（<strong>专属路径全不读</strong>，见 2.2）</td></tr><tr><td>预制体</td><td>三级共用 <code>prefab=&quot;10221&quot;</code>，图标 <code>1022</code></td></tr><tr><td>合成</td><td>Lv1→Lv2→Lv3（<code>canCompound</code>：Lv1/2=<code>true</code>，Lv3=<code>false</code>）</td></tr><tr><td>售价（金币）</td><td>8 / 24 / 72</td></tr><tr><td>复杂度</td><td><code>CalculateSpellComplexity</code> 记 <strong>1</strong> 分（与魔法弹、烟花、回蓝、宾箭同档）</td></tr><tr><td>AI 射程估算</td><td>硬编码 <strong>8</strong>（不读 <code>speed × duration</code>）</td></tr></tbody></table>
+<p><strong>机制一句话</strong>：实体飞弹，飞出去之后把方向不断弯回施法者；碰到主人就回收，可附带一记后坐力。升级只加伤害和穿透。文案里的「魔法电锯」靠 Mono 周期性关碰撞盒连打同一目标——<strong>ECS 主路径没有这套重开，同一目标每个接近周期只吃一次 Enter</strong>。</p>
+<div class="note">
+  <p><strong>流程</strong></p>
+  <ol>
+    <li>扣蓝开火：<code>Penetrate.Base += Int1</code>（5 / 8 / 12）</li>
+    <li>按 <code>movement.Type</code> 分派：Normal 第 0 帧起弯回；ChaseEnemy / ChaseMouse 前 33% 追目标；ChaseOwner 前 33% 也朝主人；Rotation 外扩→满半径→收回</li>
+    <li>公转不回收、不出界。其余看距主人：≥25 拉满寿命；≤0.5 且过了 0.5s 安全期则回收</li>
+    <li>回收时无悬停 → 后坐力 <code>Direction×0.75</code> 并销毁；有悬停 → 不后坐，走通用 4.1 原地停</li>
+  </ol>
+</div><p>文案（<code>TextConfig_Spell</code>）：</p>
+<ul><li>名称 <code>7010221–7010223</code>：回旋之刃 / Boomerang Blade（三级同名）</li><li>机制 <code>7110221–7110223</code>：&gt; 法术穿透: int1</li><li>风味 <code>7210221</code>：&gt; 不要被飞向自己的回旋之刃吓到，只会攻击敌人的回旋之刃是制作魔法电锯的核心法术。</li><li>短评 <code>7310221</code>：&gt; 施放后会逐渐回到身边</li></ul>
+<p>三段都能在代码里落地，但落地位置不同：</p>
+<table><thead><tr><th>文案</th><th>对应实装</th><th>注意</th></tr></thead><tbody><tr><td>「法术穿透: int1」</td><td><code>SpellSpawnParamsProcessor</code> 把 <code>Int1</code> 加进 <code>Penetrate.Base</code></td><td>总命中 = <code>int1 + 1</code>，见 5.2</td></tr><tr><td>「不要被飞向自己的……吓到」</td><td>回收时 <code>TakeKnockback(Direction × 0.75)</code></td><td>有悬停则<strong>不</strong>后坐，见 4.3</td></tr><tr><td>「只会攻击敌人」</td><td><code>SpellSystem</code> 同阵营 / <code>IgnorePlayerSpellHitTag</code> 直接跳过</td><td>玩家和队友都不会被刃打到</td></tr><tr><td>「逐渐回到身边」</td><td>四套 <code>Boomerang_*</code> 都把方向弯回主人</td><td>Normal 从第 0 帧就开始弯，不是先直飞再折返</td></tr><tr><td>「魔法电锯」</td><td>Mono <code>CheckHitBoxState</code> 周期性关碰撞盒，制造下一次 Enter</td><td><strong>ECS 没有对等实现</strong>，见 5.3</td></tr></tbody></table>
+<h2 id="s2">2. 数值结构</h2>
+<h3 id="s3">2.1 配置表原始值（<code>assets_export/SpellConfig.json</code>）</h3>
+<table><thead><tr><th>ID</th><th>Level</th><th>damage</th><th>mpCost</th><th>criticalChance</th><th>int1</th><th>speed</th><th>duration</th><th>angle</th><th>knockback</th><th>recoil</th><th>float2</th><th>售价</th><th>可合成</th></tr></thead><tbody><tr><td>10221</td><td>1</td><td><strong>16</strong></td><td>9</td><td>20</td><td><strong>5</strong></td><td>26</td><td>5</td><td>0</td><td>7</td><td>1</td><td>30</td><td>8</td><td>true</td></tr><tr><td>10222</td><td>2</td><td><strong>32</strong></td><td>11</td><td>20</td><td><strong>8</strong></td><td>26</td><td>5</td><td>0</td><td>7</td><td>1</td><td>30</td><td>24</td><td>true</td></tr><tr><td>10223</td><td>3</td><td><strong>64</strong></td><td>15</td><td>20</td><td><strong>12</strong></td><td>26</td><td>5</td><td>0</td><td>7</td><td>1</td><td>30</td><td>72</td><td>false</td></tr></tbody></table>
+<p>规律：升级只动三样——<code>damage</code>、<code>mpCost</code>、<code>int1</code>。<code>speed</code> / <code>duration</code> / <code>angle</code> / <code>knockback</code> / <code>recoil</code> / <code>criticalChance</code> / <code>float2</code> 三级完全不变。<code>float1</code> / <code>float3</code> / <code>int2</code> / <code>int3</code> / <code>radius</code> / <code>gravity</code> / <code>upSpeed</code> / <code>summonID</code> 全 0。</p>
+<p><code>isDPS=false</code>、<code>isKeepCasting=false</code>、<code>isParentTypeSpell=false</code>、<code>isSplitSpell=false</code>、<code>needActivate=true</code>、<code>shootCount=1</code>、<code>shootIntervalAddSubRevise=0</code>、<code>coolDownAddSubRevise=0</code>。</p>
+<p><code>haveEffecforMissileSpell</code> / <code>haveEffecforSummonSpell</code> 两个字段都是 <strong>false</strong>——它们只对 <code>useType=2</code> 的强化符文有意义，主动法术这两位不被任何逻辑读取。</p>
+<p><code>DPSDamageInterval</code> 配了 0.25，但 <code>isDPS=false</code>，写入组件时 <code>DamageInterval = 0</code>，这个 0.25 是死值。</p>
+<h3 id="s4">2.2 字段语义</h3>
+<table><thead><tr><th>字段</th><th>语义</th><th>置信度</th><th>证据</th></tr></thead><tbody><tr><td><strong>int1 = 5/8/12</strong></td><td>自带穿透底数，发射时 <code>Penetrate.Base += Int1</code></td><td>高</td><td><code>SpellSpawnParamsProcessor</code> L129–132；文案 <code>711022x</code>；Mono <code>penetrateTime += spellCfg.int1</code></td></tr><tr><td><strong>speed = 26</strong></td><td>线速度。转弯时 <code>Direction</code> 不归一化，实际速率 = `\</td><td>Direction\</td><td>× Speed`</td><td>高</td><td><code>Boomerang_Common</code> L1051–1055</td></tr><tr><td><strong>duration = 5</strong></td><td>飞行段寿命。33% 窗口、公转包络、出界拉满，都读 <code>Duration.Calculate()</code></td><td>高</td><td><code>Spell1022Job</code> L172；<code>Boomerang_ChaseTarget</code> L827</td></tr><tr><td><strong>angle = 0</strong></td><td>散射锥角底数为 0 → 裸刃完全笔直出手</td><td>高</td><td>配置；<code>SpellShootData.GetSpellScatter</code></td></tr><tr><td><strong>criticalChance = 20</strong></td><td>自带暴击率（百分数），三级一样；<code>criticalDamageMultiplier = 2</code></td><td>高</td><td>配置；<code>GameConst</code> L227</td></tr><tr><td><strong>knockback = 7</strong></td><td>打敌人时的击退</td><td>高</td><td>配置；<code>SipToSSP</code> 写入 <code>Knockback</code></td></tr><tr><td><strong>recoil = 1</strong></td><td><strong>开火时</strong>法杖后坐力，走通用 <code>GetSpellRecoil</code></td><td>高</td><td><code>SpellShootData</code> L545–547</td></tr><tr><td>回收后坐力</td><td><strong>不是</strong> <code>recoil</code>。硬编码 <code>Direction × 0.75</code></td><td>高</td><td><code>Spell1022Job</code> L208</td></tr><tr><td><strong>float2 = 30</strong></td><td><strong>死字段。</strong> 专属路径全不读</td><td>高</td><td>见下</td></tr><tr><td>AI 射程</td><td>硬编码 8，不读 <code>speed × duration</code></td><td>高</td><td><code>SpellGroupAttackDistanceCalculator</code> L292–294</td></tr></tbody></table>
+<p><strong><code>float2</code> 是死字段的论证。</strong></p>
+<ol><li><code>Spell1022Job</code> / <code>Spell1022BoomerangDestroySystem</code> / 四套 <code>Boomerang_*</code> / <code>SpellSpawnParamsProcessor</code> 的 Boomerang 分支，全部不出现 <code>Float2</code>。</li><li>通用层会把配置拷进 <code>SpellConfigComponentData.Float2</code>（<code>ShootSpellUtils</code> L295），但没有任何按 <code>abilityType == Boomerang</code> 的读取点。</li><li>数字 30 对不上任何硬编码：出界距离是 <strong>25</strong>，追敌窗口是寿命的 <strong>33%</strong>，公转包络是 <strong>15% / 85%</strong>，回收半径是 <strong>0.5</strong>，安全期是 <strong>0.5s</strong>。</li><li>Mono 侧也不读 <code>spellCfg.float2</code>——出界用的是预制体字段 <code>maxDistance</code>。</li></ol>
+<p>即这个 30 是配置表里的历史残留。<strong>推测</strong>（无证据）：早期版本的出界距离或回程开始时间，后来分别被 Job 里的 <code>25f</code> 与「第 0 帧起弯回」取代。这条推测不影响任何结论。</p>
+<h3 id="s5">2.3 发射后处理只做一件事</h3>
+<pre class="code"><div class="code-bar"><span>129:132:decompiled/Assembly-CSharp/SpellSpawnParamsProcessor.cs</span></div>		_processors.Add(SpellAbilityType.Boomerang, delegate(ShootSpellUtils.SpellShootInfo info, SpellInitialParameter sip, ref SpellSpawnParams ssp)
+		{
+			ssp.ConfigComponentData.Penetrate.Base += ssp.ConfigComponentData.Int1;
+		});</pre>
+<p>不改速度、寿命、反弹、追鼠标系数。穿透从「符文 3006 写入的 <code>Penetrate.Extra</code>」之外，再叠一层 <code>Int1</code> 到底数。</p>
+<h3 id="s6">2.4 状态组件</h3>
+<p><code>Spell1022BoomerangData</code> 四个字段：</p>
+<table><thead><tr><th>字段</th><th>初值（Baker）</th><th>谁写</th><th>谁读</th></tr></thead><tbody><tr><td><code>IsInitialize</code></td><td>false</td><td><code>Spell1022Job</code> 首帧改 true</td><td>公转首帧把位置掰回圆心</td></tr><tr><td><code>IgnoreRecycleDurationTimer</code></td><td>0</td><td>每帧 <code>+= DeltaTime</code></td><td>安全期 0.5s；<code>Elite6</code> 捕捉时清零</td></tr><tr><td><code>extraLerpSpeed</code></td><td>0</td><td>三套非公转位移每帧 <code>+= 5·dt</code></td><td>lerp 系数；<code>Elite6</code> 捕捉时清零</td></tr><tr><td><code>IsRecycleByPlayer</code></td><td>false（C# 默认）</td><td>触碰主人时改 true</td><td>销毁 Job 用来决定要不要播 <code>1022_End_{色}</code></td></tr></tbody></table>
+<p>Baker 不写 <code>IsRecycleByPlayer</code>，默认 false。只有玩家回收这条路径会置真；寿命到点、撞墙、穿透耗尽的销毁都不播这套回收特效。</p>
+<h2 id="s7">3. 核心机制：四种运动，一个回家</h2>
+<p>回旋之刃<strong>走</strong> <code>SpellMoveJob</code>（和激光相反）。<code>SpellMoveJob</code> 在悬停前置分支之后，按 <code>movement.Type</code> 分派到四套专属函数。没有 <code>Boomerang</code> case 的类型会落到 <code>default</code>，但 <code>ChaseOwner</code> 与 <code>ChaseEnemy</code> 共用同一个 switch，所以自我追踪也会进 <code>Boomerang_ChaseTarget</code>。</p>
+<h3 id="s8">3.1 Normal：第 0 帧就开始弯回</h3>
+<pre class="code"><div class="code-bar"><span>1048:1056:decompiled/Assembly-CSharp/SpellMoveJob.cs</span></div>	private void Boomerang_Common(...)
+	{
+		float3 to = ((!TransformLookup.HasComponent(data.OwnerEntity)) ? (transform.Position + movement.Direction) : TransformLookup[data.OwnerEntity].Position);
+		boomerang.extraLerpSpeed += 5f * DeltaTime;
+		float t = (movement.Speed + boomerang.extraLerpSpeed) * DeltaTime * 0.05f;
+		float3 @float = math.lerp(movement.Direction, DTool.IgnoreZDir(in to, in transform.Position), t);
+		velocity.Linear = @float * movement.Speed;
+		movement.Direction = @float;
+	}</pre>
+<p>要点：</p>
+<ol><li><strong>没有「先直飞再折返」的延迟。</strong> Mono 有 <code>rollingBackStartTime</code>，ECS 没有。出手当下就开始把 <code>Direction</code> 往主人身上拉。</li><li><code>extraLerpSpeed</code> 每秒 +5，转弯越来越急。<code>t ≈ (26 + 5t) · dt · 0.05</code>，60 FPS 下首帧约 0.022，1 秒后约 0.026，2 秒后约 0.029。</li><li><strong>lerp 之后不归一化。</strong> 两个单位向量的 lerp 更短，于是 <code>velocity = Direction × Speed</code> 的实际速率小于 <code>Speed</code>。弯得越狠，飞得越慢。这是弧线回旋手感的来源之一。</li><li>主人实体没了，目标退化成「当前位置 + 当前方向」，等于沿原方向惯性飞。</li></ol>
+<p>体感上仍是「飞出去再回来」：出手方向是射击方向，<code>t</code> 很小，前零点几秒几乎照直飞；之后弧线越来越弯，最后贴向玩家。不是先到最远端再 180° 掉头。</p>
+<h3 id="s9">3.2 ChaseEnemy / ChaseOwner：寿命前 33% 追，之后回家</h3>
+<p><code>ChaseEnemy</code> 和 <code>ChaseOwner</code> 共用 <code>Boomerang_ChaseTarget</code>：</p>
+<pre class="code"><div class="code-bar"><span>822:841:decompiled/Assembly-CSharp/SpellMoveJob.cs</span></div>	private void Boomerang_ChaseTarget(...)
+	{
+		float num = (movement.IsFallSpell ? movement.OriginalSpellHorizontalSpeed : movement.Speed);
+		boomerang.extraLerpSpeed += DeltaTime * 5f;
+		GetValidChasePosition(..., out var hasTarget, out var targetPosition);
+		if (hasTarget &amp;&amp; config.DurationTimer &lt;= config.Duration.Calculate() * 0.33f)
+		{
+			// DirMoveTowards + lerp，系数是 ChaseRotateSpeed
+			...
+		}
+		else
+		{
+			float3 to = movement.UpdateSelfChasePosition(TransformLookup, data.Shooter);
+			movement.Direction = math.lerp(movement.Direction, DTool.IgnoreZDir(in to, in transform.Position), (boomerang.extraLerpSpeed + num) * DeltaTime * 0.05f);
+		}
+		velocity.Linear = movement.Direction * num;
+	}</pre>
+<p><code>GetValidChasePosition</code> 对两种 Type 的差别：</p>
+<table><thead><tr><th>Type</th><th><code>hasTarget</code></th><th>前 33% 追谁</th></tr></thead><tbody><tr><td><code>ChaseEnemy</code></td><td>当前锁敌仍可被选中，否则 <code>FindMinAngleTarget</code> 重锁</td><td>敌人</td></tr><tr><td><code>ChaseOwner</code></td><td><strong>恒 true</strong></td><td>射击者（和后 67% 同一目的地，只是转向公式不同）</td></tr></tbody></table>
+<p>33% 窗口跟 <code>Duration.Calculate()</code> 走。裸刃 5 秒 → 前 <strong>1.65 秒</strong>追；插时长强化 +2 → 前 <strong>2.31 秒</strong>追。窗口被拉长，不是固定秒数。</p>
+<p>坠落态用 <code>OriginalSpellHorizontalSpeed</code> 代替当前 <code>Speed</code>，避免坠落把水平速度改掉之后转弯系数跟着塌。</p>
+<p>《自动导航逆向分析.md》第 6 节那句「寿命前 33% 才追敌，之后回施法者」只覆盖了 <code>ChaseEnemy</code>。完整四套见本节与 7.1。</p>
+<h3 id="s10">3.3 ChaseMouse：33% 切鼠标，之后切射击者</h3>
+<pre class="code"><div class="code-bar"><span>644:653:decompiled/Assembly-CSharp/SpellMoveJob.cs</span></div>	private void Boomerang_ChaseMouse(...)
+	{
+		boomerang.extraLerpSpeed += 5f * DeltaTime;
+		float3 @float = movement.UpdateSelfChasePosition(TransformLookup, data.Shooter);
+		float num = ((config.DurationTimer / (config.Duration.Calculate() * 0.33f) &gt; 1f) ? 1 : 0);
+		float3 to = MousePosition + (@float - MousePosition) * num;
+		float3 float2 = math.lerp(movement.Direction, DTool.IgnoreZDir(in to, in transform.Position), (movement.Speed + boomerang.extraLerpSpeed) * DeltaTime * 0.05f * 1.5f);
+		velocity.Linear = movement.Speed * float2;
+		movement.Direction = float2;
+	}</pre>
+<p><code>num</code> 是 0/1 开关，不是渐变：</p>
+<ul><li>前 33%：<code>to = Mouse</code></li><li>后 67%：<code>to = 射击者</code></li></ul>
+<p>lerp 系数比 Normal 多乘 <strong>1.5</strong>，弯得更快。<code>Direction</code> 同样不归一化。</p>
+<h3 id="s11">3.4 Rotation：从圆心长出来，再收回去</h3>
+<p>公转首帧（<code>Spell1022Job</code>）把位置掰到 <code>AroundCenter</code>，速度清零。<code>SpellShootSystem</code> L395–398 在算完环绕点之后，又专门把回旋镖的生成点改回圆心——两处一起保证「从身上长出来」，而不是直接出现在圆周上。</p>
+<pre class="code"><div class="code-bar"><span>792:807:decompiled/Assembly-CSharp/SpellMoveJob.cs</span></div>	private void Boomerang_Rotation(...)
+	{
+		movement.UpdateAroundFollowAndGetAroundPositionWhenAround(TransformLookup);
+		float num = (movement.IsFallSpell ? movement.OriginalSpellHorizontalSpeed : movement.Speed);
+		float num2 = 360f / (MathF.PI * 2f * movement.AroundRadius / num) * DeltaTime;
+		movement.AroundAngle += num2;
+		...
+		float percent = GetPercent(config.DurationTimer / config.Duration.Calculate(), 0.15f, 0.85f);
+		percent = math.clamp(percent, 0f, 1f);
+		transform.Position.xy = (movement.AroundCenter + (float3)Tool2D.GetDir(movement.AroundAngle) * percent * movement.AroundRadius).xy;
+		velocity.Linear = float3.zero;
+	}</pre>
+<p><code>GetPercent(t, 0.15, 0.85)</code> 的包络：</p>
+<table><thead><tr><th>寿命进度</th><th>半径系数</th></tr></thead><tbody><tr><td>0 → 15%</td><td>0 → 1（外扩）</td></tr><tr><td>15% → 85%</td><td>1（满半径公转）</td></tr><tr><td>85% → 100%</td><td>1 → <strong>0.025</strong>（收回，不是收到 0）</td></tr></tbody></table>
+<p>角速度与普通公转相同：<code>360 / (2πr / speed) · dt</code>。位置直接写 <code>transform</code>，<code>velocity = 0</code>。<code>MoveTrigger</code> 的路程计数按弧长累加。</p>
+<p>公转<strong>不做</strong>回收、不出 25 单位的界（<code>Spell1022Job</code> 显式排除 <code>Rotation</code>）。刃一直转到寿命走完，再进通用销毁 / 悬停。</p>
+<p>公转寿命还吃 <code>Duration.Extra</code>：<code>SipToSSP</code> 在 <code>Type == Rotation</code> 时把 <code>RotationMovementInfo.extraDuration</code> 写进 Extra。公转符文 3009 的 <code>float1</code> 进的就是这个 Extra（<code>GetSpellRotationInfo</code>），Lv1 是 +4 秒 → 飞行段变成 9 秒，15% / 85% 切点跟着拉长。</p>
+<h3 id="s12">3.5 悬停期位移被通用层掐掉</h3>
+<p><code>SpellMoveJob</code> L254–258：<code>HoverTimer &gt; 0 &amp;&amp; HoverDuration &gt; 0</code> 时把 <code>Speed</code> 和 <code>Linear</code> 清零，<strong>整段 movement switch 不跑</strong>。回旋镖没有自己的悬停位移。所谓「悬停段」只是回收时读一下 <code>HoverDuration</code> 决定要不要后坐力，然后把 <code>DurationTimer</code> 拉满，之后走《悬停逆向分析.md》4.1 的原地锁死。</p>
+<p>这是对《悬停逆向分析.md》第 8 节第 1 条的更正，见文首与第 7.4 节。</p>
+<h2 id="s13">4. 回收、出界、后坐力</h2>
+<p>全部在 <code>Spell1022Job</code>。系统挂 <code>SpacialSpellSystemGroup</code>，查询要有 <code>Spell1022BoomerangData</code> + <code>PhysicsVelocity</code> + <code>Shadow_Dots</code>。</p>
+<p>每帧先把影子的旋转和缩放抄自 <code>EffectsCollectorData.Effect1</code>（刀光表现），再做生命周期。<code>DurationTimer &gt;= Duration</code> 时整段回收逻辑直接 return——寿命到点之后不再检测出界、不再碰人回收。</p>
+<h3 id="s14">4.1 0.5 秒安全期</h3>
+<pre class="code"><div class="code-bar"><span>191:194:decompiled/Assembly-CSharp/Spell1022Job.cs</span></div>	private bool IsBoomerangIgnoreRecycle(float timer)
+	{
+		return timer &lt;= 0.5f;
+	}</pre>
+<p><code>IgnoreRecycleDurationTimer</code> 从发射起累加。0.5 秒内既不出界、也不因贴着主人回收。没有这段，刃生成在玩家身上会立刻被吃掉。</p>
+<p><code>Elite6</code> 把捕捉到的回旋镖重新射出去时，会把 <code>IgnoreRecycleDurationTimer</code> 和 <code>extraLerpSpeed</code> 一起清零，等于再给一次安全期、转弯重新从 0 加速。这是怪物侧，点到为止。</p>
+<h3 id="s15">4.2 出界：水平距离 ≥ 25 就到期</h3>
+<p>过了安全期、且不是公转、主人还在：</p>
+<pre class="code"><div class="code-bar"><span>179:187:decompiled/Assembly-CSharp/Spell1022Job.cs</span></div>			float num = DTool.IgnoreZDistance(in transform.Position, in componentData.Position);
+			if (num &gt;= 25f)
+			{
+				config.DurationTimer = config.Duration.Calculate();
+			}
+			if (num &lt;= 0.5f)
+			{
+				TouchOwnerUnitCheck(...);
+			}</pre>
+<p>25 是硬编码，与配置 <code>float2=30</code>、Mono <code>maxDistance</code> 都无关。触发后只是把 <code>DurationTimer</code> 拉满，<strong>不</strong>置 <code>IsRecycleByPlayer</code>。之后走通用寿命结束：有悬停就原地停，没有就缩圈 / 销毁。出界点可以离玩家很远，悬停会停在 25 单位开外。</p>
+<h3 id="s16">4.3 碰主人：0.5 米回收</h3>
+<pre class="code"><div class="code-bar"><span>196:212:decompiled/Assembly-CSharp/Spell1022Job.cs</span></div>	private void TouchOwnerUnitCheck(...)
+	{
+		if (IsBoomerangIgnoreRecycle(data.IgnoreRecycleDurationTimer))
+		{
+			return;
+		}
+		data.IsRecycleByPlayer = true;
+		if (config.HoverDuration &lt;= 0.01f)
+		{
+			spellData.ReduceSizeWhenLifeEnd = false;
+			if (UnitLookUp.EntityExists(spellData.OwnerEntity))
+			{
+				UnitLookUp.GetRefRW(spellData.OwnerEntity).ValueRW.TakeKnockback(movement.Direction * 0.75f);
+			}
+		}
+		config.DurationTimer = config.Duration.Calculate();
+	}</pre>
+<table><thead><tr><th>条件</th><th>行为</th></tr></thead><tbody><tr><td>安全期内</td><td>什么都不做</td></tr><tr><td>过了安全期，无悬停（<code>HoverDuration ≤ 0.01</code>）</td><td>标回收、关缩圈、主人吃 <code>Direction × 0.75</code> 后坐、寿命拉满 → 当帧走销毁</td></tr><tr><td>过了安全期，有悬停</td><td>标回收、<strong>不后坐</strong>、寿命拉满 → 刃停在脚边进入 4.1 悬停</td></tr></tbody></table>
+<p>回收后坐力与配置 <code>recoil=1</code> 无关。开火后坐走通用 <code>GetSpellRecoil</code>；回家后坐是这记 0.75。方向是<strong>当前</strong> <code>movement.Direction</code>（弯回来时大致指向玩家），不是出手方向。</p>
+<p><code>IsRecycleByPlayer</code> 只在这里置真。销毁系统据此播 <code>1022_End_{ColorEnum}</code> 粒子。寿命到点、撞墙、穿透耗尽都不会走这套特效。</p>
+<h3 id="s17">4.4 坠落态回收是「停脑、不停掉」</h3>
+<p><code>UpdateDuration</code> 对 <code>IsFallSpell</code> 短路：只加 <code>DurationTimer</code>，不加 <code>HoverTimer</code>，也不因寿命销毁（《悬停逆向分析.md》4.2）。<code>TouchOwner</code> / 出界把 <code>DurationTimer</code> 拉满之后，<code>Spell1022Job</code> 提前 return，回收与出界检测停掉；刃继续按坠落位移飞，活到落地再决定死活。</p>
+<p>有悬停的坠落刃：<code>HoverDuration</code> 仍在快照里，但 4.1 走不到，回收时那次「有悬停就不后坐」仍生效。</p>
+<h2 id="s18">5. 命中与穿透</h2>
+<p>回旋之刃没有专属伤害 Job。命中走 <code>SpellSystem</code> 通用触发：只处理 <code>StatefulEventState.Enter</code>。</p>
+<h3 id="s19">5.1 同阵营免疫</h3>
+<p><code>DTool.IsSameCamp(ShooterType, Player)</code> 时，带 <code>IgnorePlayerSpellHitTag</code> 的目标直接 <code>continue</code>。玩家和队友不会被自己的刃打到。这就是风味文案「只会攻击敌人」。</p>
+<h3 id="s20">5.2 穿透次数 = <code>int1 + 1</code></h3>
+<p><code>PenetrateValue</code> 的构造把符文 3006 的次数放进 <code>Extra</code>，<code>Base</code> 起步为 0。Boomerang 处理器再 <code>Base += Int1</code>。<code>Calculate() = Extra + Base</code>。每次有效命中 <code>CostPenetrateValue()</code>：先扣 Extra，再扣 Base。<code>Calculate() &lt; 0</code> 时挂 <code>SpellDestroyTag</code>。</p>
+<p>从 N 扣到 −1 才销毁，值为 0 的那一次仍能打。因此：</p>
+<table><thead><tr><th>槽位</th><th>起始 <code>Calculate()</code></th><th>能打中的次数</th></tr></thead><tbody><tr><td><code>[回旋Lv1]</code></td><td>5</td><td><strong>6</strong></td></tr><tr><td><code>[回旋Lv2]</code></td><td>8</td><td><strong>9</strong></td></tr><tr><td><code>[回旋Lv3]</code></td><td>12</td><td><strong>13</strong></td></tr><tr><td><code>[穿Lv3(+4)] [回旋Lv1]</code></td><td>5+4=9</td><td><strong>10</strong></td></tr></tbody></table>
+<p>文案写「法术穿透: int1」按游戏惯例是「额外穿透 int1 次」，加上必有的第一次，正好对上 <code>int1 + 1</code>。</p>
+<p>撞墙且 <code>ReboundCount == 0</code> 且不能穿墙，会直接销毁（<code>SpellSystem</code> L217–243），不走穿透计数。</p>
+<h3 id="s21">5.3 ECS 没有「电锯」连打</h3>
+<p><code>SpellSystem</code> 只认 Enter，Stay / Exit 全部跳过。刃和同一个敌人保持重叠，不会再结算。</p>
+<p>Mono 用 <code>hitboxRestartInterval</code> 周期性关掉碰撞盒再打开，强制下一次 Enter，这才是「电锯」。<code>Spell1022Job</code>、通用碰撞、<code>SpellHoverDamageSystem</code>（回旋之刃 Baker 不挂 <code>SpellHoverDamageData</code>）都没有对等实现。</p>
+<p>结论：ECS 主路径上，同一目标每个接近周期只吃一次伤害。要再打它，必须先离开碰撞再进入。穿透堆的是「能再穿几个不同目标」，不是「对同一目标砍几刀」。</p>
+<p>这是本文最重要的一条 ECS / Mono 偏差，与文案「魔法电锯」对不上。代码事实确定；是否为刻意改动未定，见第 13 节。</p>
+<h2 id="s22">6. 墙壁、反弹、坠落</h2>
+<p>回旋之刃走通用墙碰与反弹，没有自己的 <code>math.reflect</code>。<code>SpellMoveJob</code> 开头处理 <code>CollisionEvent</code>：<code>ReboundCount--</code>、反射方向、耗尽则关反弹碰撞体并生成反弹特效。反弹还会 <code>Duration.Extra += ReboundAddTime</code>（《反弹逆向分析.md》）。</p>
+<p>对回旋镖的附加效果：寿命被加长 → 33% 窗口和公转包络都被拉长。反弹本身不改「弯回主人」的目标。</p>
+<p>坠落走末尾统一的 <code>Normal_Fall</code>。回旋镖不在坠落排除名单。坠落态三套非公转位移都改读 <code>OriginalSpellHorizontalSpeed</code>。落地打 <code>SpellGroundedTag</code>，之后由坠落文档那套落地伤 / 反弹 / 回收接管。</p>
+<p>范围增强对非坠落回旋镖几乎没用（<code>radius=0</code>，命中靠预制体碰撞盒）。坠落落地圆才吃半径，见 7.3。</p>
+<h2 id="s23">7. 增强符文 × 回旋之刃 逐一校验矩阵</h2>
+<p>对已逆向的 21 张增强符文逐条核对「原文档结论」与「回旋之刃实际走到的代码分支」。</p>
+<table><thead><tr><th>#</th><th>符文</th><th>abilityType</th><th>原文档结论对回旋之刃是否成立</th><th>回旋之刃实际分支</th><th>判定</th></tr></thead><tbody><tr><td>1</td><td>自动导航</td><td>3011 FollowTarget</td><td>⚠ <strong>不完整</strong></td><td>专属 <code>Boomerang_ChaseTarget</code>：前 33% 追敌，之后回家；不是通用 <code>Normal_ChaseTarget</code></td><td><strong>需回写</strong>（7.1）</td></tr><tr><td>2</td><td>加速器</td><td>3106 EnhanceSpeedValue</td><td>✓ 成立</td><td><code>Speed</code> 直接进 lerp 系数和线速度；弯得更快、飞得更远，也更容易顶到 25 出界</td><td>一致（7.2）</td></tr><tr><td>3</td><td>范围增强</td><td>3107 EnhanceRadiusRatio</td><td>✓ 成立</td><td>非坠落命中不读 <code>radius</code>；坠落落地圆才吃</td><td>一致（7.3）</td></tr><tr><td>4</td><td>时长强化</td><td>3103 EnhanceDurationValue</td><td>✓ 成立</td><td><code>Duration.AddBase</code>；33% 窗口、公转包络、5 秒飞行段一起变长</td><td>一致（7.5）</td></tr><tr><td>5</td><td>悬停</td><td>3008 SpellHover</td><td>⚠ <strong>偏差</strong></td><td>回收时只决定后坐力；位移走通用 4.1 原地锁死，不是自管悬停段</td><td><strong>需回写</strong>（7.4）</td></tr><tr><td>6</td><td>反弹</td><td>3012 Rebound</td><td>✓ 成立</td><td>通用碰撞反射；<code>ReboundAddTime</code> 拉长寿命，进而拉长 33%</td><td>一致（第 6 节）</td></tr><tr><td>7</td><td>坠落</td><td>3119 Fall</td><td>✓ 成立</td><td>走 <code>Normal_Fall</code>；回收只停脑不停掉；水平速度改读 <code>OriginalSpellHorizontalSpeed</code></td><td>一致（第 6 节）</td></tr><tr><td>8</td><td>精准施法</td><td>3105 EnhanceCriticalChance</td><td>✓ 成立</td><td><code>angle</code> 底数已是 0；暴击加在自带 20 之上</td><td>一致（7.6）</td></tr><tr><td>9</td><td>齐射</td><td>3001 Volley</td><td>✓ 成立</td><td><code>int2 × (N−1)</code> 进散射池，把「笔直出手」抵消掉</td><td>一致（7.7）</td></tr><tr><td>10</td><td>伤害强化</td><td>3102 EnhanceAttackRatio</td><td>✓ 成立</td><td><code>Damage.AddRatio</code>；每个 Enter 目标都吃满</td><td>一致</td></tr><tr><td>11</td><td>节能模式</td><td>3104 PowerSavingMode</td><td>✓ 成立</td><td><code>Damage.MulRatio</code> 与 <code>Duration.MulRatio</code> 都生效（寿命缩短会压缩 33% 窗口）</td><td>一致</td></tr><tr><td>12</td><td>分裂</td><td>3013 SpellSplit</td><td>✓ 成立</td><td>母弹第二段结束才裂；子弹重新跑完整套弯回 / 安全期</td><td>一致（7.9）</td></tr><tr><td>13</td><td>寒霜晶石</td><td>3014 Frozen</td><td>✓ 成立</td><td>每个 Enter 目标各自 <code>SetFrozen</code></td><td>一致</td></tr><tr><td>14</td><td>毒液晶石</td><td>3005 VenomCrystal</td><td>✓ 成立</td><td>每个 Enter 目标各叠 <code>int2</code> 层，<code>shootCount=1</code> 不倍增</td><td>一致</td></tr><tr><td>15</td><td>粘液晶石</td><td>3004 MucusCrystal</td><td>✓ 成立</td><td>减的是被命中单位</td><td>一致</td></tr><tr><td>16</td><td>闪电链</td><td>3007 LightningChain</td><td>✓ 成立</td><td>回旋之刃不在排除名单；每个 Enter 是一个链源</td><td>一致</td></tr><tr><td>17</td><td>雷霆晶石</td><td>3101 ThunderCrystal</td><td>✓ 成立</td><td>销毁落雷不排除 1022；玩家回收、穿透耗尽、撞墙销毁都会落</td><td>一致</td></tr><tr><td>18</td><td>奥术屏障</td><td>4012 Umbrella</td><td>✓ 成立</td><td>伞不飞；<code>GetUnusedSlotsAndType</code> 返回空</td><td>一致</td></tr><tr><td>19</td><td>蓄力模式</td><td>4004 ChargeMode</td><td>✓ 成立</td><td><code>IsChargingSpell()</code> 只认 1026/1027</td><td>一致</td></tr><tr><td>20</td><td>强制冷却</td><td>4006 ForceCoolDown</td><td>✓ 成立</td><td>法杖层；回旋之刃自己的 CD 修正为 0</td><td>一致</td></tr><tr><td>21</td><td>储魔之匣</td><td>4002 EmptyContainer</td><td>✓ 成立</td><td>法杖层，不进发射包</td><td>一致</td></tr></tbody></table>
+<p>穿透 3006 尚未单独成文，但发射链路清楚：<code>GetSpellPenetrateCount</code> 只累加 <code>abilityType == Penetrate</code> 的 <code>int1</code>（1/2/4），写入 <code>Penetrate.Extra</code>，再与 <code>Int1</code> 相加。见 5.2。</p>
+<p>以下展开非平凡项。公转 3009 / 寻踪 3010 / 自我追踪 3114 / 多重施法 3002 / 超载散射 3003 尚无独立逆向文档，只在必要处引用其代码行为。</p>
+<h3 id="s24">7.1 自动导航（3011）：不是通用追敌，是「先追再回家」</h3>
+<p>插上自动导航后 <code>movement.Type = ChaseEnemy</code>。《自动导航逆向分析.md》第 6 节把回旋镖写成「寿命前 33% 才追敌，之后回施法者」——对 <code>ChaseEnemy</code> 这一句是对的，但会让人以为：</p>
+<ol><li>所有运动类型都有 33% 窗口；</li><li>回旋镖走的是通用 <code>Normal_ChaseTarget</code>。</li></ol>
+<p>两边都不对。<code>SpellMoveJob</code> 的 <code>ChaseEnemy</code> / <code>ChaseOwner</code> switch <strong>有</strong> <code>Boomerang</code> case，走的是 <code>Boomerang_ChaseTarget</code>，不是 <code>default → Normal_ChaseTarget</code>。Normal 更是从第 0 帧就回家，根本没有 33%。</p>
+<p>和蝴蝶正好相反：蝴蝶插导航会丢掉专属位移；回旋镖插导航<strong>保住</strong>专属位移，只是把「一直弯回」改成「先追一会儿再弯回」。</p>
+<p>无敌人时 <code>hasTarget</code> 为假，当帧就走回家分支——等于退化成带 <code>extraLerpSpeed</code> 的 Normal。</p>
+<h3 id="s25">7.2 加速器（3106）：速度同时加快飞和加快弯</h3>
+<p><code>Speed</code> 出现在 lerp 系数 <code>(Speed + extraLerpSpeed) · dt · 0.05</code> 和线速度 <code>Direction × Speed</code> 两处。加速器让刃飞得更快，也让它更早拐回来。出界阈值是绝对距离 25，加速后更容易在安全期结束后顶到这根尺子，提前结束飞行段。</p>
+<p>AI 射程估算仍是 8，不吃加速器。</p>
+<h3 id="s26">7.3 范围增强（3107）：非坠落几乎无用</h3>
+<p>配置 <code>radius=0</code>。非坠落命中靠预制体碰撞盒，不读 <code>config.Radius</code>。坠落落地圆才吃范围增强（与《范围增强逆向分析.md》《坠落逆向分析.md》同一条链路）。</p>
+<h3 id="s27">7.4 悬停（3008）：只改回收后坐力，位移走 4.1</h3>
+<p><code>GetSpellHoverDuration</code> 把 <code>float1</code> 相加写入 <code>HoverDuration</code>（2/3/5，多张累加）。回旋之刃不在 <code>UpdateDuration</code> 短路名单里，飞行结束之后：</p>
+<ol><li><code>Speed = 0</code></li><li><code>HoverTimer</code> 累加到 <code>HoverDuration</code></li><li>再走缩圈 / 销毁</li></ol>
+<p><code>Spell1022Job</code> 只在 <code>TouchOwnerUnitCheck</code> 读一次 <code>HoverDuration</code>：<code>&gt; 0.01</code> 就不后坐、不关缩圈。之后仍然把 <code>DurationTimer</code> 拉满，让 4.1 接手。悬停期 <code>SpellMoveJob</code> 的前置分支会跳过全部 <code>Boomerang_*</code>，刃原地锁死。</p>
+<p>和《悬停逆向分析.md》第 8 节第 1 条的差别：回旋镖<strong>不是</strong>「不走 4.1、不要按原地锁死来做」的那一类。它走 4.1，就是原地锁死。专属逻辑只决定「回家时要不要推玩家一把」。</p>
+<p>玩家回收 + 悬停的组合：刃停在脚边，<code>IsRecycleByPlayer</code> 已置真，悬停结束销毁时仍会播 <code>1022_End</code> 粒子。</p>
+<h3 id="s28">7.5 时长强化（3103）：窗口和包络一起变长</h3>
+<p><code>GetSpellDuration</code> 对 <code>EnhanceDurationValue</code> 做 <code>AddBase(float1)</code>。回旋之刃读的是 <code>Duration.Calculate()</code>，所以：</p>
+<table><thead><tr><th>槽位</th><th>飞行段</th><th>Chase 追敌窗口（33%）</th><th>公转满半径段（15–85%）</th></tr></thead><tbody><tr><td><code>[回旋]</code></td><td>5</td><td>1.65</td><td>3.5</td></tr><tr><td><code>[时Lv1(+2)] [回旋]</code></td><td>7</td><td>2.31</td><td>4.9</td></tr><tr><td><code>[公转Lv1(+4 Extra)] [回旋]</code>（Rotation）</td><td>9</td><td>不走 Chase</td><td>6.3</td></tr></tbody></table>
+<p>节能模式的 <code>Duration.MulRatio</code> 同样压缩这些窗口。</p>
+<h3 id="s29">7.6 精准施法（3105）：散射已经是 0，只加暴击</h3>
+<p>裸刃 <code>angle=0</code>。精准施法的暴击加算叠在自带 20% 上。散射池已经是 0，这张卡改不了「出手方向」（出手方向由射击方向决定，弯回是之后的事）。</p>
+<h3 id="s30">7.7 齐射（3001）：把「笔直出手」抵消掉</h3>
+<p><code>GetSpellScatter</code> 底数是 <code>angle</code>（0），再加上 <code>GetGroupShootScatterFromVolley</code> 的 <code>int2 × (N−1)</code> 和其它卡的 <code>angle</code>。齐射让多枚刃以扇形出手，各自弯回主人。每枚有自己的安全期、出界和穿透。</p>
+<h3 id="s31">7.8 伤害强化（3102）与元素晶石</h3>
+<p><code>Damage.AddRatio</code> 作用于每一次 Enter。元素晶石（寒霜 / 毒液 / 粘液 / 雷霆）走通用命中与销毁通道，回旋之刃不在任何排除名单。雷霆在<strong>销毁</strong>时落雷，玩家回收、穿透耗尽、撞墙都会触发一次。</p>
+<h3 id="s32">7.9 分裂（3013）：子弹重新安全期、重新弯回</h3>
+<p>《分裂逆向分析.md》：子弹继承发射时的穿透次数，<code>HoverTimer</code> 重置为 0，再飞完整段 + 再悬停。回旋镖的 <code>Spell1022BoomerangData</code> 由 Baker 给默认值，子弹的 <code>IgnoreRecycleDurationTimer</code> / <code>extraLerpSpeed</code> 从 0 再计。母弹若因玩家回收销毁，分裂点在第二段结束——有悬停时是悬停走完之后。</p>
+<h3 id="s33">7.10 尚未独立成文、但会改写运动类型的卡</h3>
+<table><thead><tr><th>符文</th><th>效果</th><th>回旋之刃走到的函数</th></tr></thead><tbody><tr><td>公转 3009</td><td><code>Type = Rotation</code>；<code>float1</code> 进 <code>Duration.Extra</code></td><td><code>Boomerang_Rotation</code>；不回收、不出界</td></tr><tr><td>寻踪 3010</td><td><code>Type = ChaseMouse</code></td><td><code>Boomerang_ChaseMouse</code>；前 33% 追鼠标</td></tr><tr><td>自我追踪 3114</td><td><code>Type = ChaseOwner</code></td><td><code>Boomerang_ChaseTarget</code>；前 33% 也朝主人，转向用 <code>ChaseRotateSpeed</code></td></tr><tr><td>超载散射 3003</td><td><code>angle</code> 进同一散射池</td><td>与齐射叠加，改出手扇面</td></tr><tr><td>多重施法 3002</td><td>不在激光那种钳制名单里</td><td>多出发射次数，每发独立实体</td></tr></tbody></table>
+<p>自我追踪是这几张里最容易误读的：前 33% 和后 67% 目的地都是主人，差别只是「<code>DirMoveTowards</code> + <code>ChaseRotateSpeed</code>」对「<code>lerp</code> + <code>0.05</code>」。加上 0.5 秒安全期和 0.5 米回收，刃可能还没飞远就被吃掉。</p>
+<h2 id="s34">8. 数值算例</h2>
+<p>以下均按 60 FPS、<code>dt = 1/60</code>、玩家静止、出手方向水平向右。只算数量级，用来对照手感，不是逐帧模拟。</p>
+<h3 id="s35">8.1 裸 Lv1：伤害、穿透、寿命</h3>
+<ul><li>单次 Enter：16，暴击 20% 时 32</li><li>能打中 6 个不同目标（或同一目标 6 次离开再进入）</li><li>飞行最多 5 秒；贴玩家 0.5 米且过了 0.5 秒就会提前回家</li><li>水平离玩家 25 单位强制到期。直线理论时间 <code>25/26 ≈ 0.96s</code>，但方向一直在弯，实际很少沿直线顶到这根尺子</li></ul>
+<h3 id="s36">8.2 <code>[穿Lv3] [回旋Lv3]</code></h3>
+<ul><li>伤害 64</li><li>穿透 <code>12 + 4 = 16</code>，能打中 <strong>17</strong> 次</li><li>仍无同目标连打</li></ul>
+<h3 id="s37">8.3 <code>[时Lv1] [悬Lv1] [回旋Lv1]</code> 回收在脚边</h3>
+<ul><li>飞行段 7 秒（或更早被回收）</li><li>回到脚边：不后坐（<code>HoverDuration = 2 &gt; 0.01</code>）</li><li>原地再停 2 秒，期间 <code>Speed = 0</code>，碰撞盒还在，<strong>新进入</strong>的敌人仍会吃 Enter</li><li>悬停结束按 <code>ReduceSizeWhenLifeEnd</code> 缩圈后销毁，播 <code>1022_End</code></li></ul>
+<h3 id="s38">8.4 <code>[公转Lv1] [回旋Lv1]</code></h3>
+<ul><li><code>Type = Rotation</code>，生成点在圆心</li><li>寿命 <code>5 + 4 = 9</code> 秒</li><li>0–1.35s 外扩，1.35–7.65s 满半径转，最后 1.35s 收到 0.025 半径</li><li>9 秒内不因贴玩家回收、不因 25 单位出界</li></ul>
+<h3 id="s39">8.5 蓝耗效率（只算打满穿透、不暴击）</h3>
+<table><thead><tr><th>等级</th><th>蓝</th><th>单次伤害</th><th>满穿透次数</th><th>总伤害 / 蓝</th></tr></thead><tbody><tr><td>Lv1</td><td>9</td><td>16</td><td>6</td><td>10.7</td></tr><tr><td>Lv2</td><td>11</td><td>32</td><td>9</td><td>26.2</td></tr><tr><td>Lv3</td><td>15</td><td>64</td><td>13</td><td>55.5</td></tr></tbody></table>
+<p>升级的实质是「更疼 × 更能穿」，不是飞得更久或更快。</p>
+<h2 id="s40">9. Mono 残留轨对照</h2>
+<p><code>Spell1022Boomerang</code> 仍在工程里，实现了一套更「完整」的回旋镖。ECS 没有 1:1 搬过来。只列对玩家手感有影响的差异，不逐字段对照预制体序列化值。</p>
+<table><thead><tr><th>项</th><th>Mono</th><th>ECS</th></tr></thead><tbody><tr><td>回程何时开始</td><td><code>rollingBackStartTime</code> 之后才弯（<code>SpellNormalTransform</code>）</td><td>Normal <strong>第 0 帧</strong>就弯</td></tr><tr><td>转弯加速</td><td>预制体 <code>lerpSpeedIncreaseSpeed</code> / <code>speedLerpValue</code></td><td>写死 <code>+5/s</code>、<code>×0.05</code>（鼠标再 <code>×1.5</code>）</td></tr><tr><td>追敌 / 追鼠标窗口</td><td>预制体 <code>chaseTargetEffectDuration</code> / <code>chaseMouseEffectDuration</code>，再乘 <code>spellDurationBuffRatio</code></td><td><code>Duration × 0.33</code></td></tr><tr><td>出界</td><td>预制体 <code>maxDistance</code></td><td>硬编码 <strong>25</strong></td></tr><tr><td>安全期</td><td>预制体 <code>safeTime</code></td><td>硬编码 <strong>0.5</strong></td></tr><tr><td>回收判定</td><td>距离 ≤ <code>scale² / 2</code>（随缩放变）</td><td>硬编码 <strong>0.5</strong></td></tr><tr><td>回收后坐</td><td><code>Direction × recoil × endRecoilRatio × 法杖后坐倍率</code></td><td><code>Direction × 0.75</code>，不看法杖</td></tr><tr><td>电锯连打</td><td><code>hitboxRestartInterval</code> 关盒再开</td><td><strong>无</strong></td></tr><tr><td>公转</td><td>用 <code>fullCurve</code> 和 <code>rotateMovementDuration</code>，转完进入 hover</td><td><code>GetPercent(15%, 85%)</code> 包络，转完走通用寿命</td></tr><tr><td>穿透</td><td><code>penetrateTime += spellCfg.int1</code></td><td><code>Penetrate.Base += Int1</code>（语义对齐）</td></tr><tr><td>坠落回收</td><td>还要求 <code>Height ≤ 1</code></td><td>只停回收脑，坠落继续</td></tr><tr><td>墙</td><td><code>OnHitWallAndSolidObj</code> 空函数</td><td>走通用反弹 / 销毁</td></tr><tr><td>表现</td><td><code>Spell1022Effect</code> 按 <code>speed × bodySpriteRotateSpeedRatio</code> 转刀面</td><td>Job 只同步影子旋转；刀面转在特效预制体上</td></tr></tbody></table>
+<p>Mono 还有 <code>IOnLaunchFromUnitNotPlayer</code>：非玩家单位（如 <code>Teammate52</code>）发射时改 <code>ownerPpt</code>。ECS 用 <code>OwnerEntity</code> / <code>Shooter</code>，同一件事在生成参数里完成。</p>
+<h2 id="s41">10. 怪物侧（不展开）</h2>
+<p><code>Monster17</code> / <code>Monster17_Hat</code> / <code>Monster39_Sword</code> / <code>Elite6</code> 的名单里有 <code>SpellAbilityType.Boomerang</code>。<code>Elite6</code> 捕捉后会重置 <code>extraLerpSpeed</code> 和 <code>IgnoreRecycleDurationTimer</code>。这些是怪物自己的脚本，和玩家 1022 不是同一套 Job。本文不展开。</p>
+<h2 id="s42">11. 与构筑相关的行为摘要</h2>
+<table><thead><tr><th>想做的事</th><th>实际效果</th><th>依据</th></tr></thead><tbody><tr><td>多砍几下同一只怪</td><td>ECS <strong>做不到</strong>电锯；必须离开再进入</td><td>5.3</td></tr><tr><td>多穿几个目标</td><td>升级 <code>int1</code> 或插穿透 3006</td><td>5.2</td></tr><tr><td>刃在身上转</td><td>公转 3009：不回收、包络外扩再收回</td><td>3.4</td></tr><tr><td>先追敌再回家</td><td>自动导航：前 33% 追，之后回家</td><td>3.2 / 7.1</td></tr><tr><td>跟着鼠标甩</td><td>寻踪 3010：前 33% 追鼠标</td><td>3.3</td></tr><tr><td>停在脚边打后来的人</td><td>悬停：回家不后坐，原地锁死；新 Enter 仍结算</td><td>7.4</td></tr><tr><td>飞得更久</td><td>时长强化 / 公转 Extra / 反弹加时</td><td>7.5</td></tr><tr><td>飞得更快</td><td>加速器；也更容易 25 出界</td><td>7.2</td></tr><tr><td>扇形多刃</td><td>齐射 / 超载散射</td><td>7.7</td></tr><tr><td>落地炸</td><td>坠落；水平段仍弯回，回收只停脑</td><td>第 6 节</td></tr><tr><td>回家推自己一把</td><td><strong>不要</strong>插悬停；裸刃回收才有 <code>×0.75</code></td><td>4.3</td></tr><tr><td>加暴击</td><td>自带 20%；精准施法再加</td><td>7.6</td></tr><tr><td>当持续施法按住</td><td>不是。<code>isKeepCasting=false</code>，不在持续施法名单</td><td>2.1</td></tr></tbody></table>
+<h2 id="s43">12. 证据索引</h2>
+<table><thead><tr><th>命题</th><th>位置</th></tr></thead><tbody><tr><td>配置三级原始值</td><td><code>SpellConfig.json</code> <code>10221–10223</code></td></tr><tr><td>文案</td><td><code>TextConfig_Spell</code> <code>701022x</code> / <code>711022x</code> / <code>7210221</code> / <code>7310221</code></td></tr><tr><td><code>abilityType = 1022</code></td><td><code>SpellAbilityType.cs</code> L25</td></tr><tr><td>发射只加 <code>Int1</code> 到穿透</td><td><code>SpellSpawnParamsProcessor.cs</code> L129–132</td></tr><tr><td><code>PenetrateValue</code> 构造 / 扣减 / <code>&lt; 0</code> 销毁</td><td><code>PenetrateValue.cs</code>；<code>ShootSpellUtils.cs</code> L281；<code>SpellTakeDamageResultSystem.cs</code> L206–209、L342–344</td></tr><tr><td>穿透符文只进 Extra</td><td><code>SpellShootData.cs</code> L383–395</td></tr><tr><td>Normal 第 0 帧弯回</td><td><code>SpellMoveJob.cs</code> L1048–1056</td></tr><tr><td>Chase 33% 再回家</td><td><code>SpellMoveJob.cs</code> L822–841</td></tr><tr><td>ChaseMouse 0/1 开关</td><td><code>SpellMoveJob.cs</code> L644–653</td></tr><tr><td>ChaseOwner 恒有目标</td><td><code>SpellMoveJob.cs</code> L1065–1078</td></tr><tr><td>公转包络 15% / 85%</td><td><code>SpellMoveJob.cs</code> L792–820</td></tr><tr><td>公转生成点掰回圆心</td><td><code>SpellShootSystem.cs</code> L395–398；<code>Spell1022Job.cs</code> L158–165</td></tr><tr><td>悬停前置掐位移</td><td><code>SpellMoveJob.cs</code> L254–258</td></tr><tr><td>安全期 0.5 / 出界 25 / 回收 0.5</td><td><code>Spell1022Job.cs</code> L176–212</td></tr><tr><td>回收后坐 <code>×0.75</code></td><td><code>Spell1022Job.cs</code> L208</td></tr><tr><td>回收特效</td><td><code>Spell1022BoomerangDestroySystem.cs</code> L152–161</td></tr><tr><td>只处理 Enter</td><td><code>SpellSystem.cs</code> L193–198</td></tr><tr><td>同阵营跳过</td><td><code>SpellSystem.cs</code> L200–203</td></tr><tr><td>寿命 / 悬停 4.1</td><td><code>SpellSystem.cs</code> L266–307</td></tr><tr><td>公转 Extra 寿命</td><td><code>ShootSpellUtils.cs</code> L278；<code>SpellShootData.GetSpellRotationInfo</code> L264–279</td></tr><tr><td>时长强化</td><td><code>SpellShootData.GetSpellDuration</code> L128–149</td></tr><tr><td>散射池</td><td><code>SpellShootData.GetSpellScatter</code> L117–126</td></tr><tr><td>开火后坐</td><td><code>SpellShootData.GetSpellRecoil</code> L545–547</td></tr><tr><td>AI 射程 8</td><td><code>SpellGroupAttackDistanceCalculator.cs</code> L292–294</td></tr><tr><td>复杂度 1</td><td><code>SpellTools.cs</code> L3011–3013</td></tr><tr><td>状态四字段</td><td><code>Spell1022BoomerangData.cs</code>；Baker <code>Spell1022BoomerangAuthoring.cs</code> L11–16</td></tr><tr><td><code>Elite6</code> 重置</td><td><code>Elite6.cs</code> L669–674</td></tr><tr><td>Mono 电锯 / 延迟回程 / 后坐公式</td><td><code>Spell1022Boomerang.cs</code> L116–127、L291–309、L207–224</td></tr><tr><td>Mono 刀面旋转</td><td><code>Spell1022Effect.cs</code> L39–42</td></tr><tr><td>暴击倍率 2</td><td><code>GameConst.cs</code> L227</td></tr><tr><td>图鉴解锁才进池</td><td><code>BattleData.cs</code> L250–256</td></tr></tbody></table>
+<h2 id="s44">13. 待决 / 局限</h2>
+<ol><li><strong>ECS 丢掉电锯，是 bug 还是刻意改动？</strong> 5.3 节确认主路径只有 Enter、没有碰撞盒重开，与 Mono 和风味文案都不一致。代码事实确定，<strong>性质判定未定</strong>。需要实机验证「刃贴在精英身上持续重叠」的跳字次数是 1 还是按间隔连跳。这是本文优先级最高的待验证项。</li><li><strong><code>float2 = 30</code> 的历史含义未确认。</strong> 「死字段」有专属路径检索支撑（置信度高），「曾经是出界距离或回程时间」只是推测。若能拿到旧版本配置表或预制体默认 <code>maxDistance</code> 可以确认。</li><li><strong>公转 3009 / 寻踪 3010 / 自我追踪 3114 / 多重施法 3002 / 超载散射 3003 / 穿透 3006 尚无独立逆向文档。</strong> 本文只在必要处引用其代码行为，未做逐一校验。飞弹侧后续文档铺开时应回补，并回写第 7.10 节。</li><li><strong>坠落落地圆半径。</strong> 配置 <code>radius=0</code>，范围增强是否通过 <code>FallRadius</code> 给落地圆一个非零底数，属于坠落文档的范围。回旋之刃本身不读 <code>radius</code>。</li><li><strong><code>Direction</code> 不归一化的长期数值稳定性。</strong> 连续 lerp 会让向量越来越短，速率趋向 0。有没有隐式归一化（物理步进、其它 Job）未逐帧核对。从代码直读，弯回段会越飞越慢。</li><li><strong>自我追踪的实机手感。</strong> 前 33% 和后 67% 都朝主人，加上 0.5s 安全期，刃可能几乎不离身。未实测。</li><li><strong><code>ReduceSizeWhenLifeEnd</code> 预制体默认值。</strong> Authoring 有这个字段，1022 Baker 不改它。玩家回收无悬停时会被 Job 强制改 false；其它销毁路径是否缩圈，取决于预制体序列化值，未从资源里核对。</li><li><strong>系统组帧序。</strong> <code>Spell1022BoomerangSystem</code> 在 <code>SpacialSpellSystemGroup</code>，<code>SpellMoveJob</code> 在 <code>OrderLast</code>，<code>UpdateDuration</code> 在 <code>SpellSystem</code>。同一帧里「回收拉满 Duration」和「4.1 开始加 HoverTimer」的先后未做时间线核对，不影响结论，只影响「回收当帧是否还动一格」。</li></ol>
+
+<footer>由《回旋之刃逆向分析.md》转换 · 简体中文 · 可离线打开</footer>
+
+</div>
+</body>
+</html>
